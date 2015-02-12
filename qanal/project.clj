@@ -13,8 +13,8 @@
                  [org.clojure/core.async "0.1.278.0-76b25b-alpha"] ;Core Async
                  [com.novemberain/validateur "2.4.2"]       ;validation
                  ]
-  :main kasiphones.core
-  :aot [kasiphones.core]
+  :main qanal.core
+  :aot [qanal.core]
 
 
   :profiles {:dev {:dependencies [[org.slf4j/slf4j-simple "1.6.4"]]

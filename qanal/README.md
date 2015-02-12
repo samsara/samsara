@@ -1,6 +1,6 @@
-# kasiphones
+# Qanal
 
-A Clojure library designed to ... well, that part is up to you.
+A stand alone indexer that reads documents from a Kafka topic-partition and bulk indexes into Elasticsearch
 
 ## Usage
 
@@ -10,5 +10,4 @@ FIXME
 
 Copyright © 2014 FIXME
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the The MIT License (MIT).
