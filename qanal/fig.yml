@@ -1,0 +1,20 @@
+zookeeper:
+  image: wurstmeister/zookeeper
+  ports:
+    - "2181"
+kafka:
+  image: wurstmeister/kafka:0.8.1.1-1
+  ports:
+    - "9092"
+  links:
+    - zookeeper:zk
+  environment:
+    KAFKA_ADVERTISED_HOST_NAME: 192.168.1.68
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+elasticsearch1:
+    image: dockerfile/elasticsearch
+    ports:
+     - "9200:9200"
+     - "9300:9300"
