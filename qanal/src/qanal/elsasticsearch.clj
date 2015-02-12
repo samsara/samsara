@@ -1,7 +1,7 @@
 (ns qanal.elsasticsearch
   (:require [clojurewerkz.elastisch.rest :as esr]
             [clojurewerkz.elastisch.rest.bulk :as esb]
-            [kasiphones.messagecodec :as codec]
+            [qanal.messagecodec :as codec]
             [clojure.tools.logging :as log]
             [cheshire.core :as json]))
 

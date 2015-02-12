@@ -17,8 +17,8 @@
                                     :fetch-size         (* 10 1024 1024)}
                      :elasticsearch-target {:end-point "http://127.0.0.1:9200"}})
 
-(def ^:private config-validation-set (nested :kafka-source (validation-set
-                                                             (inclusion-of :auto-offset-reset :in #{:earliest :latest}))))
+(def ^:private config-validation-set
+  (nested :kafka-source (validation-set (inclusion-of :auto-offset-reset :in #{:earliest :latest}))))
 
 
 (defn valid-config? [c]
@@ -58,6 +58,7 @@
     (catch Exception e
       e)))
 
+;; TODO Need to refactor the following functions as they are very similar
 (defn- connect-to-kafka [m]
   (log/info "Using Zookeeper cluster [" (:zookeeper-connect m) "] to find lead broker")
   (let [c (result-or-exception kafka/connect-to-broker m)
@@ -70,7 +71,12 @@
         (sleep retry)
         (recur m)))))
 
-(defn- apply-consumer-offset [m]
+(defn- apply-consumer-offset
+  "Takes a map and uses the :zookeeper-connect value to connect to Zookeeper,
+   gets the consumer offset that is associated to the given group-id
+   and then returns the given map with the offset associated with key :offset.
+   Note: if there is no consumer offset, :offset will have nil value"
+  [m]
   (let [current-offset (result-or-exception kafka/get-consumer-offset m)
         retry (:connect-retry m)]
     (if-not (instance? Exception current-offset)
@@ -81,7 +87,12 @@
         (sleep retry)
         (recur m)))))
 
-(defn- apply-topic-offset [consumer m]
+(defn- apply-topic-offset
+  "Takes a SimpleConsumer and a map. It then uses the consumer to connect to the Broker and
+   gets either the earliest or latest offset for the :topic and :partition-id keys (in provided map)
+   and then returns the given map with the offset associated with key :offset.
+   Note: if there is no consumer offset, :offset will have nil value"
+  [consumer m]
   (let [current-offset (result-or-exception kafka/get-topic-offset consumer m)
         retry (:connect-retry m)]
     (if-not (instance? Exception current-offset)
@@ -92,7 +103,11 @@
         (sleep retry)
         (recur consumer m)))))
 
-(defn- set-consumer-offset [m]
+(defn- set-consumer-offset
+  "Takes a map and uses the :zookeeper-connect :topic :partition-id and :offset values to set the
+   consumer offset within zookeeper. It returns either a map (when updating offset) or string
+   (when creating new offset)"
+  [m]
   (let [zk-result (result-or-exception kafka/set-consumer-offset m)
         retry (:connect-retry m)]
     (if-not (instance? Exception zk-result)
@@ -104,7 +119,12 @@
         (recur m)))))
 
 
-(defn- apply-initial-offset [consumer m]
+(defn- apply-initial-offset
+  "Takes a SimpleConsumer and a map. It will first try to apply the Zookeeper's consumer offset to the
+   map. If this value (:offset) is nil, which signifies that the consumer offset is not existant,
+   it will then get either the :earliest or :latest offset of the actual topic-partition from the
+   partition's lead broker"
+  [consumer m]
   (let [m-consumer-offset (apply-consumer-offset m)
         consumer-offset (:offset m-consumer-offset)
         offset-retry (:auto-offset-reset m-consumer-offset)]
@@ -162,12 +182,12 @@
        (let [cfg (merge default-config (read-config-file (:config options)))]
          (when-not (valid-config? cfg)
            (exit 2 "Please fix the configuration file"))
-         cfg))))
+         (siphon cfg)))))
 
 
 
 (comment
-  (def test-config {:kafka-source {:zookeeper-connect  "localhost:49155"
+  (def test-config {:kafka-source {:zookeeper-connect  "localhost:49157"
                                    :connect-retry      5000
                                    :group-id           "Qanal"
                                    :topic "river"

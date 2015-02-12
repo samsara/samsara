@@ -8,7 +8,7 @@
 
 
 ;; TODO this should be part of clj-kafka.core namespace
-;; will remove once pull request (https://github.com/pingles/clj-kafka/pull/40) is accepted
+;; will remove once pull request (https://github.com/pingles/clj-kafka/pull/40) is part of clj-kafka release
 (extend-protocol ToClojure
   nil
   (to-clojure [x] nil))
