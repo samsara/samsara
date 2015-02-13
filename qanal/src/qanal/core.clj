@@ -60,18 +60,20 @@
     (catch Exception e
       e)))
 
-;; TODO Need to refactor the following functions as they are very similar
+(defn- continously-try [f args retry error-msg]
+  (let [result (result-or-exception f args)]
+    (if-not (instance? Exception result)
+      result
+      (do
+        (log/warn error-msg)
+        (log/warn "Exception : " result)
+        (log/warn "Will retry in " retry " milliseconds")
+        (sleep retry)
+        (recur f args retry error-msg)))))
+
 (defn- connect-to-kafka [m]
   (log/info "Using Zookeeper cluster [" (:zookeeper-connect m) "] to find lead broker")
-  (let [c (result-or-exception kafka/connect-to-lead-broker m)
-        retry (:connect-retry m)]
-    (if-not (instance? Exception c)
-      c
-      (do
-        (log/warn "Unable to connect to the Kafka Cluster due to this Exception : " c)
-        (log/warn "Will retry in " retry " millisseconds")
-        (sleep retry)
-        (recur m)))))
+  (continously-try kafka/connect-to-lead-broker m (:connect-retry m) "Unable to connect to Kafka Cluster"))
 
 (defn- apply-consumer-offset
   "Takes a map and uses the :zookeeper-connect value to connect to Zookeeper,
@@ -79,15 +81,10 @@
    and then returns the given map with the offset associated with key :offset.
    Note: if there is no consumer offset, :offset will have nil value"
   [m]
-  (let [current-offset (result-or-exception kafka/get-consumer-offset m)
-        retry (:connect-retry m)]
-    (if-not (instance? Exception current-offset)
-      (assoc m :offset current-offset)
-      (do
-        (log/warn "Unable to get the consumer offset, from Zookeeper, due to this Exception : " current-offset)
-        (log/warn "Will retry in " retry " milliseconds")
-        (sleep retry)
-        (recur m)))))
+  (let [retry (:connect-retry m)
+        error-msg "Unable to get consumer offset from Zookeeper"
+        current-consumer-offset (continously-try kafka/get-consumer-offset m retry error-msg)]
+    (assoc m :offset current-consumer-offset)))
 
 (defn- apply-topic-offset
   "Takes a SimpleConsumer and a map. It then uses the consumer to connect to the Broker and
@@ -95,30 +92,20 @@
    and then returns the given map with the offset associated with key :offset.
    Note: if there is no consumer offset, :offset will have nil value"
   [consumer m]
-  (let [current-offset (result-or-exception kafka/get-topic-offset consumer m)
-        retry (:connect-retry m)]
-    (if-not (instance? Exception current-offset)
-      (assoc m :offset current-offset)
-      (do
-        (log/warn "Unable to get the topic/partition offset, fron Kafka, due to this Exception : " current-offset)
-        (log/warn "Will retry in " retry " milliseconds")
-        (sleep retry)
-        (recur consumer m)))))
+  (let [retry (:connect-retry m)
+        args [consumer m]
+        error-msg (str "Unable to get the offset for topic->" (:topic m) " partition->" (:partition-id m) " from Kafka")
+        current-partition-offset (continously-try kafka/get-topic-offset args retry error-msg)]
+    (assoc m :offset current-partition-offset)))
 
 (defn- set-consumer-offset
   "Takes a map and uses the :zookeeper-connect :topic :partition-id and :offset values to set the
    consumer offset within zookeeper. It returns either a map (when updating offset) or string
    (when creating new offset)"
   [m]
-  (let [zk-result (result-or-exception kafka/set-consumer-offset m)
-        retry (:connect-retry m)]
-    (if-not (instance? Exception zk-result)
-      zk-result
-      (do
-        (log/warn "Unable to set the zookeeper consumer offset, due to this Exception : " zk-result)
-        (log/warn "Will retry in " retry " milliseconds")
-        (sleep retry)
-        (recur m)))))
+  (let [retry (:connect-retry m)
+        error-msg (str "Unable to set Zookeeper Consumer offset for topic->" (:topic m) " partition->" (:partition-id m))]
+    (continously-try kafka/set-consumer-offset m retry error-msg)))
 
 
 (defn- apply-initial-offset
