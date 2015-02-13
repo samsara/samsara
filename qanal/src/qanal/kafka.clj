@@ -24,7 +24,7 @@
     (log/debug "Topic Meta Data from Zookeeper -> " topic-meta-seq)
     (first (keep #(meta-data->lead-broker-data % partition-id) topic-meta-seq))))
 
-(defn connect-to-broker [{:keys [topic partition-id zookeeper-connect group-id]}]
+(defn connect-to-lead-broker [{:keys [topic partition-id zookeeper-connect group-id]}]
   (let [zookeeper-props {"zookeeper.connect" zookeeper-connect}
         kvs [:topic topic :partition-id partition-id :group-id group-id]
         brokers-seq (map #(apply assoc % kvs) (brokers zookeeper-props))
@@ -33,8 +33,7 @@
                brokers-seq "]")
     (if lead-broker
       (do
-        (log/info "Broker[" lead-broker "] is the lead broker for topic[" topic "] partition["
-                  partition-id "]")
+        (log/info "Lead broker for topic[" topic "] partition[" partition-id "] ->" lead-broker)
         (consumer (:host lead-broker) (:port lead-broker) group-id))
       (log/warn "Lead Broker NOT found for topic[" topic "] partition-id[" partition-id "] !!"))))
 

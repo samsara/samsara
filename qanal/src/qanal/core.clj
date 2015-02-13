@@ -4,25 +4,27 @@
             [clojure.tools.logging :as log]
             [qanal.kafka :as kafka]
             [qanal.elsasticsearch :as els]
-            [validateur.validation :refer [validation-set nested inclusion-of]])
+            [validateur.validation :refer [validation-set nested inclusion-of presence-of compose-sets]])
   (:gen-class)
   (:import (kafka.common OffsetOutOfRangeException InvalidMessageSizeException)))
 
-(def ^:private default-config {:kafka-source {:zookeeper-connect  "127.0.0.1:2181"
-                                    :connect-retry      5000
-                                    :group-id           "Qanal"
-                                    :topic "test"
-                                    :partition-id 0
-                                    :auto-offset-reset  :earliest ; Can only be earliest or latest
-                                    :fetch-size         (* 10 1024 1024)}
-                     :elasticsearch-target {:end-point "http://127.0.0.1:9200"}})
 
-(def ^:private config-validation-set
-  (nested :kafka-source (validation-set (inclusion-of :auto-offset-reset :in #{:earliest :latest}))))
+(def ^:private config-validator
+  (compose-sets
+    (nested :kafka-source (validation-set
+                            (presence-of :zookeeper-connect)
+                            (presence-of :connect-retry)
+                            (presence-of :group-id)
+                            (presence-of :topic)
+                            (presence-of :partition-id)
+                            (inclusion-of :auto-offset-reset :in #{:earliest :latest})
+                            (presence-of :fetch-size)))
+    (nested :elasticsearch-target (validation-set
+                                    (presence-of :end-point)))))
 
 
 (defn valid-config? [c]
-  (let [errors (config-validation-set c)]
+  (let [errors (config-validator c)]
     (if (empty? errors)
       c
       (log/warn "The configuration file has invalid values/structure : " errors))))
@@ -51,7 +53,7 @@
     (catch InterruptedException ie
       (log/warn "Sleeping Thread was interrupted : " ie))))
 
-;yuck! need to come up with a better name
+;; TODO yuck! need to come up with a better name
 (defn- result-or-exception [f & args]
   (try
     (apply f args)
@@ -61,7 +63,7 @@
 ;; TODO Need to refactor the following functions as they are very similar
 (defn- connect-to-kafka [m]
   (log/info "Using Zookeeper cluster [" (:zookeeper-connect m) "] to find lead broker")
-  (let [c (result-or-exception kafka/connect-to-broker m)
+  (let [c (result-or-exception kafka/connect-to-lead-broker m)
         retry (:connect-retry m)]
     (if-not (instance? Exception c)
       c
@@ -127,10 +129,10 @@
   [consumer m]
   (let [m-consumer-offset (apply-consumer-offset m)
         consumer-offset (:offset m-consumer-offset)
-        offset-retry (:auto-offset-reset m-consumer-offset)]
+        offset-reset (:auto-offset-reset m-consumer-offset)]
     (if (nil? consumer-offset)
       (do
-        (log/info "No Existing Consumer offset found, using " offset-retry " topic/partition offset" )
+        (log/info "No Existing Consumer offset found, using " offset-reset " topic/partition offset" )
         (let [m-reset-offset (apply-topic-offset consumer m)]
           (log/info "Offset set to RESET offset of [" (:offset m-reset-offset) "]")
           m-reset-offset))
@@ -141,7 +143,7 @@
 (defn- get-kafka-messages [consumer m]
   (let [msg-seq (result-or-exception kafka/get-messages consumer m)
         retry (:connect-retry m)
-        offset-retry (:auto-offset-reset m)]
+        offset-reset (:auto-offset-reset m)]
     (if-not (instance? Exception msg-seq)
       msg-seq
       (do
@@ -150,11 +152,11 @@
         (sleep retry)
         (cond (instance? OffsetOutOfRangeException msg-seq)
               (do
-                (log/warn "OffsetOutOfRangeException was encountered, will use the " offset-retry " topic/partiion offset")
+                (log/warn "OffsetOutOfRangeException was encountered, will use the " offset-reset " topic/partiion offset")
                 (recur consumer (apply-topic-offset consumer m)))
               (instance? InvalidMessageSizeException msg-seq)
               (do
-                (log/warn "InvalidMessageSizeException was encountered, will use the " offset-retry " topic/partition offset")
+                (log/warn "InvalidMessageSizeException was encountered, will use the " offset-reset " topic/partition offset")
                 (recur consumer (apply-topic-offset consumer m)))
               :else
               (do
@@ -176,13 +178,16 @@
           (recur c m-with-offset))))))
 
 (defn -main [& args]
-  (let [{:keys [options arguments errors ]} (parse-opts args known-options)]
-    (if errors
-       (exit 1 (parse-opt-errors->str errors))
-       (let [cfg (merge default-config (read-config-file (:config options)))]
-         (when-not (valid-config? cfg)
-           (exit 2 "Please fix the configuration file"))
-         (siphon cfg)))))
+  (let [{:keys [options errors ]} (parse-opts args known-options)
+        config-file (:config options)]
+    (when errors
+      (exit 1 (parse-opt-errors->str errors)))
+    (when (nil? config-file)
+      (exit 2 "Please supply a configuration file via -c option"))
+    (let [cfg (read-config-file config-file)]
+      (when-not (valid-config? cfg)
+        (exit 3 "Please fix the configuration file"))
+      (siphon cfg))))
 
 
 
