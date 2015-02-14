@@ -1,7 +1,7 @@
 (ns qanal.core
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.edn :as edn]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as log]
             [qanal.kafka :as kafka]
             [qanal.elsasticsearch :as els]
             [validateur.validation :refer [validation-set nested inclusion-of presence-of compose-sets]])
@@ -115,15 +115,19 @@
    partition's lead broker"
   [consumer m]
   (let [m-consumer-offset (apply-consumer-offset m)
-        consumer-offset (:offset m-consumer-offset)
-        offset-reset (:auto-offset-reset m-consumer-offset)]
+        consumer-offset (:offset m-consumer-offset)]
     (if (nil? consumer-offset)
       (do
-        (log/info "No Existing Consumer offset found, using " offset-reset " topic/partition offset" )
+        (log/warn "No Existing Zookeeper Consumer offset found for topic->" (:topic m)
+                  " partition-id->" (:partition-id m))
         (let [m-reset-offset (apply-topic-offset consumer m)]
-          (log/info "Offset set to RESET offset of [" (:offset m-reset-offset) "]")
+          (log/info "Using auto-offset-reset to set Consumer Offset for topic->" (:topic m) " partition-id->"
+                    (:partition-id m) " to [" (:offset m-reset-offset) "]")
           m-reset-offset))
-      m-consumer-offset)))
+      (do
+        (log/info "Using Zookeeper Consumer offset->" consumer-offset " for topic->" (:topic m)
+                  "partition-id->" (:partition-id m))
+        m-consumer-offset))))
 
 
 
@@ -153,18 +157,27 @@
 (defn siphon [{:keys [kafka-source elasticsearch-target]}]
   (loop [c (connect-to-kafka kafka-source)
          source-with-offset (apply-initial-offset c kafka-source)]
-    (let [msgs-seq (get-kafka-messages c source-with-offset)]
+    (let [msgs-seq (get-kafka-messages c source-with-offset)
+          topic (:topic source-with-offset)
+          partition-id (:partition-id source-with-offset)]
       (if (empty? msgs-seq)
         (do
+          (log/info "Topic->" topic " Partition-id->" partition-id " Received Msgs-> 0"
+                    " Bulked Docs->0 Bulked-time->0")
           (sleep 1000)
           (recur c source-with-offset))
         (let [bulk-stats (els/bulk-index msgs-seq elasticsearch-target)
-              last-offset (:last-offset bulk-stats)
+              {:keys [last-offset received-msgs bulked-docs bulked-time]} bulk-stats
               m-with-offset (assoc source-with-offset :offset (inc last-offset))]
+          (log/info "Topic->" topic " Partition-id->" partition-id " Received Msgs->" received-msgs
+                    " Bulked Docs->" bulked-docs " Bulked-time->" (str bulked-time " millis"))
           (set-consumer-offset m-with-offset)
           (recur c m-with-offset))))))
 
 (defn -main [& args]
+  (log/set-config! [:appenders :spit :enabled?] true)
+  (log/set-config! [:appenders :spit :rate-limit] [1 1000]) ;log maximum once a second
+  (log/set-config! [:shared-appender-config :spit-filename] "Qanal.log")
   (let [{:keys [options errors ]} (parse-opts args known-options)
         config-file (:config options)]
     (when errors

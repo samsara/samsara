@@ -2,7 +2,7 @@
   (:require [clojurewerkz.elastisch.rest :as esr]
             [clojurewerkz.elastisch.rest.bulk :as esb]
             [qanal.messagecodec :as codec]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as log]
             [cheshire.core :as json]))
 
 (defn- river-map->bulk-index-operation [river-map]
@@ -22,6 +22,8 @@
 (defn- msgs-reduction-fn [{:keys [bulk-operations] :as reduced-map} {:keys [offset] :as msg}]
   (let [bulk-op (msg->bulk-operation msg)
         updated-m (assoc-in reduced-map [:stats :last-offset] offset)
+        prev-msgs-num (get-in updated-m [:stats :received-msgs] 0)
+        updated-m (assoc-in updated-m [:stats :received-msgs] (inc prev-msgs-num))
         updated-m (assoc updated-m :bulk-operations (into bulk-operations bulk-op))]
     updated-m))
 
@@ -30,11 +32,12 @@
         bulk-operations (:bulk-operations reduced-map)
         stats (:stats reduced-map)
         els-conn (esr/connect end-point)
-        bulk-resp (esb/bulk els-conn bulk-operations)]
-    (if (:errors bulk-resp)
-      (log/warn "Failed to execute entire bulk index. Response->" bulk-resp)
-      (log/info "Bulk indexed " (count (:items bulk-resp)) " documents in " (:took bulk-resp) " millisecs"))
-    stats))
+        bulk-resp (esb/bulk els-conn bulk-operations)
+        updated-stats (assoc stats :bulked-docs (count (:items bulk-resp)))
+        updated-stats (assoc updated-stats :bulked-time (:took bulk-resp))]
+    (when (:errors bulk-resp)
+      (log/warn "Failed to execute entire bulk index. Response->" bulk-resp))
+    updated-stats))
 
 (comment
   (require '[cheshire.core :as json])

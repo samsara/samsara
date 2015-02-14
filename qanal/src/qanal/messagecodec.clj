@@ -1,6 +1,6 @@
 (ns qanal.messagecodec
   (:require [cheshire.core :as json]
-            [clojure.tools.logging :as log]))
+            [taoensso.timbre :as log]))
 
 
 (defn decode-json [bytes]

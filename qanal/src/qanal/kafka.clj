@@ -4,7 +4,7 @@
             [clj-kafka.core :refer (ToClojure)]
             [clj-kafka.consumer.simple :refer (consumer topic-meta-data messages topic-offset)]
             [clojure.core.async :refer (buffer chan >!! thread close!)]
-            [clojure.tools.logging :as log]))
+            [taoensso.timbre :as log]))
 
 
 ;; TODO this should be part of clj-kafka.core namespace
