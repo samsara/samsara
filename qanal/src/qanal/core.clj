@@ -8,6 +8,8 @@
   (:gen-class)
   (:import (kafka.common OffsetOutOfRangeException InvalidMessageSizeException)))
 
+(log/set-config! [:appenders :spit :enabled?] true)
+(log/set-config! [:shared-appender-config :spit-filename] "Qanal.log")
 
 (def ^:private config-validator
   (compose-sets
@@ -52,6 +54,16 @@
     (Thread/sleep millis)
     (catch InterruptedException ie
       (log/warn "Sleeping Thread was interrupted : " ie))))
+
+(defn- execute-if-elapsed [{:keys [last-time-executed] :as m} window f & args]
+  (let [last-time (or last-time-executed 0)
+        elapsed (- (System/currentTimeMillis) last-time)]
+    #_(log/debug "last-time->" last-time " elapsed->" elapsed)
+    (if (> elapsed window)
+      (do
+        (apply f args)
+        (assoc m :last-time-executed (System/currentTimeMillis)))
+      m)))
 
 ;; TODO yuck! need to come up with a better name
 (defn- result-or-exception [f & args]
@@ -154,30 +166,34 @@
                 (log/warn "An unexpected Exception was encountered whilst getting kafka messages. Reconnecting Kafka and trying again")
                 (recur (connect-to-kafka m) m)))))))
 
+
+(defn- print-stats [c {:keys [topic partition-id offset received-msgs bulked-docs bulked-time]}]
+  (let [kafka-args {:topic topic :partition-id partition-id :auto-offset-reset :latest}
+        current-offset (result-or-exception kafka/get-topic-offset c kafka-args)
+        backlog (if (instance? Exception current-offset) "EXCEPTION" (- current-offset offset))]
+
+    (log/info "Topic->" topic " Partition-id->" partition-id " Received Msgs->" received-msgs
+              " Bulked Docs->" bulked-docs " Bulked-time->" bulked-time "ms"
+              " Backlog->" backlog)))
+
 (defn siphon [{:keys [kafka-source elasticsearch-target]}]
   (loop [c (connect-to-kafka kafka-source)
          source-with-offset (apply-initial-offset c kafka-source)]
-    (let [msgs-seq (get-kafka-messages c source-with-offset)
-          topic (:topic source-with-offset)
-          partition-id (:partition-id source-with-offset)]
+    (let [msgs-seq (get-kafka-messages c source-with-offset)]
       (if (empty? msgs-seq)
-        (do
-          (log/info "Topic->" topic " Partition-id->" partition-id " Received Msgs-> 0"
-                    " Bulked Docs->0 Bulked-time->0")
+        (let [print-stats-sensibly (partial execute-if-elapsed source-with-offset 1000 print-stats c)
+              source-with-offset (print-stats-sensibly (assoc source-with-offset :received-msgs 0 :bulked-docs 0 :bulked-time 0))]
           (sleep 1000)
           (recur c source-with-offset))
         (let [bulk-stats (els/bulk-index msgs-seq elasticsearch-target)
-              {:keys [last-offset received-msgs bulked-docs bulked-time]} bulk-stats
+              last-offset (:last-offset bulk-stats)
               m-with-offset (assoc source-with-offset :offset (inc last-offset))]
-          (log/info "Topic->" topic " Partition-id->" partition-id " Received Msgs->" received-msgs
-                    " Bulked Docs->" bulked-docs " Bulked-time->" (str bulked-time " millis"))
           (set-consumer-offset m-with-offset)
-          (recur c m-with-offset))))))
+          (let [print-stats-sensibly (partial execute-if-elapsed m-with-offset 1000 print-stats c)
+                m-with-offset (print-stats-sensibly (merge m-with-offset bulk-stats))]
+            (recur c m-with-offset)))))))
 
 (defn -main [& args]
-  (log/set-config! [:appenders :spit :enabled?] true)
-  (log/set-config! [:appenders :spit :rate-limit] [1 1000]) ;log maximum once a second
-  (log/set-config! [:shared-appender-config :spit-filename] "Qanal.log")
   (let [{:keys [options errors ]} (parse-opts args known-options)
         config-file (:config options)]
     (when errors
