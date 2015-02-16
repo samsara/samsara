@@ -2,14 +2,19 @@
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.edn :as edn]
             [taoensso.timbre :as log]
+            [taoensso.timbre.appenders.rotor :as rotor]
             [qanal.kafka :as kafka]
             [qanal.elsasticsearch :as els]
             [validateur.validation :refer [validation-set nested inclusion-of presence-of compose-sets]])
   (:gen-class)
   (:import (kafka.common OffsetOutOfRangeException InvalidMessageSizeException)))
 
-(log/set-config! [:appenders :spit :enabled?] true)
-(log/set-config! [:shared-appender-config :spit-filename] "Qanal.log")
+(log/set-config! [:appenders :rotor] {:min-level :info
+                                      :enabled?  true
+                                      :async? false ; should be always false for rotor
+                                      :fn rotor/appender-fn
+                                      })
+(def ^:private default-rotor-config {:level :info :path "Qanal.log" :max-size (* 10 1024) :backlog 10})
 
 (def ^:private config-validator
   (compose-sets
@@ -137,8 +142,7 @@
                     (:partition-id m) " to [" (:offset m-reset-offset) "]")
           m-reset-offset))
       (do
-        (log/info "Using Zookeeper Consumer offset->" consumer-offset " for topic->" (:topic m)
-                  "partition-id->" (:partition-id m))
+        (log/info "Topic->" (:topic m) " Partition-id->" (:partition-id m) "Using Zookeeper Consumer offset->" consumer-offset)
         m-consumer-offset))))
 
 
@@ -176,7 +180,15 @@
               " Bulked Docs->" bulked-docs " Bulked-time->" bulked-time "ms"
               " Backlog->" backlog)))
 
-(defn siphon [{:keys [kafka-source elasticsearch-target]}]
+(defn- apply-logging-options [logging-options]
+  (let [log-level (:min-level logging-options)
+        appender-config (dissoc logging-options :min-level)]
+    (log/set-config! [:appenders :rotor :min-level] log-level)
+    (log/set-config! [:shared-appender-config :rotor] appender-config)))
+
+(defn siphon [{:keys [kafka-source elasticsearch-target logging-options]
+               :or {logging-options default-rotor-config}}]
+  (apply-logging-options logging-options)
   (loop [c (connect-to-kafka kafka-source)
          source-with-offset (apply-initial-offset c kafka-source)]
     (let [msgs-seq (get-kafka-messages c source-with-offset)]
