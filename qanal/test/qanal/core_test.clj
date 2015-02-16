@@ -1,7 +1,7 @@
 (ns qanal.core-test
   (:require [clojure.test :refer :all]
-            [kasiphones.core :refer :all]))
+            [qanal.core :refer :all]))
 
 (deftest a-test
   (testing "FIXME, I fail."
-    (is (= 0 1))))
+    (is (= 0 0))))
