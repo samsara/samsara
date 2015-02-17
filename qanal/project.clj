@@ -1,8 +1,8 @@
 (defproject qanal "0.1.0"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :description "An Application that bulk indexes docs from Kafka to Elasticsearch"
+  :url "https://github.com/samsara/qanal"
+  :license {:name "Apache License 2.0"
+            :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/tools.cli "0.3.1"]            ;Command line parsing
                  [com.taoensso/timbre "3.3.1"]              ;logging

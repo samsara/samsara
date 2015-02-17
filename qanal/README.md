@@ -1,13 +1,16 @@
 # Qanal
 
-A stand alone indexer that reads messages (see Message Format below) from Kafka and bulk indexes them into a Elasticsearch Cluster.  
+A stand alone indexer that reads messages (see Message Format below) from Kafka and bulk indexes them into a Elasticsearch Cluster.
 This program is intended as an alternative to the [Elasticsearch Kafka River Plugin] (https://github.com/endgameinc/elasticsearch-river-kafka)
 
-It should work against the 0.8.1.1 release of Kafka  
+It should work against the 0.8.1.1 release of Kafka
+
+## Release Status
+Still in development, hope to do the first release real soon.
+
+## Continous Integration
 Current build status: [![Build Status](https://travis-ci.org/samsara/qanal.svg?branch=master)](https://travis-ci.org/samsara/qanal.svg?branch=master)
 
-## Status
-Still in development, hope to do the first release real soon.
 
 ## Configuration
 The configuration file is split into 3 sections.
@@ -49,8 +52,27 @@ To run the program, build an uberjar and run the jar
     $ lein do clean, uberjar
     $ java -jar target/qanal-0.1.0-standalone.jar -c /opt/qanal/config.edn
 
+## Committers
+
+* Dayo Oliyide ([@DayoOliyide](https://github.com/DayoOliyide))
+
 ## License
 
-Copyright © 2015 FIXME
+Copyright © 2015 Samsara
 
-Distributed under the The MIT License (MIT).
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
