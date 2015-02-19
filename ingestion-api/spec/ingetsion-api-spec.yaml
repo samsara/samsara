@@ -1,0 +1,147 @@
+swagger: '2.0'
+
+info:
+  version: "0.1.0"
+  title: Samsara Ingestion APIs
+  description: |
+    This specification is for the Ingestion API. Not all paths will be
+    reachable from the client as many handlers are for internal use only.
+    Those one with the `internal` tag will be available only from the internal
+    network setup and will be used for service management purposes.
+
+# array of all schemes that your API supports
+schemes:
+  - http
+
+basePath: /v1
+
+produces:
+  - application/json
+consumes:
+  - application/json
+
+paths:
+  /events:
+    post:
+      tags:
+        - external
+
+      summary: |
+        Send client generated events to `Samsara` processing pipeline
+        The content has to be an array of valid events.
+        
+      description: |
+        This handler is responsible for ingesting data coming for the clients services and devices.
+        It should validate the payload received, inject an additional attribute 'receivedAt' with
+        the system timestamp (in millis) on every event.
+        Finally it is responsible to forwards all the events received to the back end queueing system
+        which can be any of **Apache Kafka**, **Amazon Kinesis**, **Azure EventsHub**
+        or the **stdout** console (for testing purposes).
+        **Optionally** the client can send a GZIP'd payload by providing the header **Content-Encoding: gzip**,
+        The API should be able to handle both compressed and uncompressed data and select the right handler
+        on a per request basis.
+        *This request returns an empty body* check the status codes for more info.
+        
+      produces:
+        - application/json
+
+      consumes:
+        - application/json
+
+      parameters:
+      
+        - name: Content-Encoding
+          in: header
+          description: The payload can be compressed with `gzip` 
+          required: false
+          type: string
+
+        - name: events
+          in: body
+          description: Array of events 
+          required: true
+          schema:
+            $ref: "#/definitions/Events"
+
+      responses:
+        # Response code
+        202:
+          description: Payload accepted
+
+        400:
+          description: Bad request. The payload is not a valid set of events.
+
+
+  /api-status:
+    get:
+      tags:
+        - internal
+
+      summary: This is the proble url used by the load-balancer for healthcheck.
+
+      description: |
+        This should return the state of the interal status flag which is controlled by `PUT /api-status`.
+        By default the status should healthy and online (HTTP 200).
+
+      responses:
+        200:
+          description: The service is healthy and online
+          examples:
+            application/json: { "status": "online" }
+
+        503:
+          description: The service is offline
+          examples:
+            application/json: { "status": "offline" }
+
+    put:
+      tags:
+        - internal
+
+      summary: This internal path is used to set the service offline for maintenance reason.
+
+      description: |
+        This should control and internal 'status' flag. When set to 'offline' the `GET /api-status`
+        request should return a '500' response. If flipped back to 'online' then `GET /api-status`
+        should return '200' as normal.
+
+      parameters:
+        - in: body
+          name: status
+          description: Either `online` or `offline`
+          required: true
+          schema:
+            type: string
+            enum:
+              - online
+              - offline
+      
+      responses:
+        200:
+          description: The service is healthy
+
+        503:
+          description: The service is offline
+
+definitions:
+
+  Events:
+    type: array
+    items:
+      $ref: "#/definitions/Event"
+
+  Event:
+    properties:
+      timestamp:
+        type: integer
+        format: int64
+        description: Is the time of the event in milliseconds from EPOC.
+      eventName:
+        type: string
+        description: |
+          Is the name of the event. Typically a namespaced action terminating in Past simple.
+          Valid examples are 'user.clicked', or 'app.module.load.failed'.
+          
+      sourceId:
+        type: string
+        description: A unique identifier of the event source with high cardinality.
