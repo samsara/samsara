@@ -17,6 +17,7 @@ basePath: /v1
 
 produces:
   - application/json
+
 consumes:
   - application/json
 
@@ -27,28 +28,79 @@ paths:
       summary: |
         Send client generated events to `Samsara` processing pipeline
         The content has to be an array of valid events.
-        
+
       description: |
         This handler is responsible for ingesting data coming for the clients
-        services and devices. It should validate the payload received, inject 
-        an additional attribute `receivedAt` with the system timestamp (in millis) 
+        services and devices. It should validate the payload received, and inject
+        an additional attribute `receivedAt` with the system timestamp (in millis)
         on every event.
-        
-        Finally it is responsible to forwards individual events received to 
-        the back end queueing system which can be one of **Apache Kafka**, 
+
+        Finally it is responsible to forwards individual events received to
+        the back end queueing system which can be one of **Apache Kafka**,
         **Amazon Kinesis**, **Azure EventsHub** or the **stdout** console
         (for testing purposes).
-        
+
         The key part of the API is to ensure that only valid events are accepted
         and once we give a successful reponse we need to be able to guarantee
         that these events will be persisted and then processed.
-        
+
         **Optionally** the client can send a GZIP'd payload by providing
         the header **Content-Encoding: gzip**. the API should be able
         to handle both compressed and uncompressed data and select the
         right handler on a per request basis.
         *This request returns an empty body* check the status codes for more info.
         
+        Example of a plain JSON payload:
+        
+        ```
+        cat <<EOF | curl -i -H "Content-Type: application/json" \
+                        -XPOST "http://localhost:9000/v1/events" -d @-
+        [
+          {
+            "timestamp": 1424444803463,
+            "sourceId": "3aw4sedrtcyvgbuhjkn",
+            "eventName": "user.clicked",
+            "page": "orders",
+            "item": "sku-1234"
+          }, {
+            "timestamp": 1424444804587,
+            "sourceId": "3aw4sedrtcyvgbuhjkn",
+            "eventName": "user.clicked",
+            "page": "orders",
+            "item": "sku-5433",
+            "action": "remove"
+          }
+        ]
+        EOF
+        ```
+        
+        Example of a GZIP JSON payload:
+        
+        ```
+        cat <<EOF | gzip | curl -i -H "Content-Type: application/json" \
+                                -H "Content-Encoding: gzip" \
+                                -XPOST "http://localhost:9000/v1/events" \
+                                --data-binary @-
+        [
+          {
+            "timestamp": 1424444803463,
+            "sourceId": "3aw4sedrtcyvgbuhjkn",
+            "eventName": "user.clicked",
+            "page": "orders",
+            "item": "sku-1234"
+          }, {
+            "timestamp": 1424444804587,
+            "sourceId": "3aw4sedrtcyvgbuhjkn",
+            "eventName": "user.clicked",
+            "page": "orders",
+            "item": "sku-5433",
+            "action": "remove"
+          }
+        ]
+        EOF
+        ```
+
+
       produces:
         - application/json
 
@@ -56,24 +108,24 @@ paths:
         - application/json
 
       parameters:
-      
+
         - name: Content-Encoding
           in: header
-          description: The payload can be compressed with `gzip` 
+          description: The payload can be compressed with `gzip`
           required: false
           type: string
 
         - name: events
           in: body
-          description: Array of events 
+          description: Array of events
           required: true
           schema:
             $ref: "#/definitions/Events"
 
       responses:
-        # Response code
+
         202:
-          description: Payload accepted
+          description: The payload is valid and accepted
 
         400:
           description: Bad request. The payload is not a valid set of events.
@@ -105,7 +157,7 @@ paths:
       summary: This internal path is used to set the service offline for maintenance reason.
 
       description: |
-        This should control and internal 'status' flag. When set to 'offline' 
+        This should control and internal 'status' flag. When set to 'offline'
         the `GET /api-status` request should return a `500` response.
         If flipped back to 'online' then `GET /api-status`
         should return `200` as normal.
@@ -120,7 +172,7 @@ paths:
             enum:
               - online
               - offline
-      
+
       responses:
         200:
           description: The service is healthy
@@ -140,21 +192,21 @@ definitions:
       The baisc structure of an event is made of only three properties
       `timestamp`, `sourceId` and `eventName`. However the api
       should be able to accept any additional 'facet'.
-      
+
     properties:
-    
+
       timestamp:
         type: integer
         format: int64
         description: Is the time of the event in milliseconds from EPOC.
-        
+
       eventName:
         type: string
         description: |
           Is the name of the event. Typically a namespaced action terminating
           in Past simple. Valid examples are 'user.clicked',
           or 'app.module.load.failed'.
-          
+
       sourceId:
         type: string
         description: |
