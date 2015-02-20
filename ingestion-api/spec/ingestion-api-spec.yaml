@@ -141,6 +141,14 @@ paths:
         is controlled by `PUT /api-status`.
         By default the status should healthy and online (HTTP 200).
 
+        Example:
+        
+        ```
+        curl -i -XGET "http://localhost:9000/v1/api-status"
+        
+        { "status": "online" }
+        ```
+
       responses:
         200:
           description: The service is healthy and online
@@ -158,9 +166,17 @@ paths:
 
       description: |
         This should control and internal 'status' flag. When set to 'offline'
-        the `GET /api-status` request should return a `500` response.
+        the `GET /api-status` request should return a `503` response.
         If flipped back to 'online' then `GET /api-status`
         should return `200` as normal.
+
+        Example:
+        
+        ```
+        curl -i -H "Content-Type: application/json" \
+             -XPUT "http://localhost:9000/v1/api-status" \
+             -d '{ "status": "offline" }'
+        ```
 
       parameters:
         - in: body
@@ -168,17 +184,18 @@ paths:
           description: Either `online` or `offline`
           required: true
           schema:
-            type: string
-            enum:
-              - online
-              - offline
+            properties:
+              status: 
+                type: string
+                enum:
+                  - online
+                  - offline
 
       responses:
         200:
-          description: The service is healthy
-
-        503:
-          description: The service is offline
+          description: The change has been accepted.
+        400:
+          description: The request is invalid.
 
 definitions:
 
