@@ -9,6 +9,7 @@ kafka:
   links:
     - zookeeper:zk
   environment:
+    #NOTE - use YOUR ip address
     KAFKA_ADVERTISED_HOST_NAME: 192.168.1.68
   volumes:
     - /var/run/docker.sock:/var/run/docker.sock
@@ -18,3 +19,9 @@ elasticsearch1:
     ports:
      - "9200:9200"
      - "9300:9300"
+
+qanal:
+    image: samsara/qanal
+    links:
+     - zookeeper:zk
+     - elasticsearch1:els

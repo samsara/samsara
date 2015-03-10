@@ -8,6 +8,6 @@
                 }
  :elasticsearch-target {:end-point "http://127.0.0.1:9200"}
  :logging-options {:min-level :info
-                   :path "Qanal.log"                        ;full path name for the file
+                   :path "/var/log/qanal.log"                        ;full path name for the file
                    :max-size 15360                          ;size in bytes
                    :backlog 10}}
