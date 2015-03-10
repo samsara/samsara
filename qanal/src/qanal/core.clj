@@ -82,9 +82,17 @@
     (edn/read-string (slurp file-name))))
 
 
-(defn connect-to-kafka [m]
-  (log/info "Using Zookeeper cluster [" (:zookeeper-connect m) "] to find lead broker")
-  (continously-try kafka/connect-to-lead-broker m (:connect-retry m) "Unable to connect to Kafka Cluster"))
+(defn connect-to-kafka [{:keys [zookeeper-connect topic partition-id connect-retry] :as m}]
+  (log/info "Using Zookeeper cluster [" zookeeper-connect "] to connect to lead broker for topic["
+            topic "] partition-id[" partition-id "]")
+  (let [error-msg "Unable to connect to Kafka Cluster"
+        c (continously-try kafka/connect-to-lead-broker [m] connect-retry error-msg)]
+    (if (some? c)
+      c
+      (do
+        (log/warn "Will try again to connect to the lead broker for topic[" topic "] partition-id[" partition-id "]")
+        (sleep connect-retry)
+        (recur m)))))
 
 (defn apply-consumer-offset
   "Takes a map and uses the :zookeeper-connect value to connect to Zookeeper,
@@ -94,7 +102,7 @@
   [m]
   (let [retry (:connect-retry m)
         error-msg "Unable to get consumer offset from Zookeeper"
-        current-consumer-offset (continously-try kafka/get-consumer-offset m retry error-msg)]
+        current-consumer-offset (continously-try kafka/get-consumer-offset [m] retry error-msg)]
     (assoc m :offset current-consumer-offset)))
 
 (defn apply-topic-offset
@@ -116,7 +124,7 @@
   [m]
   (let [retry (:connect-retry m)
         error-msg (str "Unable to set Zookeeper Consumer offset for topic->" (:topic m) " partition->" (:partition-id m))]
-    (continously-try kafka/set-consumer-offset m retry error-msg)))
+    (continously-try kafka/set-consumer-offset [m] retry error-msg)))
 
 
 (defn apply-initial-offset

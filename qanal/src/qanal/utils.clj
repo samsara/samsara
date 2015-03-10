@@ -23,14 +23,15 @@
         (assoc m :last-time-executed (System/currentTimeMillis)))
       m)))
 
-(defn result-or-exception [f & args]
+(defn result-or-exception [f & args-list]
   (try
-    (apply f args)
+    (apply f args-list)
     (catch Exception e
       e)))
 
-(defn continously-try [f args retry error-msg]
-  (let [result (result-or-exception f args)]
+;; Maybe this should be written as a macro  o_O ??
+(defn continously-try [f args-list retry error-msg]
+  (let [result (apply result-or-exception f args-list)]
     (if-not (instance? Exception result)
       result
       (do
@@ -38,4 +39,4 @@
         (log/warn "Exception : " result)
         (log/warn "Will retry in " retry " milliseconds")
         (sleep retry)
-        (recur f args retry error-msg)))))
+        (recur f args-list retry error-msg)))))
