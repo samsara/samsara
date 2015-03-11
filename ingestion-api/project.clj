@@ -16,5 +16,7 @@
                  [org.clojure/tools.cli "0.3.1"]]
 
   :main ingestion-api.core
-  :profiles
-  {:uberjar {:aot :all}})
+  :jvm-opts ["-server" "-Dfile.encoding=utf-8"]
+  :profiles {:uberjar {:aot :all}}
+
+  :bin {:name "ingestion-api" :bootclasspathX true})
