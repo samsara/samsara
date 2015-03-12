@@ -5,8 +5,10 @@
   (:require [clojure.java.io :refer [resource]])
   (:require [taoensso.timbre :as log])
   (:require [clojure.java.io :as io])
-  (:require [ingestion-api.route :refer [app]])
   (:require [ring.middleware.reload :as reload])
+  (:require [ingestion-api.route :refer [app]]
+            [ingestion-api.events :refer [*backend*]])
+  (:import  [ingestion_api.backend ConsoleBackend])
   (:gen-class))
 
 
@@ -21,7 +23,9 @@
              ;; <timestamp> <hostname> <LEVEL> [<ns>] - <message> <throwable>
              (format "%s %s [%s] - %s%s"
                      timestamp (-> level name clojure.string/upper-case) ns (or message "")
-                     (or (log/stacktrace throwable "\n" (when nofonts? {})) "")))}})
+                     (or (log/stacktrace throwable "\n" (when nofonts? {})) "")))}
+
+   :backend {:type :console :pretty? true}} )
 
 (def cli-options
   [
@@ -98,9 +102,22 @@ DESCRIPTION
       (merge-with merge DEFAULT-CONFIG)))
 
 
+(defn- init-log! [cfg]
+  (log/merge-config! cfg))
+
+
+(defn- init-backend! [{:keys [type pretty?] :as cfg}]
+  (reset! *backend*
+          (case type
+            :console (ConsoleBackend. pretty?)
+            (throw (RuntimeException. "Illegal backed type:" type)))))
+
+
 (defn init! [config-file]
   (let [config (read-config config-file)]
-    (log/merge-config! (:log config))
+
+    (init-log!     (-> config :log))
+    (init-backend! (-> config :backend))
 
     config))
 

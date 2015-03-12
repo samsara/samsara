@@ -6,7 +6,8 @@
             [ring.middleware.json :refer :all]
             [ring.util.response :refer :all :exclude [not-found]]
             [clojure.pprint :refer [pprint]])
-  (:require [ingestion-api.status :refer [change-status! is-online?]]))
+  (:require [ingestion-api.status :refer [change-status! is-online?]]
+            [ingestion-api.events :refer [send!]]))
 
 
 (defn not-found []
@@ -17,7 +18,9 @@
 (defroutes app-routes
 
   (context "/v1" []
-           (POST  "/events"   [] {:status 202 :body nil})
+           (POST  "/events"   {events :body}
+                  (send! events)
+                  {:status 202 :body nil})
 
            (GET "/api-status" []
                 {:status (if (is-online?) 200 503) :body {:status (if (is-online?) "online" "offline")}})
