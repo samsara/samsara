@@ -11,6 +11,7 @@
                  [compojure "1.3.2"]
                  [javax.servlet/servlet-api "2.5"]
                  [cheshire "5.4.0"]
+                 [prismatic/schema "0.4.0"]
                  [clj-kafka "0.2.8-0.8.1.1"]
                  [com.taoensso/timbre "3.4.0"]
                  [org.clojure/tools.cli "0.3.1"]]
