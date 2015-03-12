@@ -16,4 +16,4 @@ lein: lein2
 script: lein midje
 
 after_success:
-  - docker build -t samsara/qanal:snapshot .
+  - sudo docker build -t samsara/qanal:snapshot .
