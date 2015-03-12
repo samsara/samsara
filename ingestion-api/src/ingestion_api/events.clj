@@ -38,3 +38,10 @@
   are valid then nil is returned."
   [events]
   (s/check events-schema events))
+
+
+(defn inject-receivedAt
+  "it injects the timestamp of when the events were received
+  by the servers."
+  [receivedAt events]
+  (map #(update-in % [:receivedAt] (fn [ov] (or ov receivedAt))) events))
