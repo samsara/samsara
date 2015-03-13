@@ -8,7 +8,7 @@ before_install:
 
 install:
   - sudo apt-get -qqy update
-  - sudo apt-get -qqy install lxc lxc-docker-1.4.1
+  - sudo apt-get -qqy install bridge-utils lxc lxc-docker-1.4.1
   - sudo sudo usermod -aG docker "$USER"
 
 lein: lein2
