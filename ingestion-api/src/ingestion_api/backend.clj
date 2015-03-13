@@ -7,7 +7,7 @@
   (send [this events]
     "send the events to the backend queueing system"))
 
-(defrecord ConsoleBackend [pretty?]
+(deftype ConsoleBackend [pretty?]
   EventsQueueingBackend
 
   (send [_ events]

@@ -17,7 +17,9 @@
 
    :log   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}
 
-   :backend {:type :console :pretty? true}} )
+   :backend  {:type :console :pretty? true}
+   ;:backend {:type :kafka :topic "events" :metadata.broker.list "192.168.59.103:9092"}
+   } )
 
 (def cli-options
   [
@@ -29,6 +31,7 @@
 (defn message [& m]
   (binding [*out* *err*]
     (apply println m)))
+
 
 (defn version []
   (try
