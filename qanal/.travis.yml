@@ -13,6 +13,9 @@ install:
 
 lein: lein2
 
+before_script:
+  - sudo docker -d &
+
 script: lein midje
 
 after_success:
