@@ -15,15 +15,7 @@
 (def DEFAULT-CONFIG
   {:server {:port 9000 :auto-reload false}
 
-   :log   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"
-           :fmt-output-fn
-           (fn [{:keys [level throwable message timestamp hostname ns]}
-               ;; Any extra appender-specific opts:
-               & [{:keys [nofonts?] :as appender-fmt-output-opts}]]
-             ;; <timestamp> <hostname> <LEVEL> [<ns>] - <message> <throwable>
-             (format "%s %s [%s] - %s%s"
-                     timestamp (-> level name clojure.string/upper-case) ns (or message "")
-                     (or (log/stacktrace throwable "\n" (when nofonts? {})) "")))}
+   :log   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}
 
    :backend {:type :console :pretty? true}} )
 
@@ -103,7 +95,15 @@ DESCRIPTION
 
 
 (defn- init-log! [cfg]
-  (log/merge-config! cfg))
+  (log/set-config! [:fmt-output-fn]
+                   (fn [{:keys [level throwable message timestamp hostname ns]}
+                       ;; Any extra appender-specific opts:
+                       & [{:keys [nofonts?] :as appender-fmt-output-opts}]]
+                     ;; <timestamp> <hostname> <LEVEL> [<ns>] - <message> <throwable>
+                     (format "%s %s [%s] - %s%s"
+                             timestamp (-> level name clojure.string/upper-case) ns (or message "")
+                             (or (log/stacktrace throwable "\n" (when nofonts? {})) ""))))
+(log/merge-config! cfg))
 
 
 (defn- init-backend! [{:keys [type pretty?] :as cfg}]
