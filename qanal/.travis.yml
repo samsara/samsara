@@ -1,5 +1,12 @@
 language: clojure
 
+env:
+  global:
+    - "HOST_IP=$(/sbin/ifconfig venet0:0 | grep 'inet addr' | awk -F: '{print $2}' | awk '{print $1}')"
+    - DOCKER_HOST=tcp://$HOST_IP:2375
+    - DOCKER_PORT_RANGE=2400:2500
+    - SLIRP_PORTS=$(seq 2375 2500)
+
 before_install:
   - sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
   - sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
@@ -8,13 +15,14 @@ before_install:
 
 install:
   - sudo apt-get -qqy update
-  - sudo apt-get -qqy install bridge-utils lxc lxc-docker-1.4.1
+  - sudo apt-get -qqy install lxc lxc-docker-1.4.1 slirp
   - sudo sudo usermod -aG docker "$USER"
+  - git clone git://github.com/cptactionhank/sekexe
 
 lein: lein2
 
 before_script:
-  - sudo docker -d &
+  - sekexe/run 'mount -t tmpfs -o size=8g tmpfs /var/lib/docker && docker -d -H tcp://0.0.0.0:2375' &
 
 script: lein midje
 
