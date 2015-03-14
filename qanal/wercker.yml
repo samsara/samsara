@@ -1,0 +1,22 @@
+box: wercker/default
+#services:
+#  - wercker/postgresql
+#  - wercker/rabbitmq
+#  - wercker/redis
+build:
+  steps:
+    - script:
+        name: install clojure
+        code: |
+          sudo apt-get update
+          sudo apt-get install openjdk-7-jdk curl -y
+          sudo wget -O /usr/local/bin/lein https://raw.github.com/technomancy/leiningen/stable/bin/lein
+          sudo chmod +x /usr/local/bin/lein
+    - script:
+        name: run tests
+        code: |
+          lein midje
+    - script:
+        name: build
+        code: |
+          lein uberjar
