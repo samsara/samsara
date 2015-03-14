@@ -15,3 +15,6 @@
       (if pretty?
         (pprint e)
         (println e)))))
+
+(defn make-console-backend [{pretty? :pretty?}]
+  (ConsoleBackend. pretty?))

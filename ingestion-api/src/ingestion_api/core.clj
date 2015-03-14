@@ -8,44 +8,55 @@
   (:require [ring.middleware.reload :as reload])
   (:require [ingestion-api.route :refer [app]]
             [ingestion-api.events :refer [*backend*]])
-  (:import  [ingestion_api.backend ConsoleBackend])
+  (:require [ingestion-api.backend :refer [make-console-backend]]
+            [ingestion-api.backend-kafka :refer [make-kafka-backend]])
   (:gen-class))
 
 
 (def DEFAULT-CONFIG
+  "Default configuration which will be merged with
+  the user defined configuration."
   {:server {:port 9000 :auto-reload false}
 
    :log   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}
 
    :backend  {:type :console :pretty? true}
    ;:backend {:type :kafka :topic "events" :metadata.broker.list "192.168.59.103:9092"}
-   } )
+   })
 
 (def cli-options
+  "Command line options"
   [
    ["-c" "--config FILE" "Config file (.edn)"]
    ["-h" "--help"]
    ])
 
 
-(defn message [& m]
+(defn message
+  "Prints a message in the stderr channel"
+  [& m]
   (binding [*out* *err*]
     (apply println m)))
 
 
-(defn version []
+(defn version
+  "Reads the version from the project.clj file
+  which is typically boundled with jar file"
+  []
   (try
     (->> "project.clj"
-            resource
-            slurp
-            read-string
-            nnext
-            first
-            (str "v"))
+         resource
+         slurp
+         read-string
+         nnext
+         first
+         (str "v"))
     (catch Exception x "")))
 
 
-(defn- headline []
+(defn- headline
+  "Return a string with the headline and the version number"
+  []
   (format
    "
 -----------------------------------------------
@@ -61,7 +72,9 @@
 " (version)))
 
 
-(defn- help! [errors]
+(defn- help!
+  "Pritns a help message"
+  [errors]
   (let [err-msg (if-not errors "" (clojure.string/join "\n" errors))]
     (message
      (format
@@ -86,18 +99,25 @@ DESCRIPTION
 " (headline) err-msg))))
 
 
-(defn exit! [n]
+(defn exit!
+  "System exit with error state"
+  [n]
   (System/exit n))
 
 
-(defn- read-config [config-file]
+(defn- read-config
+  "Read the user's configuration file
+  and apply the default values."
+  [config-file]
   (->> (io/file config-file)
       slurp
       read-string
       (merge-with merge DEFAULT-CONFIG)))
 
 
-(defn- init-log! [cfg]
+(defn- init-log!
+  "Initializes log settings"
+  [cfg]
   (log/set-config! [:fmt-output-fn]
                    (fn [{:keys [level throwable message timestamp hostname ns]}
                        ;; Any extra appender-specific opts:
@@ -109,14 +129,19 @@ DESCRIPTION
 (log/merge-config! cfg))
 
 
-(defn- init-backend! [{:keys [type pretty?] :as cfg}]
+(defn- init-backend!
+  "Create the specified backend where to send the events"
+  [{:keys [type] :as cfg}]
   (reset! *backend*
           (case type
-            :console (ConsoleBackend. pretty?)
+            :console (make-console-backend cfg)
+            :kafka   (make-kafka-backend   cfg)
             (throw (RuntimeException. "Illegal backed type:" type)))))
 
 
-(defn init! [config-file]
+(defn init!
+  "Initializes the system and returns the actual configuration used."
+  [config-file]
   (let [config (read-config config-file)]
 
     (init-log!     (-> config :log))
