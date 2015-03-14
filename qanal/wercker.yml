@@ -20,3 +20,15 @@ build:
         name: build
         code: |
           lein uberjar
+    - script:
+        name: install latest docker
+        code: curl -sSL https://get.docker.io/ubuntu/ | sudo sh
+    - script:
+        name: build docker image
+        code: sudo docker build -t samsara/qanal:snapshot .
+    - script:
+        name: login to docker hub
+        code: sudo docker login -u $DOCKER_USER -p $DOCKER_PASSWORD -e $DOCKER_EMAIL
+    - script:
+        name: push docker image
+        code: sudo docker push samsara/qanal:snapshot

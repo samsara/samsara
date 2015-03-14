@@ -3,7 +3,6 @@ FROM dockerfile/java:oracle-java8
 RUN apt-get update
 
 #hmm .. maybe the following should be in a script which is then run ?
-#RUN mkdir -p /opt/qanal/{conf,lib}
 ADD ./target/qanal-*-standalone.jar /opt/qanal/lib/
 ADD ./resources/config.edn /opt/qanal/conf/config.edn.orig
 ADD ./start-qanal.sh /opt/qanal/
