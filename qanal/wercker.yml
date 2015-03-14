@@ -27,6 +27,7 @@ build:
           sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
           sudo apt-get -qqy update
           sudo apt-get -qqy install lxc-docker-1.4.1
+          sudo service docker restart
     - script:
         name: build docker image
         code: sudo docker build -t samsara/qanal:snapshot .
