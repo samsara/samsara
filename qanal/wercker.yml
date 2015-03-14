@@ -21,8 +21,12 @@ build:
         code: |
           lein uberjar
     - script:
-        name: install latest docker
-        code: curl -sSL https://get.docker.io/ubuntu/ | sudo sh
+        name: install docker 1.4.1
+        code: |
+          sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
+          sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+          sudo apt-get -qqy update
+          sudo apt-get -qqy install lxc-docker-1.4.1
     - script:
         name: build docker image
         code: sudo docker build -t samsara/qanal:snapshot .
