@@ -8,13 +8,21 @@
 
 
 (def default-producer-config
+  "Default configuration for the Kafka producer.
+  By default the events will be sent asynchronously and
+  the producer will wait for all brokers to acknowledge
+  the events."
+
   {"serializer.class"         "kafka.serializer.StringEncoder"
    "partitioner.class"        "kafka.producer.DefaultPartitioner"
    "request.required.acks"    "-1"
    "producer.type"            "async"
    "message.send.max.retries" "5" })
 
-
+;;
+;;  Kafka backend sends the events into a Kafka topic as single
+;;  json lines.
+;;
 (deftype KafkaBackend [conf topic producer]
   EventsQueueingBackend
 
@@ -25,7 +33,9 @@
          (kp/send-messages producer))))
 
 
-(defn- check-config [config]
+(defn- check-config
+  "Check the validity of a Kafka configuration"
+  [config]
   (s/validate
    {(s/required-key "topic") s/Str
     (s/required-key "metadata.broker.list") s/Str
@@ -33,11 +43,13 @@
    config))
 
 
-(defn make-kafka-backend [config]
-  (let [cfg (->> config
-                 (map (fn [[k v]] [(name k) (str v)]))
-                 (into {})
-                 (merge default-producer-config))
+(defn make-kafka-backend
+  "Create a kafka backend"
+  [config]
+  (let [{:strs [topic] :as cfg} (->> config
+                                     (map (fn [[k v]] [(name k) (str v)]))
+                                     (into {})
+                                     (merge default-producer-config))
 
         ;; check config
         _ (check-config cfg)
@@ -45,4 +57,4 @@
         ;; connect to brokers
         producer (kp/producer cfg)]
 
-    (KafkaBackend. cfg (cfg "topic") producer)))
+    (KafkaBackend. cfg topic producer)))
