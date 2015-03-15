@@ -81,18 +81,44 @@ The configuration looks as follow:
 Here is the description of the configuration
 
   * `:server` - This section controls the `http` server settings
-    * `:port` - Set listnening port for the server
-    * `:auto-reload` - If set to true, it watches for changes in the source files
+      * `:port` - Set listnening port for the server
+      * `:auto-reload` - If set to true, it watches for changes in the source files
                        and automatically reloads the changes without requiring
                        server reloads.
                        This should be used only used in development.
-    * `http-kit` additional configuration options available [here](http://www.http-kit.org/server.html#options) 
+      * `http-kit` additional configuration options available [here](http://www.http-kit.org/server.html#options) 
     
   * `:log` - This section controls the logging settings.
-    * `:timestamp-pattern` - timestamp pattern for the log.
-    * Any other [timbre logging](https://github.com/ptaoussanis/timbre) configuration.
+      * `:timestamp-pattern` - timestamp pattern for the log.
+      * Any other [timbre logging](https://github.com/ptaoussanis/timbre) configuration.
     
   * `:backend` - This section controls the backend configuarion where the events are sent.
-    * `:type` - This can be one of: `:console` or `:kafka`
+      * `:type` - This can be one of: `:console` or `:kafka`
 
+Depending on the backend type you can have different options:
 
+  * `:type :console` - Prints all the events to the stdandard output. 
+                     This is mostly used for testing purposes only.
+      * `:pretty?` can be `true` or `false` and defines if it is pretty printed or simple `println`.
+       
+  * `:type :kafka` - Sends the events to a Kafka topic in JSON format.
+      * `:topic` - is the name of the Kafka topic where to send the events to. (Default: `events`, *REQUIRED*)
+      * `:metadata.broker.list` - This is a comma-separated-list of brokers host or IPs and their port.
+                               Example: `172.0.0.3:9092,172.0.0.4:9092,172.0.0.5:9092`
+      * You can put additional Kafka Producer configuration options as from [Kafka options](http://kafka.apache.org/documentation.html#producerconfigs)
+
+Here is the default configuration for the Kafka producer:
+
+| Kafka configuration option  |          Default value              |
+| --------------------------- | ----------------------------------- |
+| "serializer.class"          | "kafka.serializer.StringEncoder"    |
+| "partitioner.class"         | "kafka.producer.DefaultPartitioner" |
+| "request.required.acks"     | "-1"                                |
+| "producer.type"             | "async"                             |
+|  "message.send.max.retries" | "5"                                 |
+
+## License
+
+Copyright © 2015 Samsara's authors.
+
+Distributed under the Apache License v 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
