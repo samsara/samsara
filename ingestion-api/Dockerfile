@@ -6,9 +6,10 @@ ADD ./config               /opt/ingestion-api/config
 RUN apt-get install -y supervisor
 ADD ./docker/supervisord.conf /etc/supervisor/supervisord.conf
 ADD ./docker/ingestion-api-supervisor.conf /etc/supervisor/conf.d/
+ADD ./docker/start.sh /
 
 EXPOSE 9000 15001
 
 VOLUME ["/logs"]
 
-CMD /bin/sh -c "/usr/bin/supervisord -c /etc/supervisor/supervisord.conf ; while true ; do /usr/bin/supervisorctl ; done"
+CMD /start.sh
