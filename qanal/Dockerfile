@@ -1,6 +1,5 @@
 FROM dockerfile/java:oracle-java8
 
-#RUN apt-get update
 
 #hmm .. maybe the following should be in a script which is then run ?
 ADD ./target/qanal-*-standalone.jar /opt/qanal/lib/
