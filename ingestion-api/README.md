@@ -117,6 +117,45 @@ Here is the default configuration for the Kafka producer:
 | "producer.type"             | "async"                             |
 |  "message.send.max.retries" | "5"                                 |
 
+
+## How to build and run the Docker container
+
+A `Dockerfile` is available for this project. To build it just run:
+
+```
+lein do clean, bin
+docker build -t samsara/ingestion-api .
+```
+Then to run the container:
+
+```
+# it is important that you pass the `-i` option to create a stdin chanel
+docker run -tdi -p 9000:9000 -p 15000:15000 -v /tmp/ingestion-api:/logs samsara/ingestion-api
+```
+
+This will expose port `9000` and port `15000` on your docker host. It will mount 
+a volume to expose the container logs as `/tmp/ingestion-api`.
+
+You should be able to point your browser to [http://127.0.0.1:15000] and log in with
+`admin` / `samsara` to access supervisord web console.
+
+**NOTE: if you are running on OSX with `boot2docker` the host on wich will the ports be exposed
+won't be the local host but the `boot2docker` virtual machine which by default is on
+`192.168.59.103` (check your $DOCKER_HOST).** This means that instead of accessing 
+[http://127.0.0.1:15000] you will have to access [http://192.168.59.103:15000] and
+that the mounted volume (`/tmp/ingestion-api`) will be on the `boot2docker` virtual machine.
+To access them you can log into `boot2docker` with the following command: `boot2docker ssh`.
+
+If you attach the container with:
+
+```
+docker attach $CONTAINER_ID
+```
+
+You will be prompted a login to access the `supervisorctl` console. As for the web access
+the credentials are `admin` / `samsara`
+To `detach` the session press `Ctrl-p Ctrl-q`.
+
 ## License
 
 Copyright © 2015 Samsara's authors.
