@@ -1,8 +1,6 @@
 (ns ingestion-api.core
-  (:require [clojure.java.io :as io]
-            [clojure.tools.cli :refer [parse-opts]])
+  (:require [clojure.tools.cli :refer [parse-opts]])
   (:require [org.httpkit.server :refer [run-server]])
-  (:require [clojure.java.io :refer [resource]])
   (:require [taoensso.timbre :as log])
   (:require [clojure.java.io :as io])
   (:require [ring.middleware.reload :as reload])
@@ -45,7 +43,7 @@
   []
   (try
     (->> "project.clj"
-         resource
+         ((fn [f] (if (.exists (io/file f)) (io/file f) io/resource)))
          slurp
          read-string
          nnext
@@ -136,7 +134,8 @@ DESCRIPTION
           (case type
             :console (make-console-backend cfg)
             :kafka   (make-kafka-backend   cfg)
-            (throw (RuntimeException. "Illegal backed type:" type)))))
+            (throw (RuntimeException. "Illegal backed type:" type))))
+  (log/info "Creating backend type: " type ", with config:" cfg))
 
 
 (defn init!
@@ -159,9 +158,9 @@ DESCRIPTION
      errors                     (do (help! errors) (exit! 1))
 
      :default
-     (let [{config-file :config} options
+     (let [_ (println (headline))
+           {config-file :config} options
            {{:keys [port auto-reload] :as server} :server :as config} (init! config-file)]
-       (println (headline))
        ;; starting server
        (run-server (if auto-reload (reload/wrap-reload #'app) app) server)
        (log/info "Samsara Ingestion-API listening on port: " port)
