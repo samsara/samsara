@@ -130,8 +130,14 @@ Then to run the container:
 
 ```
 # it is important that you pass the `-i` option to create a stdin chanel
-docker run -tdi -p 9000:9000 -p 15000:15000 -v /tmp/ingestion-api:/logs samsara/ingestion-api
+docker run -tdi -p 9000:9000 -p 15000:15000 -v /tmp/ingestion-api:/logs \
+        --link=kafkadocker_kafka_11:kafka_1 \
+        --link=kafkadocker_kafka_12:kafka_2 \
+        --link=kafkadocker_kafka_13:kafka_3 \
+        samsara/ingestion-api
 ```
+
+The linked containers will then be used for configuration autodiscovery.
 
 This will expose port `9000` and port `15000` on your docker host. It will mount 
 a volume to expose the container logs as `/tmp/ingestion-api`.
