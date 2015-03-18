@@ -7,7 +7,7 @@
   (:require [ingestion-api.route :refer [app]]
             [ingestion-api.events :refer [*backend*]])
   (:require [ingestion-api.backend :refer [make-console-backend]]
-            [ingestion-api.backend-kafka :refer [make-kafka-backend]])
+            [ingestion-api.backend-kafka :refer [make-kafka-backend make-kafka-backend-for-docker]])
   (:gen-class))
 
 
@@ -20,6 +20,7 @@
 
    :backend  {:type :console :pretty? true}
    ;;:backend {:type :kafka :topic "events" :metadata.broker.list "192.168.59.103:9092"}
+   ;;:backend {:type :kafka-docker :topic "events" :docker {:link "kafka.*" :port "9092" :to "metadata.broker.list"} }
    })
 
 (def cli-options
@@ -134,6 +135,7 @@ DESCRIPTION
           (case type
             :console (make-console-backend cfg)
             :kafka   (make-kafka-backend   cfg)
+            :kafka-docker   (make-kafka-backend-for-docker cfg)
             (throw (RuntimeException. "Illegal backed type:" type))))
   (log/info "Creating backend type: " type ", with config:" cfg))
 

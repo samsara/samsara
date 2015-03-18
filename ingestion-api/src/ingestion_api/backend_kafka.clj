@@ -2,6 +2,7 @@
   (:refer-clojure :exclude [send])
   (:require [ingestion-api.backend :refer [send]])
   (:import  [ingestion_api.backend EventsQueueingBackend])
+  (:require [ingestion-api.docker :refer [docker-link-into]])
   (:require [clj-kafka.producer :as kp])
   (:require [schema.core :as s])
   (:require [cheshire.core :as json]))
@@ -58,3 +59,12 @@
         producer (kp/producer cfg)]
 
     (KafkaBackend. cfg topic producer)))
+
+
+(defn make-kafka-backend-for-docker
+  "Create a kafka backend and configures the brokers using the Docker's environment variables"
+  [config]
+  (-> config
+      (#(docker-link-into (:docker %) %))
+      (dissoc :docker)
+      (make-kafka-backend)))
