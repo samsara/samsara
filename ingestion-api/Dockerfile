@@ -1,7 +1,7 @@
 FROM relateiq/oracle-java8
 
-ADD ./target/ingestion-api /opt/ingestion-api/
-ADD ./config               /opt/ingestion-api/config
+ADD ./target/ingestion-api      /opt/ingestion-api/
+ADD ./config/default-config.edn /opt/ingestion-api/config/config.edn
 
 RUN apt-get install -y supervisor
 ADD ./docker/supervisord.conf /etc/supervisor/supervisord.conf

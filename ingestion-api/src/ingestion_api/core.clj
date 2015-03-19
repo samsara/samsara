@@ -44,7 +44,7 @@
   []
   (try
     (->> "project.clj"
-         ((fn [f] (if (.exists (io/file f)) (io/file f) io/resource)))
+         ((fn [f] (if (.exists (io/file f)) (io/file f) (io/resource f))))
          slurp
          read-string
          nnext
