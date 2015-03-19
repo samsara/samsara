@@ -21,6 +21,7 @@
             [qanal.kafka :as kafka]
             [qanal.elsasticsearch :as els]
             [qanal.utils :refer [sleep exit execute-if-elapsed result-or-exception continously-try]]
+            [qanal.metrics :as metrics]
             [validateur.validation :refer [validation-set nested inclusion-of presence-of compose-sets]])
   (:gen-class)
   (:import (kafka.common OffsetOutOfRangeException InvalidMessageSizeException)))
@@ -51,14 +52,30 @@
     (nested :elasticsearch-target (validation-set
                                     (presence-of :end-point)))))
 
-(defn- print-stats [c {:keys [topic partition-id offset received-msgs bulked-docs bulked-time]}]
-  (let [kafka-args {:topic topic :partition-id partition-id :auto-offset-reset :latest}
-        current-offset (result-or-exception kafka/get-topic-offset c kafka-args)
-        backlog (if (instance? Exception current-offset) "EXCEPTION" (- current-offset offset))]
+(defn- print-stats [{:keys [topic partition-id received-msgs bulked-docs bulked-time backlog]}]
+  (log/info "Topic->" topic " Partition-id->" partition-id " Received Msgs->" received-msgs
+            " Bulked Docs->" bulked-docs " Bulked-time->" bulked-time "ms"
+            " Backlog->" backlog))
 
-    (log/info "Topic->" topic " Partition-id->" partition-id " Received Msgs->" received-msgs
-              " Bulked Docs->" bulked-docs " Bulked-time->" bulked-time "ms"
-              " Backlog->" backlog)))
+(defn- extract-stats [c {:keys [topic partition-id offset received-msgs bulked-docs bulked-time]
+                         :or {received-msgs 0 bulked-docs 0 bulked-time 0}
+                         :as state}]
+  (let [latest-zk-offset (result-or-exception kafka/get-latest-topic-offset c state) ;should be careful and not hammer zookeeper
+        backlog (if (instance? Exception latest-zk-offset) -1 (- latest-zk-offset offset))]
+    {:topic topic :partition-id partition-id :received-msgs received-msgs
+     :bulked-docs bulked-docs :bulked-time bulked-time :backlog backlog}))
+
+(defn- report-stats [c {:keys [last-time-executed] :or {last-time-executed 0} :as state} other-stats]
+  (let [state-with-stats (merge state other-stats)
+        wrapper-fn (fn [] (extract-stats c state-with-stats))
+        collected-stats (execute-if-elapsed  wrapper-fn last-time-executed) ;Limit how much this is called, so as not to hammer zookeeper
+        last-time-executed (System/currentTimeMillis)]
+    (if collected-stats
+      (do
+        (metrics/record-qanal-stats collected-stats)
+        (print-stats collected-stats)
+        (assoc state :last-time-executed last-time-executed))
+      state)))
 
 (defn- apply-logging-options [logging-options]
   (let [log-level (:min-level logging-options)
@@ -134,17 +151,18 @@
    partition's lead broker"
   [consumer m]
   (let [m-consumer-offset (apply-consumer-offset m)
-        consumer-offset (:offset m-consumer-offset)]
+        consumer-offset (:offset m-consumer-offset)
+        {:keys [topic partition-id auto-offset-reset]} m]
     (if (nil? consumer-offset)
       (do
-        (log/warn "No Existing Zookeeper Consumer offset found for topic->" (:topic m)
-                  " partition-id->" (:partition-id m))
+        (log/warn "No Existing Zookeeper Consumer offset found for topic->" topic
+                  " partition-id->" partition-id)
         (let [m-reset-offset (apply-topic-offset consumer m)]
-          (log/info "Using auto-offset-reset to set Consumer Offset for topic->" (:topic m) " partition-id->"
-                    (:partition-id m) " to [" (:offset m-reset-offset) "]")
+          (log/info "Using auto-offset-reset->" auto-offset-reset " to set Consumer Offset for topic->" topic
+                    " partition-id->" partition-id " to [" (:offset m-reset-offset) "]")
           m-reset-offset))
       (do
-        (log/info "Topic->" (:topic m) " Partition-id->" (:partition-id m) "Using Zookeeper Consumer offset->" consumer-offset)
+        (log/info "Topic->" topic " Partition-id->" partition-id "Using Zookeeper Consumer offset->" consumer-offset)
         m-consumer-offset))))
 
 
@@ -173,23 +191,22 @@
                 (recur (connect-to-kafka m) m)))))))
 
 
-(defn siphon [{:keys [kafka-source elasticsearch-target logging-options]
+(defn siphon [{:keys [kafka-source elasticsearch-target riemann-host logging-options]
                :or {logging-options default-rotor-config}}]
+  (metrics/connect-to-riemann riemann-host)
   (apply-logging-options logging-options)
   (loop [c (connect-to-kafka kafka-source)
          source-with-offset (apply-initial-offset c kafka-source)]
     (let [msgs-seq (get-kafka-messages c source-with-offset)]
       (if (empty? msgs-seq)
-        (let [print-stats-sensibly (partial execute-if-elapsed source-with-offset 1000 print-stats c)
-              source-with-offset (print-stats-sensibly (assoc source-with-offset :received-msgs 0 :bulked-docs 0 :bulked-time 0))]
+        (let [source-with-offset (report-stats c source-with-offset nil)]
           (sleep 1000)
           (recur c source-with-offset))
         (let [bulk-stats (els/bulk-index msgs-seq elasticsearch-target)
               last-offset (:last-offset bulk-stats)
               m-with-offset (assoc source-with-offset :offset (inc last-offset))]
           (set-consumer-offset m-with-offset)
-          (let [print-stats-sensibly (partial execute-if-elapsed m-with-offset 1000 print-stats c)
-                m-with-offset (print-stats-sensibly (merge m-with-offset bulk-stats))]
+          (let [m-with-offset (report-stats c m-with-offset bulk-stats)]
             (recur c m-with-offset)))))))
 
 (defn -main [& args]

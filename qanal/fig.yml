@@ -1,11 +1,11 @@
 zookeeper:
   image: wurstmeister/zookeeper
   ports:
-    - "2181"
+    - "2181:2181"
 kafka:
   image: wurstmeister/kafka:0.8.1.1-1
   ports:
-    - "9092"
+    - "9092:9092"
   links:
     - zookeeper:zk
   environment:
@@ -20,8 +20,13 @@ elasticsearch1:
      - "9200:9200"
      - "9300:9300"
 
-qanal:
-    image: samsara/qanal
-    links:
-     - zookeeper:zk
-     - elasticsearch1:els
+riemann:
+    image: samsara/riemann
+    ports:
+    - "5555:5555"
+
+#qanal:
+#    image: samsara/qanal
+#    links:
+#     - zookeeper:zk
+#     - elasticsearch1:els

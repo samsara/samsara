@@ -64,6 +64,12 @@
   {:pre [(#{:earliest :latest} auto-offset-reset)]}
   (topic-offset consumer topic partition-id auto-offset-reset))
 
+(defn get-earliest-topic-offset [^SimpleConsumer consumer m]
+  (get-topic-offset consumer (assoc m :auto-offset-reset :earliest)))
+
+(defn get-latest-topic-offset [^SimpleConsumer consumer m]
+  (get-topic-offset consumer (assoc m :auto-offset-reset :latest)))
+
 (defn set-consumer-offset [{:keys [zookeeper-connect group-id topic partition-id offset]}]
   (let [zookeeper-props {"zookeeper.connect" zookeeper-connect}]
     (set-offset! zookeeper-props group-id topic partition-id offset)))

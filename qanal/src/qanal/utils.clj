@@ -13,15 +13,16 @@
     (catch InterruptedException ie
       (log/warn "Sleeping Thread was interrupted : " ie))))
 
-(defn execute-if-elapsed [{:keys [last-time-executed] :as m} window f & args]
-  (let [last-time (or last-time-executed 0)
-        elapsed (- (System/currentTimeMillis) last-time)]
-    #_(log/debug "last-time->" last-time " elapsed->" elapsed)
-    (if (> elapsed window)
-      (do
-        (apply f args)
-        (assoc m :last-time-executed (System/currentTimeMillis)))
-      m)))
+(defn execute-if-elapsed
+
+  ([f last-time-executed]
+    (execute-if-elapsed f last-time-executed 1000))
+
+  ([f last-time-executed window]
+    (let [elapsed (- (System/currentTimeMillis) last-time-executed)]
+      #_(log/debug "last-time-executed->" last-time-executed " elapsed->" elapsed)
+      (when (> elapsed window)
+        (f)))))
 
 (defn result-or-exception [f & args-list]
   (try
