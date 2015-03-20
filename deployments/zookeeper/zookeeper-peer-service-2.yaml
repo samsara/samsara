@@ -1,0 +1,8 @@
+id: zk-peer-2
+kind: Service
+apiVersion: v1beta1
+port: 2889
+containerPort: zookeeper-peer-port
+selector:
+  name: zookeeper
+  server: "2"

@@ -1,0 +1,8 @@
+id: zk-election-1
+kind: Service
+apiVersion: v1beta1
+port: 3888
+containerPort: zookeeper-election-port
+selector:
+  name: zookeeper
+  server: "1"

@@ -1,0 +1,44 @@
+# from https://github.com/fabric8io/quickstarts/blob/master/apps/zookeeper/src/main/fabric8/kubernetes.json
+id: zookeeper-3
+kind: ReplicationController
+apiVersion: v1beta1
+desiredState:
+  replicas: 1
+  replicaSelector:
+    name: zookeeper
+    server: "3"
+  podTemplate:
+    desiredState:
+      manifest:
+        version: v1beta1
+        id: zookeeper-3
+        containers:
+          - name: zookeeper-3
+            image: fabric8/zookeeper
+            ports:
+              - name: zookeeper-clinet-port
+                containerPort: 2181
+              - name: zookeeper-peer-port
+                containerPort: 2888
+              - name: zookeeper-election-port
+                containerPort: 3888
+            env:
+              - name: ZK_SERVER_ID
+                value: "3"
+              - name: USE_BRIDGE
+                value: "true"
+            volumeMounts:
+              - name: logs
+                mountPath: /opt/zookeeper/log
+              - name: data
+                mountPath: /opt/zookeeper/data
+        volumes:
+          - name: logs
+            source:
+              emptyDir: {}
+          - name: data
+            source:
+              emptyDir: {}
+    labels:
+      name: zookeeper
+      server: "3"

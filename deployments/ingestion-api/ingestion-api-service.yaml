@@ -1,0 +1,7 @@
+id: ingestion-api
+kind: Service
+apiVersion: v1beta1
+port: 9000
+containerPort: 9000
+selector:
+  name: ingestion-api
