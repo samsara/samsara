@@ -10,16 +10,12 @@
 
 (facts "About execute-if-elapsed"
        (with-state-changes [(before :facts (reset! called? nil))]
-                           (fact "execute if :last-time-executed isn't present"
-                                 (execute-if-elapsed {} 5000 callme) @called? => truthy)
-                           (fact "return :last-time-executed when not present"
-                                 (execute-if-elapsed {} 5000 callme) => (contains {:last-time-executed number?}))
                            (fact "execute if elapsed is greater than window"
-                                 (execute-if-elapsed {:last-time-executed (- (System/currentTimeMillis) 7000)} 5000 callme)
+                                 (execute-if-elapsed callme (- (System/currentTimeMillis) 7000) 5000)
                                  @called?
                                  => truthy)
                            (fact "don't execute if elapsed is less than window"
-                                 (execute-if-elapsed {:last-time-executed (- (System/currentTimeMillis) 3000)} 5000 callme)
+                                 (execute-if-elapsed callme (- (System/currentTimeMillis) 3000) 5000)
                                  @called?
                                  => falsey)))
 
