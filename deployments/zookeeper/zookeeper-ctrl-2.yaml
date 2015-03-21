@@ -38,7 +38,8 @@ desiredState:
               emptyDir: {}
           - name: data
             source:
-              emptyDir: {}
+              hostDir:
+                path: /data/zookeeper/2
     labels:
       name: zookeeper
       server: "2"
