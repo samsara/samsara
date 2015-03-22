@@ -12,8 +12,9 @@ RUN apt-get install -y wget curl
 
 ENV SJDK7 http://download.oracle.com/otn-pub/java/jdk/7u75-b13/jdk-7u75-linux-x64.tar.gz
 ENV SJDK8 http://download.oracle.com/otn-pub/java/jdk/8u40-b26/jdk-8u40-linux-x64.tar.gz
+ENV SJDK  $SJDK8
 
-RUN wget -nv --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" $SJDK7  -O /tmp/java.tgz
+RUN wget -nv --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" $SJDK  -O /tmp/java.tgz
 RUN mkdir -p /usr/lib/jvm && \
     tar zxvf /tmp/java.tgz -C /usr/lib/jvm
 RUN update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/*/bin/javac 1       && \
