@@ -18,7 +18,8 @@ EOF
 export BASE=$(dirname $0)
 
 # starting zookeeper and kafka
-$BASE/zookeeper/start.sh
+$BASE/zookeeper2/start.sh
+$BASE/kafka/start.sh
 
 # starting ingestion api
 $BASE/ingestion-api/start.sh

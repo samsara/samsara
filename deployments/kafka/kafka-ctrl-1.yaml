@@ -1,0 +1,44 @@
+id: kafka-1
+kind: ReplicationController
+apiVersion: v1beta1
+desiredState:
+  replicas: 1
+  replicaSelector:
+    name: kafka
+    server: "1"
+  podTemplate:
+    desiredState:
+      manifest:
+        version: v1beta1
+        id: kafka-1
+        containers:
+          - name: kafka-1
+            image: samsara/kafka:0.8.2.1
+            ports:
+              - name: kafka-port
+                containerPort: 9092
+            env:
+              - name: KAFKA_BROKER_ID
+                value: "1"
+            volumeMounts:
+              - name: logs
+                mountPath: /logs
+              - name: data
+                mountPath: /data
+            command:
+               - "/configure-and-start.sh"
+#              - "/bin/nc"
+#              - "-l"
+#              - "12345"
+        volumes:
+          - name: logs
+            source:
+              hostDir:
+                path: /logs/kafka/1
+          - name: data
+            source:
+              hostDir:
+                path: /data/kafka/1
+    labels:
+      name: kafka
+      server: "1"
