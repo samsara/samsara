@@ -162,17 +162,6 @@ won't be the local host but the `boot2docker` virtual machine which by default i
 that the mounted volume (`/tmp/ingestion-api`) will be on the `boot2docker` virtual machine.
 To access them you can log into `boot2docker` with the following command: `boot2docker ssh`.
 
-If you attach the container with:
-
-```
-docker attach $CONTAINER_ID
-```
-
-You will be prompted a login to access the `supervisorctl` console. As for the web access
-the credentials are `admin` / `samsara`
-To `detach` the session press `Ctrl-p Ctrl-q`.
-
-
 ## Available endpoints
 
 ### /events

@@ -1,12 +1,11 @@
-FROM relateiq/oracle-java8
+FROM samsara/base-image-jdk8:u1410-j8u40
+
+MAINTAINER Samsara's team (https://github.com/samsara/samsara-ingestion-api)
 
 ADD ./target/ingestion-api      /opt/ingestion-api/
 ADD ./config/default-config.edn /opt/ingestion-api/config/config.edn
 
-RUN apt-get install -y supervisor
-ADD ./docker/supervisord.conf /etc/supervisor/supervisord.conf
 ADD ./docker/ingestion-api-supervisor.conf /etc/supervisor/conf.d/
-ADD ./docker/start.sh /
 
 # Available ports
 # 9000  - http ingestion api
@@ -16,4 +15,4 @@ EXPOSE 9000 15000
 # ingestion-api logs
 VOLUME ["/logs"]
 
-CMD /start.sh
+CMD /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
