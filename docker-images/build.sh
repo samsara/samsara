@@ -25,7 +25,7 @@ docker push samsara/base-image-jdk8:u1410-j8u40
 
 
 #
-# BUILDIND zookeeper image
+# BUILDING zookeeper image
 #
 cd $BASE/zookeeper
 
@@ -38,7 +38,7 @@ docker push samsara/zookeeper:3.4.6
 
 
 #
-# BUILDIND Kafka image
+# BUILDING Kafka image
 #
 cd $BASE/kafka
 
