@@ -1,7 +1,7 @@
-id: zookeeper
+id: kafka
 kind: Service
 apiVersion: v1beta1
-port: 2181
-containerPort: 2181
+port: 9092
+containerPort: 9092
 selector:
-  name: zookeeper
+  name: kafka
