@@ -34,6 +34,12 @@ RUN apt-get install -y supervisor
 RUN cp /etc/supervisor/supervisord.conf /etc/supervisor/supervisord.conf.orig
 ADD ./supervisord.conf /etc/supervisor/supervisord.conf
 
+#
+# Installing jq JSON processor
+#
+RUN wget http://stedolan.github.io/jq/download/linux64/jq -O /usr/local/bin/jq && \
+    chmod +x /usr/local/bin/jq
+
 # standard volumes
 VOLUME ["/logs"]
 

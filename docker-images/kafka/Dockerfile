@@ -20,4 +20,4 @@ ADD ./kafka-statsd-metrics2-0.4.0-SNP.jar /opt/kafka/libs/kafka-statsd-metrics2-
 ADD ./kafka-supervisor.conf /etc/supervisor/conf.d/kafka-supervisor.conf
 ADD ./configure-and-start.sh /configure-and-start.sh
 
-CMD /configure-and-start.sh &>> /logs/configure-and-start.log
+CMD /configure-and-start.sh
