@@ -2,6 +2,7 @@
 
 # now add controllers
 seq 3 | xargs -I {} kubectl.sh create -f $(dirname $0)/kafka-ctrl-{}.yaml
+kubectl.sh create -f $(dirname $0)/kafka-console.yaml
 
 sleep 5
 
