@@ -15,7 +15,8 @@
 ;; limitations under the License.
 (ns qanal.kafka
   (:import (kafka.javaapi.consumer SimpleConsumer))
-  (:require [clj-kafka.zk :refer (brokers committed-offset set-offset!)]
+  (:require [qanal.utils :refer [result-or-exception]]
+            [clj-kafka.zk :refer (brokers committed-offset set-offset!)]
             [clj-kafka.core :refer (ToClojure)]
             [clj-kafka.consumer.simple :refer (consumer topic-meta-data messages topic-offset)]
             [clojure.core.async :refer (buffer chan >!! thread close!)]
@@ -53,8 +54,8 @@
       (log/warn "Lead Broker NOT found for topic[" topic "] partition-id[" partition-id "] !!"))))
 
 
-(defn get-messages [^SimpleConsumer consumer {:keys [group-id topic partition-id offset fetch-size]}]
-  (messages consumer group-id topic partition-id offset fetch-size))
+(defn get-messages [^SimpleConsumer consumer {:keys [group-id topic partition-id consumer-offset fetch-size]}]
+  (messages consumer group-id topic partition-id consumer-offset fetch-size))
 
 (defn get-consumer-offset [{:keys [zookeeper-connect group-id topic partition-id]}]
   (let [zookeeper-props {"zookeeper.connect" zookeeper-connect}]
@@ -70,14 +71,19 @@
 (defn get-latest-topic-offset [^SimpleConsumer consumer m]
   (get-topic-offset consumer (assoc m :auto-offset-reset :latest)))
 
-(defn set-consumer-offset [{:keys [zookeeper-connect group-id topic partition-id offset]}]
+(defn set-consumer-offset [{:keys [zookeeper-connect group-id topic partition-id consumer-offset]}]
   (let [zookeeper-props {"zookeeper.connect" zookeeper-connect}]
-    (set-offset! zookeeper-props group-id topic partition-id offset)))
+    (set-offset! zookeeper-props group-id topic partition-id consumer-offset)))
+
+(defn calculate-partition-backlog [consumer {:keys [consumer-offset] :as m}]
+  (let [latest-zk-offset (result-or-exception get-latest-topic-offset consumer m)
+        backlog (if (instance? Exception latest-zk-offset) -1 (- latest-zk-offset consumer-offset))]
+    backlog))
 
 (comment
 
   (def con (connect-to-broker {:topic "river" :partition-id 0 :zookeeper-connect "localhost:49155" :group-id "someclient"}))
   (->>
-    (get-messages con {:group-id "someclient" :topic "river" :partition-id 0 :offset 0 :fetch-size (* 10 1024 1024)})
+    (get-messages con {:group-id "someclient" :topic "river" :partition-id 0 :consumer-offset 0 :fetch-size (* 10 1024 1024)})
     (map #(-> % :value String. println)))
   )

@@ -52,30 +52,35 @@
     (nested :elasticsearch-target (validation-set
                                     (presence-of :end-point)))))
 
-(defn- print-stats [{:keys [topic partition-id received-msgs bulked-docs bulked-time backlog]}]
-  (log/info "Topic->" topic " Partition-id->" partition-id " Received Msgs->" received-msgs
-            " Bulked Docs->" bulked-docs " Bulked-time->" bulked-time "ms"
-            " Backlog->" backlog))
 
-(defn- extract-stats [c {:keys [topic partition-id offset received-msgs bulked-docs bulked-time]
-                         :or {received-msgs 0 bulked-docs 0 bulked-time 0}
-                         :as state}]
-  (let [latest-zk-offset (result-or-exception kafka/get-latest-topic-offset c state) ;should be careful and not hammer zookeeper
-        backlog (if (instance? Exception latest-zk-offset) -1 (- latest-zk-offset offset))]
-    {:topic topic :partition-id partition-id :received-msgs received-msgs
-     :bulked-docs bulked-docs :bulked-time bulked-time :backlog backlog}))
+(defn- record-stats [kafka-consumer {:keys [topic partition-id consumer-offset kafka-msgs-count kafka-msgs-time bulked-docs bulked-time]
+                                     :or {kafka-msgs-count 0 bulked-docs 0 bulked-time 0}
+                                     :as stats}]
+  ;(log/debug "Stats ->" stats)
+  (let [kafka-args (select-keys stats [:topic :partition-id :consumer-offset])
+        msg-time (if (> kafka-msgs-time 0) kafka-msgs-time 1)
+        msg-time (double (/ msg-time 1000))
+        doc-time (if (> bulked-time 0) bulked-time 1)
+        doc-time (double (/ doc-time 1000))
+        ;debug (log/debug "msgs->" kafka-msgs-count " msg-time->" msg-time " msg-rate->" (double (/ kafka-msgs-count msg-time)))
+        ;debug (log/debug "docs->" bulked-docs " doc-time->" doc-time " bulked-rate->" (double (/ bulked-docs doc-time)))
+        gauge-fn-map {:msg-rate-fn      (fn [] (double (/ kafka-msgs-count msg-time)))
+                      :bulking-rate-fn  (fn [] (double (/ bulked-docs doc-time)))
+                      :bulked-time-fn   (fn []  bulked-time)
+                      :backlog-fn       (fn [] (kafka/calculate-partition-backlog kafka-consumer kafka-args))}
 
-(defn- report-stats [c {:keys [last-time-executed] :or {last-time-executed 0} :as state} other-stats]
-  (let [state-with-stats (merge state other-stats)
-        wrapper-fn (fn [] (extract-stats c state-with-stats))
-        collected-stats (execute-if-elapsed  wrapper-fn last-time-executed) ;Limit how much this is called, so as not to hammer zookeeper
-        last-time-executed (System/currentTimeMillis)]
-    (if collected-stats
-      (do
-        (metrics/record-qanal-stats collected-stats)
-        (print-stats collected-stats)
-        (assoc state :last-time-executed last-time-executed))
-      state)))
+        ]
+
+    (metrics/record-qanal-counters stats)
+    (metrics/record-qanal-gauges topic partition-id gauge-fn-map)
+    (metrics/sensibly-log-stats stats)))
+
+
+(defn- create-default-stats [{:keys [topic partition-id consumer-offset kafka-msgs-count bulked-docs bulked-time]
+                              :or {kafka-msgs-count 0 bulked-docs 0 bulked-time 0}}]
+  {:topic topic :partition-id partition-id :consumer-offset consumer-offset :kafka-msgs-count kafka-msgs-count
+   :bulked-docs bulked-docs :bulked-time bulked-time})
+
 
 (defn- apply-logging-options [logging-options]
   (let [log-level (:min-level logging-options)
@@ -120,7 +125,7 @@
   (let [retry (:connect-retry m)
         error-msg "Unable to get consumer offset from Zookeeper"
         current-consumer-offset (continously-try kafka/get-consumer-offset [m] retry error-msg)]
-    (assoc m :offset current-consumer-offset)))
+    (assoc m :consumer-offset current-consumer-offset)))
 
 (defn apply-topic-offset
   "Takes a SimpleConsumer and a map. It then uses the consumer to connect to the Broker and
@@ -132,7 +137,7 @@
         args [consumer m]
         error-msg (str "Unable to get the offset for topic->" (:topic m) " partition->" (:partition-id m) " from Kafka")
         current-partition-offset (continously-try kafka/get-topic-offset args retry error-msg)]
-    (assoc m :offset current-partition-offset)))
+    (assoc m :consumer-offset current-partition-offset)))
 
 (defn set-consumer-offset
   "Takes a map and uses the :zookeeper-connect :topic :partition-id and :offset values to set the
@@ -151,7 +156,7 @@
    partition's lead broker"
   [consumer m]
   (let [m-consumer-offset (apply-consumer-offset m)
-        consumer-offset (:offset m-consumer-offset)
+        consumer-offset (:consumer-offset m-consumer-offset)
         {:keys [topic partition-id auto-offset-reset]} m]
     (if (nil? consumer-offset)
       (do
@@ -159,7 +164,7 @@
                   " partition-id->" partition-id)
         (let [m-reset-offset (apply-topic-offset consumer m)]
           (log/info "Using auto-offset-reset->" auto-offset-reset " to set Consumer Offset for topic->" topic
-                    " partition-id->" partition-id " to [" (:offset m-reset-offset) "]")
+                    " partition-id->" partition-id " to [" (:consumer-offset m-reset-offset) "]")
           m-reset-offset))
       (do
         (log/info "Topic->" topic " Partition-id->" partition-id "Using Zookeeper Consumer offset->" consumer-offset)
@@ -167,12 +172,14 @@
 
 
 
-(defn get-kafka-messages [consumer m]
-  (let [msg-seq (result-or-exception kafka/get-messages consumer m)
-        retry (:connect-retry m)
-        offset-reset (:auto-offset-reset m)]
+(defn get-kafka-messages [consumer state]
+  (let [start (System/currentTimeMillis)
+        msg-seq (result-or-exception kafka/get-messages consumer state)
+        end (System/currentTimeMillis)
+        retry (:connect-retry state)
+        offset-reset (:auto-offset-reset state)]
     (if-not (instance? Exception msg-seq)
-      msg-seq
+      {:kafka-msgs msg-seq :kafka-msgs-time (- end start)}
       (do
         (log/warn "Unable to get kafka messages due to this Exception : " msg-seq)
         (log/warn "Will retry in " retry " milliseconds")
@@ -180,34 +187,40 @@
         (cond (instance? OffsetOutOfRangeException msg-seq)
               (do
                 (log/warn "OffsetOutOfRangeException was encountered, will use the " offset-reset " topic/partiion offset")
-                (recur consumer (apply-topic-offset consumer m)))
+                (recur consumer (apply-topic-offset consumer state)))
               (instance? InvalidMessageSizeException msg-seq)
               (do
                 (log/warn "InvalidMessageSizeException was encountered, will use the " offset-reset " topic/partition offset")
-                (recur consumer (apply-topic-offset consumer m)))
+                (recur consumer (apply-topic-offset consumer state)))
               :else
               (do
                 (log/warn "An unexpected Exception was encountered whilst getting kafka messages. Reconnecting Kafka and trying again")
-                (recur (connect-to-kafka m) m)))))))
+                (recur (connect-to-kafka state) state)))))))
 
 
 (defn siphon [{:keys [kafka-source elasticsearch-target riemann-host logging-options]
                :or {logging-options default-rotor-config}}]
   (metrics/connect-to-riemann riemann-host)
   (apply-logging-options logging-options)
-  (loop [c (connect-to-kafka kafka-source)
-         source-with-offset (apply-initial-offset c kafka-source)]
-    (let [msgs-seq (get-kafka-messages c source-with-offset)]
-      (if (empty? msgs-seq)
-        (let [source-with-offset (report-stats c source-with-offset nil)]
+  (loop [consumer (connect-to-kafka kafka-source)
+         state (apply-initial-offset consumer kafka-source)]
+    (let [{:keys [kafka-msgs kafka-msgs-time]} (get-kafka-messages consumer state)
+          stats (assoc (create-default-stats state) :kafka-msgs-time kafka-msgs-time)]
+      (if (empty? kafka-msgs)
+        (do
+          (record-stats consumer stats)
           (sleep 1000)
-          (recur c source-with-offset))
-        (let [bulk-stats (els/bulk-index msgs-seq elasticsearch-target)
-              last-offset (:last-offset bulk-stats)
-              m-with-offset (assoc source-with-offset :offset (inc last-offset))]
-          (set-consumer-offset m-with-offset)
-          (let [m-with-offset (report-stats c m-with-offset bulk-stats)]
-            (recur c m-with-offset)))))))
+          (recur consumer state))
+
+        (let [els-stats (els/bulk-index elasticsearch-target kafka-msgs)
+              last-msg-offset (:kafka-msgs-last-offset els-stats)
+              consumer-offset (inc last-msg-offset)
+              updated-stats (merge stats els-stats {:consumer-offset consumer-offset})
+              updated-state (assoc state :consumer-offset consumer-offset)]
+          (set-consumer-offset updated-state)
+          (record-stats consumer updated-stats)
+          (recur consumer updated-state))))))
+
 
 (defn -main [& args]
   (let [{:keys [options errors ]} (parse-opts args known-options)

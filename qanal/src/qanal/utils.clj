@@ -22,12 +22,13 @@
     (let [elapsed (- (System/currentTimeMillis) last-time-executed)]
       #_(log/debug "last-time-executed->" last-time-executed " elapsed->" elapsed)
       (when (> elapsed window)
-        (f)))))
+        {:executed true :result (f)}))))
 
 (defn result-or-exception [f & args-list]
   (try
     (apply f args-list)
     (catch Exception e
+      (log/warn e)
       e)))
 
 ;; Maybe this should be written as a macro  o_O ??
