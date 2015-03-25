@@ -2,8 +2,11 @@
 
 export BASE=$(dirname $0)
 
-# starting ingestion api
+# stopping ingestion api
 $BASE/ingestion-api/stop.sh
+
+# stopping qanal
+$BASE/qanal/stop.sh
 
 # starting zookeeper and kafka
 $BASE/kafka/stop.sh

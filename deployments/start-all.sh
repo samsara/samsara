@@ -23,3 +23,6 @@ $BASE/kafka/start.sh
 
 # starting ingestion api
 $BASE/ingestion-api/start.sh
+
+# starting qanal
+$BASE/qanal/start.sh

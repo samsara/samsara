@@ -1,0 +1,33 @@
+id: qanal
+kind: ReplicationController
+apiVersion: v1beta1
+desiredState:
+  replicas: 1
+  replicaSelector:
+    name: qanal
+  podTemplate:
+    desiredState:
+      manifest:
+        version: v1beta1
+        id: qanal
+        containers:
+          - name: qanal
+            image: samsara/qanal
+            cpu: 1000
+            ports:
+              - name: supervisord
+                containerPort: 15000
+            env:
+              - name: KAFKA_TOPIC
+                value: "events"
+              - name: KAFKA_PARTITION_ID
+                value: "1"
+            volumeMounts:
+              - name: logs
+                mountPath: /logs
+        volumes:
+          - name: logs
+            source:
+              emptyDir: {}
+    labels:
+      name: qanal
