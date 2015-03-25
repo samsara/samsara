@@ -1,14 +1,13 @@
-FROM dockerfile/java:oracle-java8
+FROM samsara/base-image-jdk8:u1410-j8u40
 
-#RUN apt-get update
-#RUN apt-get install -y supervisor
-#ADD ./docker/supervisord.conf /etc/supervisor/supervisord.conf
-#ADD ./docker/qanal-supervisor.conf /etc/supervisor/conf.d/
-#ADD ./docker/start-supervisord.sh /
+MAINTAINER Samsara's team (https://github.com/samsara/qanal)
 
-ADD ./target/qanal-*-standalone.jar /opt/qanal/qanal.jar
+ADD ./docker/qanal-supervisor.conf /etc/supervisor/conf.d/
+ADD ./target/qanal /opt/qanal/qanal
 ADD ./resources/config.edn /opt/qanal/conf/config.edn.orig
-ADD ./docker/start-qanal.sh /opt/qanal/
+ADD ./docker/configure-and-start.sh /
 
-#CMD /start-supervisord.sh
-CMD /opt/qanal/start-qanal.sh
+# qanal logs
+VOLUME ["/logs"]
+
+CMD /configure-and-start.sh

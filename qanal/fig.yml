@@ -43,19 +43,20 @@ grafana:
   environment:
     HTTP_USER: admin
     HTTP_PASS: samsara
-    INFLUXDB_PROTO: http 
-    INFLUXDB_HOST: localhost 
+    INFLUXDB_PROTO: http
+    INFLUXDB_HOST: localhost
     INFLUXDB_PORT: 8086
-    INFLUXDB_NAME: samsara 
+    INFLUXDB_NAME: samsara
     INFLUXDB_USER: root
     INFLUXDB_PASS: root
     INFLUXDB_IS_GRAFANADB: "true"
 
 
-
-
-#qanal:
-#    image: samsara/qanal
-#    links:
-#     - zookeeper:zk
-#     - elasticsearch1:els
+qanal:
+    image: samsara/qanal
+    links:
+      - zookeeper:zookeeper
+      - elasticsearch1:els
+    environment:
+      KAFKA_TOPIC: events
+      KAFKA_PARTITION_ID: 1
