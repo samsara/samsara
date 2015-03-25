@@ -1,6 +1,6 @@
 {:kafka-source {:zookeeper-connect  "127.0.0.1:2181"
                 :connect-retry      5000
-                :group-id           "Qanal"
+                :group-id           "qanal"
                 :topic "river"
                 :partition-id 0
                 :auto-offset-reset  :earliest ; Can only be earliest or latest

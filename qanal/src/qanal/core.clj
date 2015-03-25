@@ -31,7 +31,7 @@
                                       :async? false ; should be always false for rotor
                                       :fn rotor/appender-fn
                                       })
-(def ^:private default-rotor-config {:level :info :path "Qanal.log" :max-size (* 10 1024) :backlog 10})
+(def ^:private default-rotor-config {:level :info :path "qanal.log" :max-size (* 10 1024) :backlog 10})
 
 (def ^:private known-options
   [
@@ -239,7 +239,7 @@
 (comment
   (def test-config {:kafka-source {:zookeeper-connect  "localhost:49157"
                                    :connect-retry      5000
-                                   :group-id           "Qanal"
+                                   :group-id           "qanal"
                                    :topic "river"
                                    :partition-id 0
                                    :auto-offset-reset  :earliest ; Can only be earliest or latest

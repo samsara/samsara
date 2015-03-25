@@ -22,7 +22,7 @@ The following is the provided example (resources/config.edn)
 ```clojure
 {:kafka-source {:zookeeper-connect  "127.0.0.1:49157"
                 :connect-retry      5000
-                :group-id           "Qanal"
+                :group-id           "qanal"
                 :topic "river"
                 :partition-id 0
                 :auto-offset-reset  :earliest ; Can only be earliest or latest
@@ -30,7 +30,7 @@ The following is the provided example (resources/config.edn)
                 }
  :elasticsearch-target {:end-point "http://127.0.0.1:9200"}
  :logging-options {:min-level :info
-                   :path "Qanal.log"                        ;full path name for the file
+                   :path "qanal.log"                        ;full path name for the file
                    :max-size 15360                          ;size in bytes
                    :backlog 10}}
 ```
