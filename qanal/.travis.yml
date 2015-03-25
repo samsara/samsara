@@ -7,24 +7,24 @@ env:
     - DOCKER_PORT_RANGE=2400:2500
     - SLIRP_PORTS=$(seq 2375 2500)
 
-before_install:
-  - sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
-  - sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
-  - echo exit 101 | sudo tee /usr/sbin/policy-rc.d
-  - sudo chmod +x /usr/sbin/policy-rc.d
+#before_install:
+#  - sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
+#  - sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+#  - echo exit 101 | sudo tee /usr/sbin/policy-rc.d
+#  - sudo chmod +x /usr/sbin/policy-rc.d
 
-install:
-  - sudo apt-get -qqy update
-  - sudo apt-get -qqy install lxc lxc-docker-1.4.1 slirp
-  - sudo sudo usermod -aG docker "$USER"
-  - git clone git://github.com/cptactionhank/sekexe
+#install:
+#  - sudo apt-get -qqy update
+#  - sudo apt-get -qqy install lxc lxc-docker-1.4.1 slirp
+#  - sudo sudo usermod -aG docker "$USER"
+#  - git clone git://github.com/cptactionhank/sekexe
 
 lein: lein2
 
-before_script:
-  - "sekexe/run 'mount -t tmpfs -o size=8g tmpfs /var/lib/docker && docker -d -H tcp://0.0.0.0:2375' &"
+#before_script:
+#  - "sekexe/run 'mount -t tmpfs -o size=8g tmpfs /var/lib/docker && docker -d -H tcp://0.0.0.0:2375' &"
 
 script: lein midje
 
-after_success:
-  - sudo docker build -t samsara/qanal:snapshot .
+#after_success:
+#  - sudo docker build -t samsara/qanal:snapshot .

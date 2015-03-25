@@ -28,7 +28,6 @@
   (try
     (apply f args-list)
     (catch Exception e
-      (log/warn e)
       e)))
 
 ;; Maybe this should be written as a macro  o_O ??

@@ -2,23 +2,12 @@
   (:use midje.sweet)
   (:require [qanal.utils :refer :all]))
 
-(def ^:private called? (atom nil))
-(defn- callme [& args]
-  (if (nil? args)
-    (reset! called? true)
-    (reset! called? args)))
 
 (facts "About execute-if-elapsed"
-       (with-state-changes [(before :facts (reset! called? nil))]
-                           (fact "execute if elapsed is greater than window"
-                                 (execute-if-elapsed callme (- (System/currentTimeMillis) 7000) 5000)
-                                 @called?
-                                 => truthy)
-                           (fact "don't execute if elapsed is less than window"
-                                 (execute-if-elapsed callme (- (System/currentTimeMillis) 3000) 5000)
-                                 @called?
-                                 => falsey)))
-
+       (fact "execute if elapse is greater than the window"
+             (execute-if-elapsed (fn [] (* 5 5)) (- (System/currentTimeMillis) 7000) 5000) => {:executed true :result 25})
+       (fact "don't execute if elapsed is less than window"
+             (execute-if-elapsed (fn [] (* 5 5)) (- (System/currentTimeMillis) 3000) 5000) => nil))
 
 (facts "About result-or-exception"
        (fact "Catch and return the exception"

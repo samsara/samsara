@@ -78,6 +78,8 @@
 (defn calculate-partition-backlog [consumer {:keys [consumer-offset] :as m}]
   (let [latest-zk-offset (result-or-exception get-latest-topic-offset consumer m)
         backlog (if (instance? Exception latest-zk-offset) -1 (- latest-zk-offset consumer-offset))]
+    (when (instance? Exception latest-zk-offset)
+      (log/warn "Couldn't calculate backlog due to Exception, returning backlog as -1 :" latest-zk-offset))
     backlog))
 
 (comment
