@@ -22,5 +22,5 @@
                              [lein-bin "0.3.5"]]}}
 
   :jvm-opts ["-server" "-Dfile.encoding=utf-8"]
-  :bin {:name "qanal" :bootclasspath "false"}
+  :bin {:name "qanal" :bootclasspath false}
   )
