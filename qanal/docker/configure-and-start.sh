@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-export KAFKA_ZOOKEEPER_CONNECT=$(env | grep ZK.*PORT_2181_TCP= | sed -e 's|.*tcp://||' | paste -sd ,)
+export KAFKA_ZOOKEEPER_CONNECT=$(env | grep 'ZOOKEEPER.*_PORT_2181_TCP=' | sed -e 's|.*tcp://||' | paste -sd ,)
 if [[ -n "${KAFKA_ZOOKEEPER_CONNECT}" ]]; then
     export REPLACE_ZOOKEEPER_CONNECT="s/:zookeeper-connect\s.+$/:zookeeper-connect \"${KAFKA_ZOOKEEPER_CONNECT}\"/"
 fi
@@ -20,7 +20,7 @@ if [[ -n "${KAFKA_PARTITION_ID}" ]]; then
 fi
 
 if [[ ! -e /opt/qanal/conf/config.edn ]]; then
-    cat /opt/qanal/conf/config.edn.orig | sed -r "${REPLACE_ZOOKEEPER_CONNECT}" | sed -r "${REPLACE_ELS_ENDPOINT}" | sed -r "${REPLACE_KAFKA_TOPIC}" | sed -r "${REPLACE_KAFKA_PARTITION}" > /opt/qanal/conf/config.edn
+    cat /opt/qanal/conf/config.edn.orig | sed -r "${REPLACE_ZOOKEEPER_CONNECT}" | sed -r "${REPLACE_ELS_ENDPOINT}" | sed -r "${REPLACE_KAFKA_TOPIC}" | sed -r "${REPLACE_KAFKA_PARTITION_ID}" | sed -r 's/:path ".*\.log"/:path "\/logs\/qanal.log"/g' > /opt/qanal/conf/config.edn
 fi
 
-java -jar /opt/qanal/qanal.jar -c /opt/qanal/conf/config.edn
+/usr/bin/supervisord -c /etc/supervisor/supervisord.conf

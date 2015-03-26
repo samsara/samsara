@@ -3,7 +3,7 @@
 A stand alone indexer that reads messages (see Message Format below) from Kafka and bulk indexes them into a Elasticsearch Cluster.
 This program is intended as an alternative to the [Elasticsearch Kafka River Plugin] (https://github.com/endgameinc/elasticsearch-river-kafka)
 
-It should work against the 0.8.1.1 release of Kafka
+Tested against the Kafka-0.8.1.1 and Elasticsearch-1.4.4.
 
 ## Release Status
 Still in development, hope to do the first release real soon.
@@ -22,7 +22,7 @@ The following is the provided example (resources/config.edn)
 ```clojure
 {:kafka-source {:zookeeper-connect  "127.0.0.1:49157"
                 :connect-retry      5000
-                :group-id           "Qanal"
+                :group-id           "qanal"
                 :topic "river"
                 :partition-id 0
                 :auto-offset-reset  :earliest ; Can only be earliest or latest
@@ -30,7 +30,7 @@ The following is the provided example (resources/config.edn)
                 }
  :elasticsearch-target {:end-point "http://127.0.0.1:9200"}
  :logging-options {:min-level :info
-                   :path "Qanal.log"                        ;full path name for the file
+                   :path "qanal.log"                        ;full path name for the file
                    :max-size 15360                          ;size in bytes
                    :backlog 10}}
 ```
@@ -47,18 +47,19 @@ consumed by the Elasticsearch Kafka River Plugin.
 	}
 ## Usage
 
-To run the program, build an uberjar and run the jar
+To run the program, build an executable uberjar
 
-    $ lein do clean, uberjar
-    $ java -jar target/qanal-0.1.0-standalone.jar -c /opt/qanal/config.edn
+    $ lein do clean, bin
+    $ ./target/qanal -c /opt/qanal/config.edn
 
 ## Committers
 
-* Dayo Oliyide ([@DayoOliyide](https://github.com/DayoOliyide))
+  * Dayo Oliyide  ([@DayoOliyide](https://github.com/DayoOliyide))
+  * Bruno Bonacci ([@BrunoBonacci](https://github.com/BrunoBonacci))
 
 ## License
 
-Copyright © 2015 Samsara
+Copyright © 2015 Samsara's team
 
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
