@@ -1,0 +1,104 @@
+#
+# Zookeeper
+#
+zookeeper:
+  image: samsara/zookeeper
+  ports:
+    - "2181:2181"
+    - "15001:15000"
+  environment:
+    ZK_SERVER_ID: 1
+  volumes:
+    - /tmp/zk1/logs:/logs
+    - /tmp/zk1/data:/data
+
+#
+# Kafka
+#
+kafka:
+  image: samsara/kafka
+  ports:
+    - "9092:9092"
+    - "15002:15000"
+  links:
+    - zookeeper:zookeeper
+  environment:
+    KAFKA_BROKER_ID: 1
+  volumes:
+    - /tmp/kafka1/logs:/logs
+    - /tmp/kakfa1/data:/data
+
+#
+# Samsara Ingestion API
+#
+ingestion:
+  image: samsara/ingestion-api
+  links:
+    - kafka:kafka
+  ports:
+    - "9000:9000"
+    - "15000:15000"
+  volumes:
+    - /tmp/zk1/logs:/logs
+
+#
+# ElasticSearch
+#
+elasticsearch:
+    image: dockerfile/elasticsearch
+    ports:
+     - "9200:9200"
+     - "9300:9300"
+
+
+#
+# Samsara Qanal
+#
+qanal:
+    image: samsara/qanal
+    links:
+      - zookeeper:zookeeper
+      - elasticsearch:els
+    environment:
+      KAFKA_TOPIC: events
+      KAFKA_PARTITION_ID: 1
+
+
+#
+# Monitoring: InfluxDB
+#
+influxdb:
+  image: tutum/influxdb
+  ports:
+    - "8083:8083"
+    - "8086:8086"
+  environment:
+    PRE_CREATE_DB: samsara
+
+#
+# Monitoring: Riemann
+#
+riemann:
+  image: samsara/riemann
+  ports:
+    - "5555:5555"
+  links:
+    - influxdb:influxdb
+
+#
+# Monitoring: Grafana
+#
+grafana:
+  image: tutum/grafana
+  ports:
+    - "8080:80"
+  environment:
+    HTTP_USER: admin
+    HTTP_PASS: samsara
+    INFLUXDB_PROTO: http
+    INFLUXDB_HOST: localhost
+    INFLUXDB_PORT: 8086
+    INFLUXDB_NAME: samsara
+    INFLUXDB_USER: root
+    INFLUXDB_PASS: root
+    INFLUXDB_IS_GRAFANADB: "true"

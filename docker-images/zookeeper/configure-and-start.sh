@@ -40,15 +40,25 @@ if [ "$ZK_SERVER_ID" == "" ] ; then
     exit 1
 fi
 
-
-while [ $(discover-ensemble-as-list $DISCOVERY_SELECTOR | wc -l) -lt $DISCOVERY_ENSEMBLE_MIN_SIZE ] ; do
-    echo "currently found: " $( discover-ensemble-as-csv $DISCOVERY_SELECTOR )
-    echo "Ensamble too small.. waiting for more members to come online..."
-    sleep 5
-done
+# if running in kubernetes then start autodiscovery
+if [ -n "$KUBERNETES_RO_SERVICE_HOST" ] ; then
+    while [ $(discover-ensemble-as-list $DISCOVERY_SELECTOR | wc -l) -lt $DISCOVERY_ENSEMBLE_MIN_SIZE ] ; do
+        echo "currently found: " $( discover-ensemble-as-csv $DISCOVERY_SELECTOR )
+        echo "Ensamble too small.. waiting for more members to come online..."
+        sleep 5
+    done
+fi
 
 function get-server-list(){
-   curl -s "http://${KUBERNETES_RO_SERVICE_HOST}:${KUBERNETES_RO_SERVICE_PORT}/api/v1beta1/pods" | jq -r ".items | map( select( .labels.name == \"${1}\") ) | map(  [.labels.server, \":\", .currentState.podIP] | add )[]" | sed 's/^/server./g;s/$/:2888:3888/g'
+    # if running in Kubernetes then use the service discovery
+    if [ -n "$KUBERNETES_RO_SERVICE_HOST" ] ; then
+        curl -s "http://${KUBERNETES_RO_SERVICE_HOST}:${KUBERNETES_RO_SERVICE_PORT}/api/v1beta1/pods" | jq -r ".items | map( select( .labels.name == \"${1}\") ) | map(  [.labels.server, \":\", .currentState.podIP] | add )[]" | sed 's/^/server./g;s/$/:2888:3888/g'
+    else
+        # this server
+        echo "server.${ZK_SERVER_ID}="$(ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)")":2888:3888"
+        # and all others
+        env | grep 'ZOOKEEPER_.*_PORT_2181_TCP=' | sed -r 's/ZOOKEEPER.*([0-9]+)_PORT_2181_TCP=tcp:\/\/(.*):[0-9]+/server.\1=\2:2888:3888/g' | grep -v "server.${ZK_SERVER_ID}"
+    fi
 }
 
 
