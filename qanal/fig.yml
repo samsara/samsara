@@ -9,8 +9,8 @@ zookeeper:
   environment:
     ZK_SERVER_ID: 1
   volumes:
-    - /tmp/zk1/logs:/logs
-    - /tmp/zk1/data:/data
+    - /tmp/logs/zk1:/logs
+    - /tmp/data/zk1:/data
 
 #
 # Kafka
@@ -25,8 +25,8 @@ kafka:
   environment:
     KAFKA_BROKER_ID: 1
   volumes:
-    - /tmp/kafka1/logs:/logs
-    - /tmp/kakfa1/data:/data
+    - /tmp/logs/kafka1:/logs
+    - /tmp/data/kafka1:/data
 
 #
 # Samsara Ingestion API
@@ -39,7 +39,7 @@ ingestion:
     - "9000:9000"
     - "15000:15000"
   volumes:
-    - /tmp/zk1/logs:/logs
+    - /tmp/logs/ingestion-api:/logs
 
 #
 # ElasticSearch
@@ -62,6 +62,8 @@ qanal:
     environment:
       KAFKA_TOPIC: events
       KAFKA_PARTITION_ID: 1
+    volumes:
+      - /tmp/logs/qanal1:/logs
 
 
 #
