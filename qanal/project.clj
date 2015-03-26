@@ -11,7 +11,7 @@
                  [cheshire "5.4.0"]                         ;JSON
                  [org.clojure/core.async "0.1.278.0-76b25b-alpha"] ;Core Async
                  [com.novemberain/validateur "2.4.2"]       ;validation
-                 [metrics-clojure "2.4.0"]                  ;Metrics Clojure wrapper
+                 [metrics-clojure "2.2.0"]                  ;Metrics Clojure wrapper
                  [riemann-clojure-client "0.3.2"]           ;Riemann client AND Metric Reporters
                  ]
   :main qanal.core

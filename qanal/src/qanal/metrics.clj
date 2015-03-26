@@ -22,15 +22,14 @@
             [metrics.timers :refer [timer]])
   (:import [java.util.concurrent TimeUnit]
            [com.codahale.metrics.riemann RiemannReporter Riemann]
-           [com.aphyr.riemann.client RiemannClient]
-           ))
+           [com.aphyr.riemann.client RiemannClient]))
 
 
 (def ^:private default-riemann-port 5555)
 (def ^:private default-poll-rate 1)
 
 (defn- generate-metric-name [name]
-  ["samsara" "qanal" name])
+  ["qanal" name])
 
 (defn connect-to-riemann [riemann-host]
   (when riemann-host
@@ -55,24 +54,67 @@
     (inc! kafka-msgs-metric kafka-msgs-count)
     (inc! bulked-docs-metric bulked-docs)))
 
-(defn record-qanal-gauges [topic partition-id {:keys [msg-rate-fn bulking-rate-fn bulked-time-fn backlog-fn]}]
+(defn record-qanal-gauges [topic partition-id {:keys [backlog-fn]}]
   (let [base-name (str topic "." partition-id)]
-    (gauge-fn (generate-metric-name (str base-name ".msgRate")) msg-rate-fn)
-    (gauge-fn (generate-metric-name (str base-name ".bulkingRate")) bulking-rate-fn)
-    (gauge-fn (generate-metric-name (str base-name ".bulkedTime")) bulked-time-fn)
     (gauge-fn (generate-metric-name (str base-name ".backlog")) backlog-fn)
     ))
 
+(defprotocol RateGauge
+  (inc-rate-value! [gauge val]))
+
+(defn- calculate-rate [m]
+  (let [{:keys [began-at value]} m
+        elapsed (- (System/currentTimeMillis) began-at)
+        elapsed (double (/ elapsed 1000))
+        rate (/ value elapsed)]
+    (assoc m :began-at (System/currentTimeMillis) :value 0 :rate rate)))
+
+(defn- inc-rate-value [m increment]
+  (update-in m [:value] #(+ % increment)))
+
+(defn rate-gauge
+  [title]
+  (let [state (atom {:began-at (System/currentTimeMillis) :value 0 :rate 0.0})]
+    ; this will remove and then re-associate the function with the title
+    (gauge-fn title (fn []
+                      (let [calculated-state (swap! state calculate-rate)]
+                        (:rate calculated-state))))
+
+    (reify RateGauge
+      (inc-rate-value! [this increment]
+        (swap! state inc-rate-value increment)))))
+
+;hmm...use an explicit hashmap instead of memoize ?
+(def rate-gauge-memo (memoize rate-gauge))
+
+(defn record-qanal-rates [topic partition-id {:keys [msgs bulked-docs bulked-time]}]
+  (let [msg-title (generate-metric-name (str topic "." partition-id ".msgRate"))
+        bulked-docs-title (generate-metric-name (str topic "." partition-id ".bulkingRate"))
+        bulking-time-title (generate-metric-name (str topic "." partition-id ".avgBulkingTime"))
+        msg-rate-gauge (rate-gauge-memo msg-title)
+        bulking-rate-gauge (rate-gauge-memo bulked-docs-title)
+        avg-bulking-time-gauge (rate-gauge-memo bulking-time-title) ]
+    (.inc-rate-value! msg-rate-gauge msgs)
+    (.inc-rate-value! bulking-rate-gauge bulked-docs)
+    (.inc-rate-value! avg-bulking-time-gauge bulked-time)))
+
 
 (def ^:private last-time-logged (atom 0))
+"For now collect and print only counters. The gauges (backlog and RateGauges)
+are currently not pure and have side effects. They are only supposed to be called
+by one ScheduledReporter (RiemannReporter). Calling the getValue on the gauges here
+would affect the value returned by the RateGauges or make extra
+calls to zookeeper from the backlog-fn"
+(defn- collect-print-stats []
+  (let [counters-map (.getCounters default-registry)
+        counter-stats-fn #(str (.getKey %) "->" (-> (.getValue %) (.getCount)) " ")]
+    (log/info (clojure.string/join (map counter-stats-fn counters-map)))))
 
-(defn sensibly-log-stats [{:keys [topic partition-id kafka-msgs-count kafka-msgs-time bulked-docs bulked-time]}]
-  (let [msg-rate (double (/ kafka-msgs-count (if (> kafka-msgs-time 0) kafka-msgs-time 1)))
-        ze-fn (fn [] (log/info "Topic->" topic " Partition-id->" partition-id " Msgs->" kafka-msgs-count
-                               " Msg Rate->" msg-rate " Bulked Docs->" bulked-docs " Bulked-time->" bulked-time "ms"))
-        result (execute-if-elapsed ze-fn @last-time-logged 60000)]
+(defn sensibly-log-stats []
+  (let [result (execute-if-elapsed collect-print-stats @last-time-logged 60000)]
     (when (:executed result)
       (reset! last-time-logged (System/currentTimeMillis)))))
+
 
 (comment
   (def reporter (connect-to-riemann "127.0.0.1"))

@@ -53,27 +53,20 @@
                                     (presence-of :end-point)))))
 
 
-(defn- record-stats [kafka-consumer {:keys [topic partition-id consumer-offset kafka-msgs-count kafka-msgs-time bulked-docs bulked-time]
+(defn- record-stats [kafka-consumer {:keys [topic partition-id consumer-offset kafka-msgs-count bulked-docs bulked-time]
                                      :or {kafka-msgs-count 0 bulked-docs 0 bulked-time 0}
                                      :as stats}]
   ;(log/debug "Stats ->" stats)
-  (let [kafka-args (select-keys stats [:topic :partition-id :consumer-offset])
-        msg-time (if (> kafka-msgs-time 0) kafka-msgs-time 1)
-        msg-time (double (/ msg-time 1000))
-        doc-time (if (> bulked-time 0) bulked-time 1)
-        doc-time (double (/ doc-time 1000))
-        ;debug (log/debug "msgs->" kafka-msgs-count " msg-time->" msg-time " msg-rate->" (double (/ kafka-msgs-count msg-time)))
-        ;debug (log/debug "docs->" bulked-docs " doc-time->" doc-time " bulked-rate->" (double (/ bulked-docs doc-time)))
-        gauge-fn-map {:msg-rate-fn      (fn [] (double (/ kafka-msgs-count msg-time)))
-                      :bulking-rate-fn  (fn [] (double (/ bulked-docs doc-time)))
-                      :bulked-time-fn   (fn []  bulked-time)
-                      :backlog-fn       (fn [] (kafka/calculate-partition-backlog kafka-consumer kafka-args))}
-
-        ]
+  (let [kafka-args {:topic topic :partition-id partition-id :consumer-offset consumer-offset}
+        gauge-fn-map {:backlog-fn       (fn [] (kafka/calculate-partition-backlog kafka-consumer kafka-args))}
+        rates-map {:msgs kafka-msgs-count
+                   :bulked-docs bulked-docs
+                   :bulked-time bulked-time}]
 
     (metrics/record-qanal-counters stats)
     (metrics/record-qanal-gauges topic partition-id gauge-fn-map)
-    (metrics/sensibly-log-stats stats)))
+    (metrics/record-qanal-rates topic partition-id rates-map)
+    (metrics/sensibly-log-stats)))
 
 
 (defn- create-default-stats [{:keys [topic partition-id consumer-offset kafka-msgs-count bulked-docs bulked-time]
@@ -173,13 +166,11 @@
 
 
 (defn get-kafka-messages [consumer state]
-  (let [start (System/currentTimeMillis)
-        msg-seq (result-or-exception kafka/get-messages consumer state)
-        end (System/currentTimeMillis)
+  (let [msg-seq (result-or-exception kafka/get-messages consumer state)
         retry (:connect-retry state)
         offset-reset (:auto-offset-reset state)]
     (if-not (instance? Exception msg-seq)
-      {:kafka-msgs msg-seq :kafka-msgs-time (- end start)}
+      msg-seq
       (do
         (log/warn "Unable to get kafka messages due to this Exception : " msg-seq)
         (log/warn "Will retry in " retry " milliseconds")
@@ -204,8 +195,8 @@
   (apply-logging-options logging-options)
   (loop [consumer (connect-to-kafka kafka-source)
          state (apply-initial-offset consumer kafka-source)]
-    (let [{:keys [kafka-msgs kafka-msgs-time]} (get-kafka-messages consumer state)
-          stats (assoc (create-default-stats state) :kafka-msgs-time kafka-msgs-time)]
+    (let [kafka-msgs (get-kafka-messages consumer state)
+          stats (create-default-stats state)]
       (if (empty? kafka-msgs)
         (do
           (record-stats consumer stats)
