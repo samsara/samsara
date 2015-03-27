@@ -9,8 +9,7 @@
                  [clj-kafka "0.2.8-0.8.1.1"]                ;kafka
                  [clojurewerkz/elastisch "2.1.0"]           ;elasticsearch
                  [cheshire "5.4.0"]                         ;JSON
-                 [org.clojure/core.async "0.1.278.0-76b25b-alpha"] ;Core Async
-                 [com.novemberain/validateur "2.4.2"]       ;validation
+                 [prismatic/schema "0.4.0"]                 ;validation
                  [metrics-clojure "2.2.0"]                  ;Metrics Clojure wrapper
                  [riemann-clojure-client "0.3.2"]           ;Riemann client AND Metric Reporters
                  ]

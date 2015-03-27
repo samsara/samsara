@@ -22,7 +22,7 @@
             [qanal.elsasticsearch :as els]
             [qanal.utils :refer [sleep exit execute-if-elapsed result-or-exception continously-try]]
             [qanal.metrics :as metrics]
-            [validateur.validation :refer [validation-set nested inclusion-of presence-of compose-sets]])
+            [schema.core :as s])
   (:gen-class)
   (:import (kafka.common OffsetOutOfRangeException InvalidMessageSizeException)))
 
@@ -39,18 +39,22 @@
     :parse-fn str]
    ])
 
-(def ^:private config-validator
-  (compose-sets
-    (nested :kafka-source (validation-set
-                            (presence-of :zookeeper-connect)
-                            (presence-of :connect-retry)
-                            (presence-of :group-id)
-                            (presence-of :topic)
-                            (presence-of :partition-id)
-                            (inclusion-of :auto-offset-reset :in #{:earliest :latest})
-                            (presence-of :fetch-size)))
-    (nested :elasticsearch-target (validation-set
-                                    (presence-of :end-point)))))
+(def ^:private config-schema
+  {:kafka-source {:zookeeper-connect  s/Str
+                  :connect-retry      s/Int
+                  :group-id           s/Str
+                  :topic              s/Str
+                  :partition-id       s/Int
+                  :auto-offset-reset  (s/enum :earliest :latest)
+                  :fetch-size         s/Int
+                  }
+   :elasticsearch-target {:end-point s/Str}
+   :riemann-host (s/maybe s/Str)
+   :logging-options {:min-level (s/enum :trace :debug :info :warn :error)
+                     :path s/Str
+                     :max-size s/Int
+                     :backlog s/Int}})
+
 
 
 (defn- record-stats [kafka-consumer {:keys [topic partition-id consumer-offset kafka-msgs-count bulked-docs bulked-time]
@@ -82,7 +86,7 @@
     (log/set-config! [:shared-appender-config :rotor] appender-config)))
 
 (defn valid-config? [c]
-  (let [errors (config-validator c)]
+  (let [errors (s/check config-schema c)]
     (if (empty? errors)
       c
       (log/warn "The configuration file has invalid values/structure : " errors))))

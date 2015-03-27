@@ -19,7 +19,6 @@
             [clj-kafka.zk :refer (brokers committed-offset set-offset!)]
             [clj-kafka.core :refer (ToClojure)]
             [clj-kafka.consumer.simple :refer (consumer topic-meta-data messages topic-offset)]
-            [clojure.core.async :refer (buffer chan >!! thread close!)]
             [taoensso.timbre :as log]))
 
 
