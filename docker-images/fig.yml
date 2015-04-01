@@ -37,7 +37,10 @@ ingestion:
     - kafka:kafka
   ports:
     - "9000:9000"
-    - "15000:15000"
+    - "15003:15000"
+  environment:
+    TRANSFORM_FN: "(fn [e] {:index \"events-test\" :type \"events\" :source e })"
+    TRANSFORM_ENABLE: true
   volumes:
     - /tmp/logs/ingestion-api:/logs
 
@@ -51,7 +54,7 @@ elasticsearch:
   ports:
     - "9200:9200"
     - "9300:9300"
-    - "15003:15000"
+    - "15004:15000"
   volumes:
     - /tmp/logs/els:/logs
     - /tmp/data/els:/data
@@ -65,7 +68,7 @@ kibana:
     - elasticsearch:elasticsearch
   ports:
     - "8000:8000"
-    - "15004:15000"
+    - "15005:15000"
   volumes:
     - /tmp/logs/kibana:/logs
 
@@ -78,10 +81,10 @@ qanal:
     - zookeeper:zookeeper
     - elasticsearch:els
   ports:
-    - "15005:15000"
+    - "15006:15000"
   environment:
     KAFKA_TOPIC: events
-    KAFKA_PARTITION_ID: 1
+    KAFKA_PARTITION_ID: 0
   volumes:
     - /tmp/logs/qanal1:/logs
 
@@ -113,7 +116,7 @@ riemann:
 grafana:
   image: tutum/grafana
   ports:
-    - "8080:80"
+    - "15000:80"
   environment:
     HTTP_USER: admin
     HTTP_PASS: samsara
