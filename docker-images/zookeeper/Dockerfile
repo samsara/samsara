@@ -12,7 +12,7 @@ RUN curl -sSL http://apache.mirrors.pair.com/zookeeper/zookeeper-${ZK_VERSION}/z
     ln -fs /opt/zookeeper-* /opt/zookeeper
 
 
-EXPOSE 2181 2888 3888
+EXPOSE 2181 2888 3888 15000
 
 VOLUME ["/data", "/logs"]
 
