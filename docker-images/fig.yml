@@ -45,11 +45,15 @@ ingestion:
 # ElasticSearch
 #
 elasticsearch:
-    image: dockerfile/elasticsearch
-    ports:
-     - "9200:9200"
-     - "9300:9300"
-
+  image: samsara/elasticsearch
+  links:
+    - zookeeper:zookeeper
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+  volumes:
+    - /tmp/logs/els:/logs
+    - /tmp/data/els:/data
 
 #
 # Samsara Qanal

@@ -1,0 +1,44 @@
+cluster.name: samsara
+index.number_of_replicas: 2
+path.data: /data/els/data
+path.work: /data/els/work
+path.logs: /logs
+path.plugins: /usr/share/elasticsearch/plugins
+transport.tcp.compress: true
+# TODO: this one probably needs to be configurable
+# discovery.zen.minimum_master_nodes: 2 / quorum
+discovery.zen.minimum_master_nodes: 1
+http.port: 9200
+transport.tcp.port: 9300
+# TODO: maybe need to get boxtype from labels??
+node.box_type : standard
+
+threadpool:
+    bulk:
+        type: fixed
+        queue_size: 1000
+
+# Indices settings
+indices.memory.index_buffer_size: 30%
+
+# Indexing Settings for Writes
+# TODO: index.refresh_interval: 30s
+index.refresh_interval: 3s
+index.translog.flush_threshold_ops: 50000
+
+# CLOUD section need to be customiseable
+#       different clouds, maybe not needed at all
+# cloud:
+#     azure:
+#         keystore: /etc/elasticsearch/prod-els-keystore.pkcs12
+#         password: {{your_password_for_keystore}}
+#         subscription_id: {{your_azure_subscription_id}}
+#         service_name: {{your_azure_cloud_service_name}}
+
+
+discovery:
+    type: com.sonian.elasticsearch.zookeeper.discovery.ZooKeeperDiscoveryModule
+sonian.elasticsearch.zookeeper:
+    settings.enabled: true
+    client.host: %%ZOOKEEPER_PORT_2181_TCP_ADDR%%:%%ZOOKEEPER_PORT_2181_TCP_PORT%%
+    discovery.state_publishing.enabled: true

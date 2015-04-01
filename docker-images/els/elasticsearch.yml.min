@@ -1,0 +1,7 @@
+# this minimal configuration is used only for the plugins installation
+# it will be replaced by a more complete configuration in the configure-and-start.sh
+cluster.name: samsara
+path.data: /data/els/data
+path.work: /data/els/work
+path.logs: /logs
+path.plugins: /usr/share/elasticsearch/plugins
