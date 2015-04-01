@@ -51,23 +51,39 @@ elasticsearch:
   ports:
     - "9200:9200"
     - "9300:9300"
+    - "15003:15000"
   volumes:
     - /tmp/logs/els:/logs
     - /tmp/data/els:/data
 
 #
+# Kibana
+#
+kibana:
+  image: samsara/kibana
+  links:
+    - elasticsearch:elasticsearch
+  ports:
+    - "8000:8000"
+    - "15004:15000"
+  volumes:
+    - /tmp/logs/kibana:/logs
+
+#
 # Samsara Qanal
 #
 qanal:
-    image: samsara/qanal
-    links:
-      - zookeeper:zookeeper
-      - elasticsearch:els
-    environment:
-      KAFKA_TOPIC: events
-      KAFKA_PARTITION_ID: 1
-    volumes:
-      - /tmp/logs/qanal1:/logs
+  image: samsara/qanal
+  links:
+    - zookeeper:zookeeper
+    - elasticsearch:els
+  ports:
+    - "15005:15000"
+  environment:
+    KAFKA_TOPIC: events
+    KAFKA_PARTITION_ID: 1
+  volumes:
+    - /tmp/logs/qanal1:/logs
 
 
 #
