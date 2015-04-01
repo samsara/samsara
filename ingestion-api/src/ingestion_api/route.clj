@@ -7,7 +7,8 @@
             [ring.util.response :refer :all :exclude [not-found]]
             [clojure.pprint :refer [pprint]])
   (:require [ingestion-api.status :refer [change-status! is-online?]]
-            [ingestion-api.events :refer [send! is-invalid? inject-receivedAt]]))
+            [ingestion-api.events :refer [send! is-invalid? inject-receivedAt
+                                          apply-transformation]]))
 
 
 (defn not-found []
@@ -25,6 +26,7 @@
             (do
               (->> events
                    (inject-receivedAt (System/currentTimeMillis))
+                   apply-transformation
                    send!)
               {:status 202 :body nil})))
 

@@ -5,7 +5,7 @@
   (:require [clojure.java.io :as io])
   (:require [ring.middleware.reload :as reload])
   (:require [ingestion-api.route :refer [app]]
-            [ingestion-api.events :refer [*backend*]])
+            [ingestion-api.events :refer [*backend* !transform-fn!]])
   (:require [ingestion-api.backend :refer [make-console-backend]]
             [ingestion-api.backend-kafka :refer [make-kafka-backend make-kafka-backend-for-docker]])
   (:gen-class))
@@ -21,6 +21,7 @@
    :backend  {:type :console :pretty? true}
    ;;:backend {:type :kafka :topic "events" :metadata.broker.list "192.168.59.103:9092"}
    ;;:backend {:type :kafka-docker :topic "events" :docker {:link "kafka.*" :port "9092" :to "metadata.broker.list"} }
+   :transform {:transform-fn nil :apply-transformation false}
    })
 
 (def cli-options
@@ -140,6 +141,17 @@ DESCRIPTION
   (log/info "Creating backend type: " type ", with config:" cfg))
 
 
+(defn- init-transformation!
+  "Initialises the transformation function which is applied to all events
+  before they are sent to the configured backend"
+  [{trf :transform-fn enabled :apply-transformation}]
+  (when enabled
+    (log/warn "Using transformation function:" (prn-str trf))
+    (if (ifn? (eval trf))
+      (alter-var-root #'!transform-fn! (constantly (eval trf)))
+      (log/warn "The :transform-fn must be a function."))))
+
+
 (defn init!
   "Initializes the system and returns the actual configuration used."
   [config-file]
@@ -147,6 +159,7 @@ DESCRIPTION
 
     (init-log!     (-> config :log))
     (init-backend! (-> config :backend))
+    (init-transformation! (-> config :transform))
 
     config))
 
@@ -162,7 +175,8 @@ DESCRIPTION
      :default
      (let [_ (println (headline))
            {config-file :config} options
-           {{:keys [port auto-reload] :as server} :server :as config} (init! config-file)]
+           {{:keys [port auto-reload] :as server} :server
+             :as config} (init! config-file)]
        ;; starting server
        (run-server (if auto-reload (reload/wrap-reload #'app) app) server)
        (log/info "Samsara Ingestion-API listening on port: " port)

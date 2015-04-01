@@ -3,4 +3,7 @@
    ;;:backend {:type :kafka :topic "events" :metadata.broker.list "192.168.59.103:49154"}
    ;;:backend {:type :kafka-docker :topic "events" :docker {:link "kafka.*" :port "9092" :to "metadata.broker.list"} }
 
+ :transform {
+             :transform-fn (fn [e] {:index "events-test" :type "events" :source e })
+             :apply-transformation true}
 }
