@@ -1,50 +1,38 @@
-#!/bin/bash
+#!/bin/bash -e
 
 BASE=$(dirname $0)
 
-#
-# BUILDIND BASE IMAGE
-#
-cd $BASE/base
+function build-and-tag() {
 
-sed -i '' 's/ENV SJDK .*/ENV SJDK  $SJDK7/g' Dockerfile
-docker build --no-cache -t samsara/base-image-jdk7 .
-img=$(docker images | grep samsara/base-image-jdk7 | grep latest | awk '{print $3}')
-docker tag -f $img samsara/base-image-jdk7:u1410-j7u75
+  WKD=$1
+  CNT=$2
+  VER=$3
 
-sed -i '' 's/ENV SJDK .*/ENV SJDK  $SJDK8/g' Dockerfile
-docker build -t samsara/base-image-jdk8 .
-img=$(docker images | grep samsara/base-image-jdk8 | grep latest | awk '{print $3}')
-docker tag -f $img samsara/base-image-jdk8:u1410-j8u40
+  OLD=`pwd`
+  cd $WKD
 
+  echo "----------------------------------------------"
+  echo "Building $CNT $VER"
+  echo "----------------------------------------------"
 
-docker push samsara/base-image-jdk7:latest
-docker push samsara/base-image-jdk7:u1410-j7u75
-docker push samsara/base-image-jdk8:latest
-docker push samsara/base-image-jdk8:u1410-j8u40
+  docker build --no-cache -t samsara/$CNT .
+  img=$(docker images | grep samsara/$CNT | grep latest | awk '{print $3}')
+  docker tag -f $img samsara/$CNT:$VER
 
-
-#
-# BUILDING zookeeper image
-#
-cd $BASE/zookeeper
-
-docker build --no-cache -t samsara/zookeeper .
-img=$(docker images | grep samsara/zookeeper | grep latest | awk '{print $3}')
-docker tag -f $img samsara/zookeeper:3.4.6
-
-docker push samsara/zookeeper:latest
-docker push samsara/zookeeper:3.4.6
+  cd $OLD
+}
 
 
 #
-# BUILDING Kafka image
+# BUILDING images
 #
-cd $BASE/kafka
+sed -i '' 's/SJDK=\$SJDK./SJDK=\$SJDK7/g' $BASE/base/Dockerfile && \
+build-and-tag $BASE/base       base-image-jdk7 "u1410-j7u75"
 
-docker build --no-cache -t samsara/kafka .
-img=$(docker images | grep samsara/kafka | grep latest | awk '{print $3}')
-docker tag -f $img samsara/kafka:0.8.2.1
+sed -i '' 's/SJDK=\$SJDK./SJDK=\$SJDK8/g' $BASE/base/Dockerfile && \
+build-and-tag $BASE/base       base-image-jdk8 "u1410-j8u40"
 
-docker push samsara/kafka:latest
-docker push samsara/kafka:0.8.2.1
+build-and-tag $BASE/zookeeper  zookeeper       "3.4.6"
+build-and-tag $BASE/kafka      kafka           "0.8.2.1"
+build-and-tag $BASE/els        elasticsearch   "1.5.0"
+build-and-tag $BASE/kibana     kibana          "4.0.1"

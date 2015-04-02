@@ -10,14 +10,13 @@ RUN apt-get install -y wget curl
 # JDK installation
 #
 
-ENV SJDK7 http://download.oracle.com/otn-pub/java/jdk/7u75-b13/jdk-7u75-linux-x64.tar.gz
-ENV SJDK8 http://download.oracle.com/otn-pub/java/jdk/8u40-b26/jdk-8u40-linux-x64.tar.gz
-ENV SJDK  $SJDK8
-
-RUN wget -nv --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" $SJDK  -O /tmp/java.tgz
-RUN mkdir -p /usr/lib/jvm && \
-    tar zxvf /tmp/java.tgz -C /usr/lib/jvm
-RUN update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/*/bin/javac 1       && \
+RUN export SJDK7="http://download.oracle.com/otn-pub/java/jdk/7u75-b13/jdk-7u75-linux-x64.tar.gz" && \
+    export SJDK8="http://download.oracle.com/otn-pub/java/jdk/8u40-b26/jdk-8u40-linux-x64.tar.gz" && \
+    export SJDK=$SJDK8 && \
+    wget --progress=dot:mega --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" $SJDK  -O /tmp/java.tgz && \
+    mkdir -p /usr/lib/jvm && \
+    tar zxvf /tmp/java.tgz -C /usr/lib/jvm && \
+    update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/*/bin/javac 1       && \
     update-alternatives --install /usr/bin/java java /usr/lib/jvm/*/bin/java 1          && \
     update-alternatives --install /usr/bin/keytool keytool /usr/lib/jvm/*/bin/keytool 1 && \
     update-alternatives --set javac /usr/lib/jvm/*/bin/javac                            && \
