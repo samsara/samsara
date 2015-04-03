@@ -4,8 +4,13 @@
 #   KAFKA_PORT_9092_TCP_ADDR
 # OR
 #   KAFKA_1_PORT_9092_TCP_ADDR
+export HOSTNAME=${HOSTNAME:-"inegstion"}
 export TRANSFORM_FN=${TRANSFORM_FN:-nil}
 export TRANSFORM_ENABLE=${TRANSFORM_ENABLE:-false}
+export TRACKING_ENABLED=${TRACKING_ENABLED:-false}
+export RIEMANN_PORT_5555_TCP_ADDR=${RIEMANN_PORT_5555_TCP_ADDR:-localhost}
+export RIEMANN_PORT_5555_TCP_PORT=${RIEMANN_PORT_5555_TCP_PORT:-5555}
+
 
 export CONFIG_FILE=/opt/ingestion-api/config/config.edn
 # replace variables in template with environment values

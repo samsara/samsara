@@ -1,7 +1,8 @@
 (ns ingestion-api.events
   (:refer-clojure :exclude [send])
   (:require [ingestion-api.backend :refer :all])
-  (:require [schema.core :as s]))
+  (:require [schema.core :as s])
+  (:require [samsara.trackit :refer [track-time]]))
 
 ;;
 ;; This is the backend where events are send to
@@ -18,14 +19,16 @@
 
 
 (defn apply-transformation [events]
-  (let [trf (or !transform-fn! identity)]
-    (map trf events)))
+  (track-time "ingestion.events.transformation"
+   (let [trf (or !transform-fn! identity)]
+     (doall (map trf events)))))
 
 
 (defn send!
   "Sends the events to the configured backend queuing system"
   [events]
-  (send @*backend* events))
+  (track-time "ingestion.events.backend-send"
+   (send @*backend* events)))
 
 
 (def single-event-schema
@@ -48,7 +51,8 @@
   is invalid an error structure is returned. If all events
   are valid then nil is returned."
   [events]
-  (s/check events-schema events))
+  (track-time "ingestion.events.validation"
+   (s/check events-schema events)))
 
 
 (defn inject-receivedAt

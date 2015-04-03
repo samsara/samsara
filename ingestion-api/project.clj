@@ -14,7 +14,8 @@
                  [prismatic/schema "0.4.0"]
                  [clj-kafka "0.2.8-0.8.1.1"]
                  [com.taoensso/timbre "3.4.0"]
-                 [org.clojure/tools.cli "0.3.1"]]
+                 [org.clojure/tools.cli "0.3.1"]
+                 [samsara/trackit "0.1.1"]]
 
   :main ingestion-api.core
 

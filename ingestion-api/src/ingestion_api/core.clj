@@ -1,4 +1,5 @@
 (ns ingestion-api.core
+  (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!]])
   (:require [clojure.tools.cli :refer [parse-opts]])
   (:require [org.httpkit.server :refer [run-server]])
   (:require [taoensso.timbre :as log])
@@ -22,6 +23,8 @@
    ;;:backend {:type :kafka :topic "events" :metadata.broker.list "192.168.59.103:9092"}
    ;;:backend {:type :kafka-docker :topic "events" :docker {:link "kafka.*" :port "9092" :to "metadata.broker.list"} }
    :transform {:transform-fn nil :apply-transformation false}
+
+   :tracking {:enabled false :type :console}
    })
 
 (def cli-options
@@ -152,14 +155,24 @@ DESCRIPTION
       (log/warn "The :transform-fn must be a function."))))
 
 
+(defn- init-tracking!
+  "Initialises the metrics tracking system"
+  [{enabled :enabled :as cfg}]
+  (when enabled
+    (log/info "Sending metrics to:" cfg)
+    (set-base-metrics-name! "samsara" "ingestion")
+    (start-reporting! cfg)))
+
+
 (defn init!
   "Initializes the system and returns the actual configuration used."
   [config-file]
   (let [config (read-config config-file)]
 
-    (init-log!     (-> config :log))
-    (init-backend! (-> config :backend))
+    (init-log!      (-> config :log))
+    (init-backend!  (-> config :backend))
     (init-transformation! (-> config :transform))
+    (init-tracking! (-> config :tracking))
 
     config))
 
