@@ -30,7 +30,10 @@ port=9092
 # Hostname the broker will advertise to producers and consumers. If not set, it uses the
 # value for "host.name" if configured.  Otherwise, it will use the value returned from
 # java.net.InetAddress.getCanonicalHostName().
-#advertised.host.name=<hostname routable by clients>
+# THIS NEED TO BE SET TO SOMETHING ADDRESSABLE FROM OTHER VMS.
+# some environment (such as fig) don't support DNS resolution yet.
+# so an explicit IP is necessary.
+advertised.host.name=%%IP%%
 
 # The port to publish to ZooKeeper for clients to use. If this is not set,
 # it will publish the same port that the broker binds to.
