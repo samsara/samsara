@@ -51,6 +51,26 @@ Data paths and logs are mounted on `/tmp/data` and `/tmp/logs` respectively.
 
 **NOTE:** for **boot2docker** these paths will reside in the VM not on the host.
 
+**IMPORTANT:** once services are started no topics are created. So you need to
+bootstrap the cluster with the right configuration as the default one is better
+suited for large clusters:
+
+```bash
+fig run kafka bash
+% /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --create --topic events --replication-factor 1 --partitions 1
+
+% /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --describe
+
+Topic:events	PartitionCount:1	ReplicationFactor:1	Configs:
+	Topic: events	Partition: 0	Leader: 1	Replicas: 1	Isr: 1
+
+
+# optionally start a console consumer
+% /opt/kafka/bin/kafka-console-consumer.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --topic events
+
+% exit
+```
+
 Every container will expose the port `15000` for the `supervisord` admin console.
 here a full list of ports
 
