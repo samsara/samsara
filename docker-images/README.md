@@ -48,6 +48,7 @@ the following main services
 replace 127.0.0.1 with the ip of the docker vm (typically **192.168.59.103**)
 
 Data paths and logs are mounted on `/tmp/data` and `/tmp/logs` respectively.
+
 **NOTE:** for **boot2docker** these paths will reside in the VM not on the host.
 
 Every container will expose the port `15000` for the `supervisord` admin console.
