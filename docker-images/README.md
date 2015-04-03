@@ -38,11 +38,14 @@ fig ps
 Once the service is up and running you can then access
 the following main services
 
-| service       |          port          |
-|---------------|------------------------|
-| ingestion-api |  http://127.0.0.1:9000 |
-| kibana        |  http://127.0.0.1:8000 |
-| graphana      | http://127.0.0.1:15000 |
+| service       |               port               |
+|---------------|:--------------------------------:|
+| ingestion-api |     http://127.0.0.1:9000        |
+| kibana        |     http://127.0.0.1:8000        |
+| graphana      |     http://127.0.0.1:15000       |
+| elasticsearch | http://docker:9200/_plugin/kopf/ |
+| elasticsearch | http://docker:9200/_plugin/HQ/   |
+| elasticsearch | http://docker:9200/_plugin/head/ |
 
 **NOTE:** if you running on **boot2docker** (Mac OSX) you have to
 replace 127.0.0.1 with the ip of the docker vm (typically **192.168.59.103**)
@@ -69,6 +72,24 @@ Topic:events	PartitionCount:1	ReplicationFactor:1	Configs:
 % /opt/kafka/bin/kafka-console-consumer.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --topic events
 
 % exit
+```
+
+On the docker host:
+
+```bash
+curl -XPUT 'http://localhost:9200/events-test' -d '{
+    "settings" : {
+        "number_of_shards" : 3,
+        "number_of_replicas" : 0
+    }
+}'
+
+curl -XPUT 'http://localhost:9200/kibana' -d '{
+    "settings" : {
+        "number_of_shards" : 1,
+        "number_of_replicas" : 0
+    }
+}'
 ```
 
 Every container will expose the port `15000` for the `supervisord` admin console.
