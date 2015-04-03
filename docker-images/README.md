@@ -74,6 +74,28 @@ To stop all services.
 fig kill
 ```
 
+### To build and push docker images
+
+If you want to build and push all docker images with the right tags
+
+```bash
+# build the images
+./build.sh
+
+# to push to docker registry
+# you need to login
+
+docker login
+
+# and finally push the images
+./push.sh
+```
+
+**Please note:** that `qanal` and `ingestion-api` images are built
+within their source projects.
+Check [https://github.com/samsara](https://github.com/samsara) for
+more info.
+
 ## License
 
 Copyright © 2015 Samsara's authors.
