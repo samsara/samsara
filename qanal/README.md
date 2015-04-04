@@ -14,25 +14,31 @@ Current build status: [![Build Status](https://travis-ci.org/samsara/qanal.svg?b
 
 ## Configuration
 The configuration file is split into 3 sections.
-* kafka-source
-* elasticsearch-target
-* logging-options
+  * kafka-source
+  * elasticsearch-target
+  * logging-options
 
-The following is the provided example (resources/config.edn)
+The following is the provided example (config/config.edn)
+
 ```clojure
-{:kafka-source {:zookeeper-connect  "127.0.0.1:49157"
-                :connect-retry      5000
-                :group-id           "qanal"
-                :topic "river"
-                :partition-id 0
-                :auto-offset-reset  :earliest ; Can only be earliest or latest
-                :fetch-size         10485760                ;size in bytes
-                }
- :elasticsearch-target {:end-point "http://127.0.0.1:9200"}
- :logging-options {:min-level :info
-                   :path "qanal.log"                        ;full path name for the file
-                   :max-size 15360                          ;size in bytes
-                   :backlog 10}}
+{:kafka-source 
+  {:zookeeper-connect  "127.0.0.1:49157"
+   :connect-retry      5000
+   :group-id	       "qanal"
+   :topic "river"
+   :partition-id 0
+   :auto-offset-reset  :earliest ; Can only be earliest or latest
+   :fetch-size	       10485760		       ;size in bytes
+   }
+
+ :elasticsearch-target 
+   {:end-point "http://127.0.0.1:9200"}
+ 
+ :logging-options 
+   {:min-level :info
+    :path "qanal.log"			     ;full path name for the file
+    :max-size 15360			     ;size in bytes
+    :backlog 10}}
 ```
 
 ## Message Format (Kafka)
@@ -45,6 +51,7 @@ consumed by the Elasticsearch Kafka River Plugin.
 		"id" : "asdkljflkasjdfasdfasdf",
 		"source" : { ..... }
 	}
+
 ## Usage
 
 To run the program, build an executable uberjar
