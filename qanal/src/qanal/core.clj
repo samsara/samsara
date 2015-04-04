@@ -22,7 +22,6 @@
             [qanal.elasticsearch :as els]
             [qanal.utils :refer [sleep exit execute-if-elapsed result-or-exception continously-try]]
             [samsara.trackit :as trackit]
-            [qanal.metrics :as metrics]
             [schema.core :as s]
             [clojure.java.io :as io])
   (:gen-class)
@@ -57,33 +56,13 @@
 
 
 
-(defn- record-stats [kafka-consumer {:keys [topic partition-id consumer-offset kafka-msgs-count bulked-docs bulked-time]
-                                     :or {kafka-msgs-count 0 bulked-docs 0 bulked-time 0}
-                                     :as stats}]
-  ;(log/debug "Stats ->" stats)
-  (let [kafka-args {:topic topic :partition-id partition-id :consumer-offset consumer-offset}
-        gauge-fn-map {:backlog-fn       (fn [] (kafka/calculate-partition-backlog kafka-consumer kafka-args))}
-        rates-map {:msgs kafka-msgs-count
-                   :bulked-docs bulked-docs
-                   :bulked-time bulked-time}]
-
-    (metrics/record-qanal-counters stats)
-    (metrics/record-qanal-gauges topic partition-id gauge-fn-map)
-    (metrics/record-qanal-rates topic partition-id rates-map)
-    (metrics/sensibly-log-stats)))
-
-
-(defn- create-default-stats [{:keys [topic partition-id consumer-offset kafka-msgs-count bulked-docs bulked-time]
-                              :or {kafka-msgs-count 0 bulked-docs 0 bulked-time 0}}]
-  {:topic topic :partition-id partition-id :consumer-offset consumer-offset :kafka-msgs-count kafka-msgs-count
-   :bulked-docs bulked-docs :bulked-time bulked-time})
-
 
 (defn- apply-logging-options [logging-options]
   (let [log-level (:min-level logging-options)
         appender-config (dissoc logging-options :min-level)]
     (log/set-config! [:appenders :rotor :min-level] log-level)
     (log/set-config! [:shared-appender-config :rotor] appender-config)))
+
 
 (defn valid-config? [c]
   (let [errors (s/check config-schema c)]
@@ -200,21 +179,17 @@
 (defn siphon [{:keys [kafka-source elasticsearch-target]}]
   (loop [consumer (connect-to-kafka kafka-source)
          state (apply-initial-offset consumer kafka-source)]
-    (let [kafka-msgs (get-kafka-messages consumer state)
-          stats (create-default-stats state)]
+    (let [kafka-msgs (get-kafka-messages consumer state)]
       (if (empty? kafka-msgs)
         (do
-          (record-stats consumer stats)
           (sleep 1000)
           (recur consumer state))
 
         (let [els-stats (els/bulk-index elasticsearch-target kafka-msgs)
               last-msg-offset (:kafka-msgs-last-offset els-stats)
               consumer-offset (inc last-msg-offset)
-              updated-stats (merge stats els-stats {:consumer-offset consumer-offset})
               updated-state (assoc state :consumer-offset consumer-offset)]
           (set-consumer-offset updated-state)
-          (record-stats consumer updated-stats)
           (recur consumer updated-state))))))
 
 
@@ -234,7 +209,8 @@
 
 (defn- init-tracking! [riemann-host]
   (trackit/start-reporting! {:type :console :reporting-frequency-seconds 30})
-  (metrics/connect-to-riemann riemann-host))
+  ;;TODO: add proper configuration
+  )
 
 
 
