@@ -26,12 +26,10 @@
   (:gen-class)
   (:import (kafka.common OffsetOutOfRangeException InvalidMessageSizeException)))
 
-(log/set-config! [:appenders :rotor] {:min-level :info
-                                      :enabled?  true
-                                      :async? false ; should be always false for rotor
-                                      :fn rotor/appender-fn
-                                      })
-(def ^:private default-rotor-config {:level :info :path "qanal.log" :max-size (* 10 1024) :backlog 10})
+
+(def ^:private default-rotor-config
+  {:level :info :path "qanal.log" :max-size (* 10 1024 1024) :backlog 10})
+
 
 (def ^:private known-options
   [
@@ -97,7 +95,8 @@
 
 (defn read-config-file [file-name]
   (when file-name
-    (log/info "Reading config file : " file-name)
+    ;; this is executed before the log is initialised
+    (println "Reading config file : " file-name)
     (edn/read-string (slurp file-name))))
 
 
@@ -193,10 +192,7 @@
                 (recur (connect-to-kafka state) state)))))))
 
 
-(defn siphon [{:keys [kafka-source elasticsearch-target riemann-host logging-options]
-               :or {logging-options default-rotor-config}}]
-  (metrics/connect-to-riemann riemann-host)
-  (apply-logging-options logging-options)
+(defn siphon [{:keys [kafka-source elasticsearch-target]}]
   (loop [consumer (connect-to-kafka kafka-source)
          state (apply-initial-offset consumer kafka-source)]
     (let [kafka-msgs (get-kafka-messages consumer state)
@@ -217,6 +213,32 @@
           (recur consumer updated-state))))))
 
 
+(defn- init-log! [config]
+  (log/set-config! [:timestamp-pattern]
+                   "yyyy-MM-dd HH:mm:ss.SSS zzz")
+
+  (log/set-config! [:appenders :rotor]
+                   {:min-level :info
+                    :enabled?  true
+                    :async? false     ; should be always false for rotor
+                    :fn rotor/appender-fn})
+
+  (apply-logging-options (or config default-rotor-config)))
+
+
+
+(defn- init-tracking! [riemann-host]
+  (metrics/connect-to-riemann riemann-host))
+
+
+
+(defn init! [config]
+  (init-log!      (:logging-options config))
+  ;; TODO: replace this with TRACKit
+  (init-tracking! (:riemann-host config)))
+
+
+
 (defn -main [& args]
   (let [{:keys [options errors ]} (parse-opts args known-options)
         config-file (:config options)]
@@ -227,6 +249,7 @@
     (let [cfg (read-config-file config-file)]
       (when-not (valid-config? cfg)
         (exit 3 "Please fix the configuration file"))
+      (init! cfg)
       (siphon cfg))))
 
 
