@@ -22,7 +22,8 @@
             [qanal.elasticsearch :as els]
             [qanal.utils :refer [sleep exit execute-if-elapsed result-or-exception continously-try]]
             [qanal.metrics :as metrics]
-            [schema.core :as s])
+            [schema.core :as s]
+            [clojure.java.io :as io])
   (:gen-class)
   (:import (kafka.common OffsetOutOfRangeException InvalidMessageSizeException)))
 
@@ -34,7 +35,7 @@
 (def ^:private known-options
   [
    ["-c" "--config CONFIG" "Configuration File"
-    :parse-fn str]
+    :validate [#(.exists (io/file %)) "The given file must exist"]]
    ])
 
 (def ^:private config-schema
