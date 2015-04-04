@@ -1,0 +1,21 @@
+{:kafka-source
+ {:zookeeper-connect  "%%KAFKA_ZOOKEEPER_CONNECT%%"
+  :connect-retry      5000
+  :group-id           "qanal"
+  :topic              "%%KAFKA_TOPIC%%"
+  :partition-id       %%KAFKA_PARTITION_ID%%
+  :auto-offset-reset  :earliest         ; Can only be earliest or latest
+  :fetch-size         10485760          ; size in bytes (10mb)
+  }
+
+ :elasticsearch-target
+ {:end-point          "http://%%ELS_PORT_9200_TCP_ADDR%%:%%ELS_PORT_9200_TCP_PORT%%"}
+
+ ;;The riemann host to push metrics to .. can be nil
+ :riemann-host        "%%RIEMANN_PORT_5555_TCP_ADDR%%"
+
+ :logging-options
+ {:min-level          :info
+  :path               "/logs/qanal.log"
+  :max-size           10485760                     ; size in bytes (10mb)
+  :backlog            10}}

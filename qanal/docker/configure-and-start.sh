@@ -1,26 +1,36 @@
 #!/bin/bash
 
 
+# REQUIRED:
+#   ZOOKEEPER_PORT_2181_TCP
+# OR
+#   ZOOKEEPER_1_PORT_2181_TCP
+#
+#   KAFKA_TOPIC
+#   KAFKA_PARTITION_ID
+#   ELS_PORT_9200_TCP_ADDR
+
 export KAFKA_ZOOKEEPER_CONNECT=$(env | grep 'ZOOKEEPER.*_PORT_2181_TCP=' | sed -e 's|.*tcp://||' | paste -sd ,)
 if [[ -n "${KAFKA_ZOOKEEPER_CONNECT}" ]]; then
     export REPLACE_ZOOKEEPER_CONNECT="s/:zookeeper-connect\s.+$/:zookeeper-connect \"${KAFKA_ZOOKEEPER_CONNECT}\"/"
 fi
 
-export ELS_ENDPOINT=$(echo ${ELS_PORT_9200_TCP} | sed -e 's|.*tcp://||')
-if [[ -n "${ELS_ENDPOINT}" ]]; then
-    export REPLACE_ELS_ENDPOINT="s/:end-point\s.+}$/:end-point \"http:\/\/${ELS_ENDPOINT}\"}/"
+# setting defaults
+export ELS_PORT_9200_TCP_PORT=${ELS_PORT_9200_TCP_PORT:-9200}
+export RIEMANN_PORT_5555_TCP_ADDR=${RIEMANN_PORT_5555_TCP_ADDR:-localhost}
+
+export CONFIG_FILE=/opt/qanal/conf/config.edn
+# replace variables in template with environment values
+echo "TEMPLATE: generating configuation."
+perl -pe 's/%%([A-Za-z0-9_]+)%%/defined $ENV{$1} ? $ENV{$1} : $&/eg' < ${CONFIG_FILE}.tmpl > $CONFIG_FILE
+
+# check if all properties have been replaced
+if grep -qoP '%%[^%]+%%' $CONFIG_FILE ; then
+    echo "ERROR: Not all variable have been resolved,"
+    echo "       please set the following variables in your environment:"
+    grep -oP '%%[^%]+%%' $CONFIG_FILE | sed 's/%//g' | sort -u
+    exit 1
 fi
 
-if [[ -n "${KAFKA_TOPIC}" ]]; then
-    export REPLACE_KAFKA_TOPIC="s/:topic\s.+$/:topic \"${KAFKA_TOPIC}\"/"
-fi
-
-if [[ -n "${KAFKA_PARTITION_ID}" ]]; then
-    export REPLACE_KAFKA_PARTITION_ID="s/:partition-id\s.+$/:partition-id ${KAFKA_PARTITION_ID}/"
-fi
-
-if [[ ! -e /opt/qanal/conf/config.edn ]]; then
-    cat /opt/qanal/conf/config.edn.orig | sed -r "${REPLACE_ZOOKEEPER_CONNECT}" | sed -r "${REPLACE_ELS_ENDPOINT}" | sed -r "${REPLACE_KAFKA_TOPIC}" | sed -r "${REPLACE_KAFKA_PARTITION_ID}" | sed -r 's/:path ".*\.log"/:path "\/logs\/qanal.log"/g' > /opt/qanal/conf/config.edn
-fi
 
 /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
