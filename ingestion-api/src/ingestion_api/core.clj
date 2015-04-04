@@ -30,7 +30,9 @@
 (def cli-options
   "Command line options"
   [
-   ["-c" "--config FILE" "Config file (.edn)"]
+   ["-c" "--config FILE" "Config file (.edn)"
+    :validate [#(.exists (io/file %)) "The given file must exist"]]
+
    ["-h" "--help"]
    ])
 
