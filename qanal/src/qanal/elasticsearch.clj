@@ -18,6 +18,7 @@
             [clojurewerkz.elastisch.rest.bulk :as esb]
             [qanal.messagecodec :as codec]
             [taoensso.timbre :as log]
+            [samsara.trackit :refer [track-time rate-tracker]]
             [cheshire.core :as json]))
 
 (defn- river-map->bulk-index-operation [river-map]
@@ -60,7 +61,8 @@
         bulk-operations (:bulk-operations reduced-map)
         stats (:stats reduced-map)
         els-conn (esr/connect end-point)
-        bulk-resp (esb/bulk els-conn bulk-operations)
+        _         ((rate-tracker "qanal.els.bulk-index.docs") (count kafka-msgs))
+        bulk-resp (track-time "qanal.els.bulk-index.time" (esb/bulk els-conn bulk-operations))
         updated-stats (assoc stats :bulked-docs (count (:items bulk-resp)))
         updated-stats (assoc updated-stats :bulked-time (:took bulk-resp))]
     (when (:errors bulk-resp)

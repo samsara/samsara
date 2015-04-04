@@ -21,6 +21,7 @@
             [qanal.kafka :as kafka]
             [qanal.elasticsearch :as els]
             [qanal.utils :refer [sleep exit execute-if-elapsed result-or-exception continously-try]]
+            [samsara.trackit :as trackit]
             [qanal.metrics :as metrics]
             [schema.core :as s]
             [clojure.java.io :as io])
@@ -232,6 +233,7 @@
 
 
 (defn- init-tracking! [riemann-host]
+  (trackit/start-reporting! {:type :console :reporting-frequency-seconds 30})
   (metrics/connect-to-riemann riemann-host))
 
 

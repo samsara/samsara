@@ -19,6 +19,7 @@
             [clj-kafka.zk :refer (brokers committed-offset set-offset!)]
             [clj-kafka.core :refer (ToClojure)]
             [clj-kafka.consumer.simple :refer (consumer topic-meta-data messages topic-offset)]
+            [samsara.trackit :refer [track-time]]
             [taoensso.timbre :as log]))
 
 
@@ -54,7 +55,8 @@
 
 
 (defn get-messages [^SimpleConsumer consumer {:keys [group-id topic partition-id consumer-offset fetch-size]}]
-  (messages consumer group-id topic partition-id consumer-offset fetch-size))
+  (track-time (str "qanal.kafka.fetch-messages." topic "." partition-id)
+   (messages consumer group-id topic partition-id consumer-offset fetch-size)))
 
 (defn get-consumer-offset [{:keys [zookeeper-connect group-id topic partition-id]}]
   (let [zookeeper-props {"zookeeper.connect" zookeeper-connect}]

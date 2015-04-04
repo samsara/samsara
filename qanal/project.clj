@@ -10,6 +10,7 @@
                  [clojurewerkz/elastisch "2.1.0"]           ;elasticsearch
                  [cheshire "5.4.0"]                         ;JSON
                  [prismatic/schema "0.4.0"]                 ;validation
+                 [samsara/trackit "0.1.1"]                  ;Metrics tracking
                  [metrics-clojure "2.2.0"]                  ;Metrics Clojure wrapper
                  [riemann-clojure-client "0.3.2"]           ;Riemann client AND Metric Reporters
                  ]
