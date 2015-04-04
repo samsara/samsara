@@ -175,20 +175,23 @@
     (if-not (instance? Exception msg-seq)
       msg-seq
       (do
-        (log/warn "Unable to get kafka messages due to this Exception : " msg-seq)
+        (log/warn msg-seq "Unable to get kafka messages due to this exception!" )
         (log/warn "Will retry in " retry " milliseconds")
         (sleep retry)
         (cond (instance? OffsetOutOfRangeException msg-seq)
               (do
-                (log/warn "OffsetOutOfRangeException was encountered, will use the " offset-reset " topic/partiion offset")
+                (log/warn msg-seq "OffsetOutOfRangeException was encountered, will use the "
+                          offset-reset " topic/partiion offset")
                 (recur consumer (apply-topic-offset consumer state)))
               (instance? InvalidMessageSizeException msg-seq)
               (do
-                (log/warn "InvalidMessageSizeException was encountered, will use the " offset-reset " topic/partition offset")
+                (log/warn msg-seq "InvalidMessageSizeException was encountered, will use the "
+                          offset-reset " topic/partition offset")
                 (recur consumer (apply-topic-offset consumer state)))
               :else
               (do
-                (log/warn "An unexpected Exception was encountered whilst getting kafka messages. Reconnecting Kafka and trying again")
+                (log/warn msg-seq "An unexpected Exception was encountered whilst getting"
+                          " kafka messages. Reconnecting Kafka and trying again")
                 (recur (connect-to-kafka state) state)))))))
 
 

@@ -11,7 +11,7 @@
   (try
     (Thread/sleep millis)
     (catch InterruptedException ie
-      (log/warn "Sleeping Thread was interrupted : " ie))))
+      (log/warn ie "Sleeping Thread was interrupted "))))
 
 (defn execute-if-elapsed
 
@@ -37,7 +37,7 @@
       result
       (do
         (log/warn error-msg)
-        (log/warn "Exception : " result)
-        (log/warn "Will retry in " retry " milliseconds")
+        (log/warn result "Exception during continously-try."
+                  "Will retry in " retry " milliseconds")
         (sleep retry)
         (recur f args-list retry error-msg)))))
