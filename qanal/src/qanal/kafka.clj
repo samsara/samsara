@@ -19,6 +19,7 @@
             [clj-kafka.zk :refer (brokers committed-offset set-offset!)]
             [clj-kafka.core :refer (ToClojure)]
             [clj-kafka.consumer.simple :refer (consumer topic-meta-data messages topic-offset)]
+            [schema.core :as s]
             [samsara.trackit :refer [track-time]]
             [taoensso.timbre :as log]))
 
@@ -54,6 +55,13 @@
       (log/warn "Lead Broker NOT found for topic[" topic "] partition-id[" partition-id "] !!"))))
 
 
+
+(def validate-river-format
+  {(s/required-key :index) s/Str
+   (s/required-key :type)  s/Str
+   (s/optional-key :id)    s/Str})
+
+;; TODO: add message validation
 (defn unmarshall-values
   "Decodes json messages into clojures maps"
   [msg]

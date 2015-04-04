@@ -30,6 +30,25 @@
   (:import (kafka.common OffsetOutOfRangeException InvalidMessageSizeException)))
 
 
+(def DEFAULT-CONFIG
+  {:kafka-source
+   {:connect-retry      5000
+    :group-id           "qanal"
+    :auto-offset-reset  :earliest       ; Can only be earliest or latest
+    :fetch-size         10485760        ;size in bytes (10mb)
+    }
+
+   :elasticsearch-target {:end-point "http://localhost:9200"}
+
+   :tracking {:enabled false
+              :prefix "samsara.qanal" }
+
+   :logging-options {:min-level :info
+                     :path "/tmp/qanal.log"    ;full path name for the file
+                     :max-size 10485760        ;size in bytes (10mb)
+                     :backlog 10}})
+
+
 (def ^:private default-rotor-config
   {:level :info :path "qanal.log" :max-size (* 10 1024 1024) :backlog 10})
 
@@ -81,7 +100,8 @@
   (when file-name
     ;; this is executed before the log is initialised
     (println "Reading config file : " file-name)
-    (edn/read-string (slurp file-name))))
+    (->> (edn/read-string (slurp file-name))
+         (merge-with merge DEFAULT-CONFIG))))
 
 
 (defn connect-to-kafka [{:keys [zookeeper-connect topic partition-id connect-retry] :as m}]
@@ -151,7 +171,9 @@
         m-consumer-offset))))
 
 
-
+;;
+;; TODO: this is ugly
+;;
 (defn get-kafka-messages [consumer state]
   (let [msg-seq (result-or-exception kafka/get-messages consumer state)
         retry (:connect-retry state)
@@ -178,7 +200,13 @@
                           " kafka messages. Reconnecting Kafka and trying again")
                 (recur (connect-to-kafka state) state)))))))
 
-
+;;
+;; TODO: nice concept having a central loop,
+;; and now that some of the not relevant stuff
+;; have been moved out is a bit cleaner,
+;; but still not clear enough...
+;; NEED NORE clean loop
+;;
 (defn siphon [{:keys [kafka-source elasticsearch-target]}]
   (loop [consumer (connect-to-kafka kafka-source)
          state (apply-initial-offset consumer kafka-source)]
@@ -192,6 +220,8 @@
         (let [ _ (els/bulk-index elasticsearch-target (map :value kafka-msgs))
               next-consumer-offset (-> kafka-msgs last :offset inc)
               updated-state (assoc state :consumer-offset next-consumer-offset)]
+          ;; TODO: don't like this as it won't
+          ;; consume more msgs until the check point is saved
           (set-consumer-offset updated-state)
           (recur consumer updated-state))))))
 
@@ -217,7 +247,7 @@
   (trackit/start-reporting! {:type :console :reporting-frequency-seconds 30})
   (when enabled
     (log/info "Sending metrics to:" cfg)
-    (set-base-metrics-name! "samsara" "qanal")
+    (trackit/set-base-metrics-name! "samsara" "qanal")
     (trackit/start-reporting! cfg)))
 
 
@@ -254,32 +284,3 @@
                     :elasticsearch-target {:end-point "http://localhost:9200"}})
   (siphon test-config)
   )
-
-
-(comment
-  (def cfg (read-config-file "./config/config.edn"))
-
-  (def consumer (connect-to-kafka (:kafka-source cfg)))
-
-  (def state (apply-initial-offset consumer (:kafka-source cfg)))
-
-  (def msgs (get-kafka-messages consumer state))
-
-  (def msg2 (->> msgs
-                 (map
-                  )))
-
-  (def bulk1
-    (->> msg2
-         (mapcat
-          (fn [{{:keys [index type id source]} :value}]
-            [ {:index (merge {:_index index, :_type type } (when id {:_id id})) }
-              source]))))
-
-  (def bulk2 (reduce qanal.elasticsearch/msgs-reduction-fn {:bulk-operations []} msgs))
-
-
-  (def conn (esr/connect "http://docker:9200/"))
-  (def result (esb/bulk conn bulk1))
-
-  result)
