@@ -1,4 +1,5 @@
 (ns qanal.utils
+  (:require [cheshire.core :as json])
   (:require [taoensso.timbre :as log]))
 
 
@@ -41,3 +42,11 @@
                   "Will retry in " retry " milliseconds")
         (sleep retry)
         (recur f args-list retry error-msg)))))
+
+
+(defn from-json [^String s]
+  (json/decode s true))
+
+
+(defn bytes->string [^bytes b]
+  (String. b "utf-8"))

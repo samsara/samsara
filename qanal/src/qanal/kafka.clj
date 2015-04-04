@@ -15,7 +15,7 @@
 ;; limitations under the License.
 (ns qanal.kafka
   (:import (kafka.javaapi.consumer SimpleConsumer))
-  (:require [qanal.utils :refer [result-or-exception]]
+  (:require [qanal.utils :refer [result-or-exception bytes->string from-json]]
             [clj-kafka.zk :refer (brokers committed-offset set-offset!)]
             [clj-kafka.core :refer (ToClojure)]
             [clj-kafka.consumer.simple :refer (consumer topic-meta-data messages topic-offset)]
@@ -54,17 +54,28 @@
       (log/warn "Lead Broker NOT found for topic[" topic "] partition-id[" partition-id "] !!"))))
 
 
+(defn unmarshall-values
+  "Decodes json messages into clojures maps"
+  [msg]
+  (update-in msg [:value] (comp from-json bytes->string)))
+
+
 (defn get-messages [^SimpleConsumer consumer {:keys [group-id topic partition-id consumer-offset fetch-size]}]
   (track-time (str "qanal.kafka.fetch-messages." topic "." partition-id)
-   (messages consumer group-id topic partition-id consumer-offset fetch-size)))
+     (doall
+      (map unmarshall-values
+           (messages consumer group-id topic partition-id consumer-offset fetch-size)))))
+
 
 (defn get-consumer-offset [{:keys [zookeeper-connect group-id topic partition-id]}]
   (let [zookeeper-props {"zookeeper.connect" zookeeper-connect}]
     (committed-offset zookeeper-props group-id topic partition-id)))
 
+
 (defn get-topic-offset [^SimpleConsumer consumer {:keys [topic partition-id auto-offset-reset]}]
   {:pre [(#{:earliest :latest} auto-offset-reset)]}
   (topic-offset consumer topic partition-id auto-offset-reset))
+
 
 (defn get-earliest-topic-offset [^SimpleConsumer consumer m]
   (get-topic-offset consumer (assoc m :auto-offset-reset :earliest)))

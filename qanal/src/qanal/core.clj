@@ -14,13 +14,15 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 (ns qanal.core
+  (:require [clojurewerkz.elastisch.rest :as esr]
+            [clojurewerkz.elastisch.rest.bulk :as esb])
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.edn :as edn]
             [taoensso.timbre :as log]
             [taoensso.timbre.appenders.rotor :as rotor]
             [qanal.kafka :as kafka]
             [qanal.elasticsearch :as els]
-            [qanal.utils :refer [sleep exit execute-if-elapsed result-or-exception continously-try]]
+            [qanal.utils :refer :all]
             [samsara.trackit :as trackit]
             [schema.core :as s]
             [clojure.java.io :as io])
@@ -181,14 +183,14 @@
          state (apply-initial-offset consumer kafka-source)]
     (let [kafka-msgs (get-kafka-messages consumer state)]
       (if (empty? kafka-msgs)
+
         (do
           (sleep 1000)
           (recur consumer state))
 
-        (let [els-stats (els/bulk-index elasticsearch-target kafka-msgs)
-              last-msg-offset (:kafka-msgs-last-offset els-stats)
-              consumer-offset (inc last-msg-offset)
-              updated-state (assoc state :consumer-offset consumer-offset)]
+        (let [ _ (els/bulk-index elasticsearch-target (map :value kafka-msgs))
+              next-consumer-offset (-> kafka-msgs last :offset inc)
+              updated-state (assoc state :consumer-offset next-consumer-offset)]
           (set-consumer-offset updated-state)
           (recur consumer updated-state))))))
 
@@ -247,3 +249,32 @@
                     :elasticsearch-target {:end-point "http://localhost:9200"}})
   (siphon test-config)
   )
+
+
+(comment
+  (def cfg (read-config-file "./config/config.edn"))
+
+  (def consumer (connect-to-kafka (:kafka-source cfg)))
+
+  (def state (apply-initial-offset consumer (:kafka-source cfg)))
+
+  (def msgs (get-kafka-messages consumer state))
+
+  (def msg2 (->> msgs
+                 (map
+                  )))
+
+  (def bulk1
+    (->> msg2
+         (mapcat
+          (fn [{{:keys [index type id source]} :value}]
+            [ {:index (merge {:_index index, :_type type } (when id {:_id id})) }
+              source]))))
+
+  (def bulk2 (reduce qanal.elasticsearch/msgs-reduction-fn {:bulk-operations []} msgs))
+
+
+  (def conn (esr/connect "http://docker:9200/"))
+  (def result (esb/bulk conn bulk1))
+
+  result)
