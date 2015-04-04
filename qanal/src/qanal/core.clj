@@ -19,7 +19,7 @@
             [taoensso.timbre :as log]
             [taoensso.timbre.appenders.rotor :as rotor]
             [qanal.kafka :as kafka]
-            [qanal.elsasticsearch :as els]
+            [qanal.elasticsearch :as els]
             [qanal.utils :refer [sleep exit execute-if-elapsed result-or-exception continously-try]]
             [qanal.metrics :as metrics]
             [schema.core :as s])
