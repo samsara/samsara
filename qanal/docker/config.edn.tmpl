@@ -11,8 +11,10 @@
  :elasticsearch-target
  {:end-point          "http://%%ELS_PORT_9200_TCP_ADDR%%:%%ELS_PORT_9200_TCP_PORT%%"}
 
- ;;The riemann host to push metrics to .. can be nil
- :riemann-host        "%%RIEMANN_PORT_5555_TCP_ADDR%%"
+ :tracking {:enabled %%TRACKING_ENABLED%% :type :riemann
+            :host "%%RIEMANN_PORT_5555_TCP_ADDR%%"
+            :port %%RIEMANN_PORT_5555_TCP_PORT%%
+            :prefix "samsara.indexing.%%HOSTNAME%%" }
 
  :logging-options
  {:min-level          :info

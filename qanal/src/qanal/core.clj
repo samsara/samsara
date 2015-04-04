@@ -40,6 +40,7 @@
     :validate [#(.exists (io/file %)) "The given file must exist"]]
    ])
 
+;; TODO: does the schema need to be so strict??
 (def ^:private config-schema
   {:kafka-source {:zookeeper-connect  s/Str
                   :connect-retry      s/Int
@@ -50,7 +51,7 @@
                   :fetch-size         s/Int
                   }
    :elasticsearch-target {:end-point s/Str}
-   :riemann-host (s/maybe s/Str)
+   :tracking {s/Keyword s/Any}
    :logging-options {:min-level (s/enum :trace :debug :info :warn :error)
                      :path s/Str
                      :max-size s/Int
@@ -209,17 +210,21 @@
 
 
 
-(defn- init-tracking! [riemann-host]
+(defn- init-tracking!
+  "Initialises the metrics tracking system"
+  [{enabled :enabled :as cfg}]
+  ;; TODO: remove this
   (trackit/start-reporting! {:type :console :reporting-frequency-seconds 30})
-  ;;TODO: add proper configuration
-  )
-
+  (when enabled
+    (log/info "Sending metrics to:" cfg)
+    (set-base-metrics-name! "samsara" "qanal")
+    (trackit/start-reporting! cfg)))
 
 
 (defn init! [config]
   (init-log!      (:logging-options config))
   ;; TODO: replace this with TRACKit
-  (init-tracking! (:riemann-host config)))
+  (init-tracking! (:tracking config)))
 
 
 
