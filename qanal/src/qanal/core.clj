@@ -217,7 +217,12 @@
           (sleep 1000)
           (recur consumer state))
 
-        (let [ _ (els/bulk-index elasticsearch-target (map :value kafka-msgs))
+        ;; here we filter the invalida messages out,
+        ;; and pass only the `good-messages` to elasticsearch
+        ;; but we use the overall `kafka-msgs` to save last offset
+        ;; to avoid continuously reading a failing msg.
+        (let [good-messages (filter identity (map :value kafka-msgs))
+              _ (els/bulk-index elasticsearch-target good-messages)
               next-consumer-offset (-> kafka-msgs last :offset inc)
               updated-state (assoc state :consumer-offset next-consumer-offset)]
           ;; TODO: don't like this as it won't

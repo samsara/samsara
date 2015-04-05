@@ -15,7 +15,7 @@
 ;; limitations under the License.
 (ns qanal.kafka
   (:import (kafka.javaapi.consumer SimpleConsumer))
-  (:require [qanal.utils :refer [result-or-exception bytes->string from-json]]
+  (:require [qanal.utils :refer [result-or-exception bytes->string from-json safe-short]]
             [clj-kafka.zk :refer (brokers committed-offset set-offset!)]
             [clj-kafka.core :refer (ToClojure)]
             [clj-kafka.consumer.simple :refer (consumer topic-meta-data messages topic-offset)]
@@ -56,23 +56,48 @@
 
 
 
+
+(defn from-json-safe
+  "Json parsing with exception handling"
+  [^String m]
+  (safe-short nil (str "Unable to parse this json message |" m "|")
+        (from-json m)))
+
+
 (def validate-river-format
-  {(s/required-key :index) s/Str
-   (s/required-key :type)  s/Str
-   (s/optional-key :id)    s/Str})
+  "Validation schema for incoming messages"
+  {(s/required-key :index)  s/Str
+   (s/required-key :type)   s/Str
+   (s/optional-key :id)     s/Str
+   (s/required-key :source) {s/Any s/Any}})
 
-;; TODO: add message validation
-(defn unmarshall-values
-  "Decodes json messages into clojures maps"
+
+(defn validate-message
+  "Validate format of incoming message"
   [msg]
-  (update-in msg [:value] (comp from-json bytes->string)))
+  (when msg
+    (safe-short nil (str "Invalid message format: " (prn-str msg))
+          (s/validate validate-river-format msg))))
 
 
-(defn get-messages [^SimpleConsumer consumer {:keys [group-id topic partition-id consumer-offset fetch-size]}]
+(defn unmarshall-values
+  "Decodes json messages into clojures maps, or set it to nil if it can't"
+  [msg]
+  (update-in msg [:value] (comp validate-message from-json-safe bytes->string)))
+
+
+(defn get-messages
+  "For a given topic/partition and an offset, fetches the next messages
+  up to a given size."
+  [^SimpleConsumer consumer
+   {:keys [group-id topic partition-id consumer-offset fetch-size]}]
   (track-time (str "qanal.kafka.fetch-messages." topic "." partition-id)
      (doall
-      (map unmarshall-values
-           (messages consumer group-id topic partition-id consumer-offset fetch-size)))))
+      (map unmarshall-values               ;; conv bytes to clojure maps
+           (messages consumer group-id     ;; fetch messages
+                     topic partition-id
+                     consumer-offset fetch-size)))))
+
 
 
 (defn get-consumer-offset [{:keys [zookeeper-connect group-id topic partition-id]}]

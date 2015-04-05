@@ -44,9 +44,36 @@
         (recur f args-list retry error-msg)))))
 
 
+(defmacro safe-execution [default error-msg print-stack & body]
+  `(try
+     ~@body
+     (catch Exception x#
+       (let [value# ~default
+             msg#   ~error-msg]
+         (if ~print-stack
+           (log/warn x# msg#)
+           (log/warn msg# x#))
+         value#))))
+
+
+(defmacro safe [default error-msg & body]
+  `(safe-execution ~default ~error-msg true
+                   ~@body))
+
+
+
+(defmacro safe-short [default error-msg & body]
+  `(safe-execution ~default ~error-msg false
+                   ~@body))
+
+
 (defn from-json [^String s]
-  (json/decode s true))
+  (when s
+    (json/decode s true)))
+
 
 
 (defn bytes->string [^bytes b]
-  (String. b "utf-8"))
+  (when b
+    (safe nil "Error converting bytes to UTF-8 String."
+          (String. b "utf-8"))))
