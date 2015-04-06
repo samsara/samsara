@@ -21,7 +21,9 @@ desiredState:
               - name: KAFKA_TOPIC
                 value: "events"
               - name: KAFKA_PARTITION_ID
-                value: "1"
+                value: "0"
+              - name: TRACKING_ENABLED
+                value: "false"
             volumeMounts:
               - name: logs
                 mountPath: /logs

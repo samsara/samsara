@@ -19,6 +19,13 @@ desiredState:
                 containerPort: 9000
               - name: supervisord
                 containerPort: 15000
+            env:
+              - name: TRANSFORM_FN
+                value: "(fn [e] {:index \"events-test\" :type \"events\" :source e })"
+              - name: TRANSFORM_ENABLE
+                value: "true"
+              - name: TRACKING_ENABLED
+                value: "false"
             volumeMounts:
               - name: logs
                 mountPath: /logs
