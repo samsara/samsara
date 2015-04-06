@@ -35,25 +35,6 @@ fig ps
 
 ```
 
-Once the service is up and running you can then access
-the following main services
-
-| service       |               port               |
-|---------------|:--------------------------------:|
-| ingestion-api |     http://127.0.0.1:9000        |
-| kibana        |     http://127.0.0.1:8000        |
-| graphana      |     http://127.0.0.1:15000       |
-| elasticsearch | http://docker:9200/_plugin/kopf/ |
-| elasticsearch | http://docker:9200/_plugin/HQ/   |
-| elasticsearch | http://docker:9200/_plugin/head/ |
-
-**NOTE:** if you running on **boot2docker** (Mac OSX) you have to
-replace 127.0.0.1 with the ip of the docker vm (typically **192.168.59.103**)
-
-Data paths and logs are mounted on `/tmp/data` and `/tmp/logs` respectively.
-
-**NOTE:** for **boot2docker** these paths will reside in the VM not on the host.
-
 **IMPORTANT:** once services are started no topics are created. So you need to
 bootstrap the cluster with the right configuration as the default one is better
 suited for large clusters:
@@ -91,6 +72,25 @@ curl -XPUT 'http://localhost:9200/kibana' -d '{
     }
 }'
 ```
+Once the service is up and running you can then access
+the following main services
+
+| service       |               port                               |
+|---------------|:------------------------------------------------:|
+| ingestion-api | [http://127.0.0.1:9000](http://127.0.0.1:9000)   |
+| kibana        | [http://127.0.0.1:8000 ](http://127.0.0.1:8000)  |
+| graphana	| [http://127.0.0.1:15000](http://127.0.0.1:15000) |
+| elasticsearch | [http://127.0.0.1:9200/_plugin/kopf/](http://127.0.0.1:9200/_plugin/kopf/) |
+| elasticsearch | [http://127.0.0.1:9200/_plugin/HQ/  ](http://127.0.0.1:9200/_plugin/HQ/  ) |
+| elasticsearch | [http://127.0.0.1:9200/_plugin/head/](http://127.0.0.1:9200/_plugin/head/) |
+
+**NOTE:** if you running on **boot2docker** (Mac OSX) you have to
+replace 127.0.0.1 with the ip of the docker vm (typically **192.168.59.103**)
+
+Data paths and logs are mounted on `/tmp/data` and `/tmp/logs` respectively.
+
+**NOTE:** for **boot2docker** these paths will reside in the VM not on the host.
+
 
 Every container will expose the port `15000` for the `supervisord` admin console.
 here a full list of ports
