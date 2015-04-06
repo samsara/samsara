@@ -86,13 +86,6 @@
     (log/set-config! [:shared-appender-config :rotor] appender-config)))
 
 
-(defn valid-config? [c]
-  (let [errors (s/check config-schema c)]
-    (if (empty? errors)
-      c
-      (log/warn "The configuration file has invalid values/structure : " errors))))
-
-
 (defn parse-opt-errors->str [errors]
   (str "There was an error in the command line : \n" (clojure.string/join \newline errors)))
 
@@ -205,7 +198,7 @@
 ;; and now that some of the not relevant stuff
 ;; have been moved out is a bit cleaner,
 ;; but still not clear enough...
-;; NEED NORE clean loop
+;; NEED CLEANER loop
 ;;
 (defn siphon [{:keys [kafka-source elasticsearch-target]}]
   (loop [consumer (connect-to-kafka kafka-source)
@@ -227,6 +220,7 @@
               updated-state (assoc state :consumer-offset next-consumer-offset)]
           ;; TODO: don't like this as it won't
           ;; consume more msgs until the check point is saved
+          ;; this would be better off in a separate thread
           (set-consumer-offset updated-state)
           (recur consumer updated-state))))))
 
@@ -248,7 +242,7 @@
 (defn- init-tracking!
   "Initialises the metrics tracking system"
   [{enabled :enabled :as cfg}]
-  ;; TODO: remove this
+  ;; TODO: remove this when done with changes
   (trackit/start-reporting! {:type :console :reporting-frequency-seconds 30})
   (when enabled
     (log/info "Sending metrics to:" cfg)
@@ -258,7 +252,6 @@
 
 (defn init! [config]
   (init-log!      (:logging-options config))
-  ;; TODO: replace this with TRACKit
   (init-tracking! (:tracking config)))
 
 
@@ -271,8 +264,8 @@
     (when (nil? config-file)
       (exit 2 "Please supply a configuration file via -c option"))
     (let [cfg (read-config-file config-file)]
-      (when-not (valid-config? cfg)
-        (exit 3 "Please fix the configuration file"))
+      (when-let [errors (s/check config-schema cfg)]
+        (exit 3 (str "Please fix the configuration file: " errors)))
       (init! cfg)
       (siphon cfg))))
 
