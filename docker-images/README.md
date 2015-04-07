@@ -23,6 +23,30 @@ To create the default one.
 mkdir -p `grep /tmp fig.yml | cut -d' ' -f6 | cut -d':' -f1 | sort`
 ```
 
+Additionally if you are running this for the first time, you won't have any
+of the docker images. If you want to build them from scratch, then proceed
+with the [How To build and push docker images](#How_To_build_and_push_docker_images)
+A good suggestion is to start with pulling them all.
+
+```bash
+docker pull samsara/ingestion-api
+docker pull samsara/qanal
+
+docker pull samsara/zookeeper
+docker pull samsara/kafka
+docker pull samsara/elasticsearch
+docker pull samsara/kibana
+docker pull samsara/riemann
+
+docker pull tutum/influxdb
+docker pull tutum/grafana
+```
+
+Images on the first block are built using their own github project.
+Images from the second group are built with this project
+Images on the third group are third-party images which should be available
+in the Docker Registry.
+
 Now to start the services:
 
 ```
@@ -115,7 +139,7 @@ To stop all services.
 fig kill
 ```
 
-### To build and push docker images
+### How To build and push docker images
 
 If you want to build and push all docker images with the right tags
 
