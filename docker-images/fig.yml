@@ -126,6 +126,8 @@ grafana:
   environment:
     HTTP_USER: admin
     HTTP_PASS: samsara
+    INFLUXDB_HOST: localhost
+    INFLUXDB_PORT: 8086
     INFLUXDB_PROTO: http
     INFLUXDB_NAME: samsara
     INFLUXDB_USER: root
