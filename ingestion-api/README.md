@@ -175,13 +175,13 @@ cat <<EOF | curl -i -H "Content-Type: application/json" \
                 -XPOST "http://localhost:9000/v1/events" -d @-
 [
   {
-    "timestamp": 1424444803463,
+    "timestamp": $(date +%s000),
     "sourceId": "3aw4sedrtcyvgbuhjkn",
     "eventName": "user.clicked",
     "page": "orders",
     "item": "sku-1234"
   }, {
-    "timestamp": 1424444804587,
+    "timestamp": $(date +%s000),
     "sourceId": "3aw4sedrtcyvgbuhjkn",
     "eventName": "user.clicked",
     "page": "orders",
@@ -201,13 +201,13 @@ cat <<EOF | gzip | curl -i -H "Content-Type: application/json" \
                         --data-binary @-
 [
   {
-    "timestamp": 1424444803463,
+    "timestamp": $(date +%s000),
     "sourceId": "3aw4sedrtcyvgbuhjkn",
     "eventName": "user.clicked",
     "page": "orders",
     "item": "sku-1234"
   }, {
-    "timestamp": 1424444804587,
+    "timestamp": $(date +%s000),
     "sourceId": "3aw4sedrtcyvgbuhjkn",
     "eventName": "user.clicked",
     "page": "orders",
