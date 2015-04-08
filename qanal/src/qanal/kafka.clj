@@ -33,13 +33,27 @@
         some-fn (fn [pmd] (when (= partition-id (:partition-id pmd)) (:leader pmd)))]
     (some some-fn partition-meta-seq)))
 
-(defn- get-lead-broker [{:keys [host port topic partition-id group-id]}]
+(defn get-lead-broker
+  "Connects to the broker, at the given host & port, and queries for all known topic meta data.
+   If a partition-id that matches the given partition-id is found, then it's lead broker is
+   returned in the form of a map (see below) otherwise nil is returned.
+
+   An example of a broker map
+   {:connect \"192.1.2.3:9092\"
+    :host \"192.1.2.3\"
+    :port 9092
+    :broker-id 2}
+  "
+  [{:keys [host port topic partition-id group-id]}]
   (let [c (consumer host port group-id)
         topic-meta-seq (topic-meta-data c (vector topic))]
-    (log/debug "Topic Meta Data from Zookeeper -> " topic-meta-seq)
+    (log/debug "Topic Meta Data from broker[" host ":" port "] ->" topic-meta-seq)
     (first (keep #(meta-data->lead-broker-data % partition-id) topic-meta-seq))))
 
-(defn connect-to-lead-broker [{:keys [topic partition-id zookeeper-connect group-id]}]
+(defn connect-to-lead-broker
+  "Returns a kafka.javaapi.consumer.SimpleConsumer that is connected to the lead broker for
+   the given partition-id. If no lead broker is found, will return nil"
+  [{:keys [topic partition-id zookeeper-connect group-id]}]
   (let [zookeeper-props {"zookeeper.connect" zookeeper-connect}
         kvs [:topic topic :partition-id partition-id :group-id group-id]
         brokers-seq (map #(apply assoc % kvs) (brokers zookeeper-props))
@@ -53,28 +67,61 @@
       (log/warn "Lead Broker NOT found for topic[" topic "] partition-id[" partition-id "] !!"))))
 
 
-(defn get-messages [^SimpleConsumer consumer {:keys [group-id topic partition-id consumer-offset fetch-size]}]
+(defn get-messages
+  "Uses the provided arguments to consume kafka messages and return the messages in a lazy sequence.
+   The lazy sequence is contains messages of the structure
+   (defrecord KafkaMessage [topic offset partition key value])
+   topic --> Kafka Topic
+   offset --> Offset in the partition
+   partition --> partitionid
+   key --> Key used to choose partition this message was sent to
+   value --> java.nio.ByteBuffer representing the actual content of the message"
+  [^SimpleConsumer consumer {:keys [group-id topic partition-id consumer-offset fetch-size]}]
   (messages consumer group-id topic partition-id consumer-offset fetch-size))
 
-(defn get-consumer-offset [{:keys [zookeeper-connect group-id topic partition-id]}]
+(defn get-consumer-offset
+  "Returns the stored consumer offset in zookeeper for the provided group-id.
+   This offset is stored in the zookeeper location
+           /consumers/<group-id>/offsets/<topic>/<partition-id>
+   If no offset is found (i.e location is not found) then nil is returned "
+  [{:keys [zookeeper-connect group-id topic partition-id]}]
   (let [zookeeper-props {"zookeeper.connect" zookeeper-connect}]
     (committed-offset zookeeper-props group-id topic partition-id)))
 
-(defn get-topic-offset [^SimpleConsumer consumer {:keys [topic partition-id auto-offset-reset]}]
+(defn get-topic-offset
+  "Queries the broker (lead broker) that the consumer is associated with, and gets the offset specified by
+   auto-offset-reset.
+   NOTE - only :earliest or :latest are valid values for auto-offset-reset.
+   :earliest ---> the earliest message offset that is in the partition
+   :latest ---> the latest message offset that is in the partition"
+  [^SimpleConsumer consumer {:keys [topic partition-id auto-offset-reset]}]
   {:pre [(#{:earliest :latest} auto-offset-reset)]}
   (topic-offset consumer topic partition-id auto-offset-reset))
 
-(defn get-earliest-topic-offset [^SimpleConsumer consumer m]
+(defn get-earliest-topic-offset
+  "Retuns the earliest message offset in a partition. See get-topic-offset function for more info"
+  [^SimpleConsumer consumer m]
   (get-topic-offset consumer (assoc m :auto-offset-reset :earliest)))
 
-(defn get-latest-topic-offset [^SimpleConsumer consumer m]
+(defn get-latest-topic-offset
+  "Retuns the latest message offset in a partition. See get-topic-offset function for more info"
+  [^SimpleConsumer consumer m]
   (get-topic-offset consumer (assoc m :auto-offset-reset :latest)))
 
-(defn set-consumer-offset [{:keys [zookeeper-connect group-id topic partition-id consumer-offset]}]
+(defn set-consumer-offset
+  "Sets the stored zookeeper consumer offset to the provided consumer-offset value
+   This offset is stored in the zookeeper location
+         /consumers/<group-id>/offsets/<topic>/<partition-id>"
+
+  [{:keys [zookeeper-connect group-id topic partition-id consumer-offset]}]
   (let [zookeeper-props {"zookeeper.connect" zookeeper-connect}]
     (set-offset! zookeeper-props group-id topic partition-id consumer-offset)))
 
-(defn calculate-partition-backlog [consumer {:keys [consumer-offset] :as m}]
+(defn calculate-partition-backlog
+  "Returns the partition \"backlog\" by querying the broker (associated to by the consumer) for it's last/latest
+   message offset and subtracting the given consumer-offset from it.
+   If there's any exception whilst querying the broker, -1 is returned and a warning message is logged."
+  [consumer {:keys [consumer-offset] :as m}]
   (let [latest-zk-offset (result-or-exception get-latest-topic-offset consumer m)
         backlog (if (instance? Exception latest-zk-offset) -1 (- latest-zk-offset consumer-offset))]
     (when (instance? Exception latest-zk-offset)

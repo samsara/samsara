@@ -116,7 +116,7 @@
   "Takes a map and uses the :zookeeper-connect value to connect to Zookeeper,
    gets the consumer offset that is associated to the given group-id
    and then returns the given map with the offset associated with key :offset.
-   Note: if there is no consumer offset, :offset will have nil value"
+   Note: if there is no consumer offset, :consumer-offset will have nil value"
   [m]
   (let [retry (:connect-retry m)
         error-msg "Unable to get consumer offset from Zookeeper"
