@@ -35,7 +35,7 @@ ingestion:
   image: samsara/ingestion-api
   links:
     - kafka:kafka
-    - riemann:riemann
+    - monitoring:riemann
   ports:
     - "9000:9000"
     - "15003:15000"
@@ -82,7 +82,7 @@ qanal:
   links:
     - zookeeper:zookeeper
     - elasticsearch:els
-    - riemann:riemann
+    - monitoring:riemann
   ports:
     - "15006:15000"
   environment:
@@ -92,44 +92,19 @@ qanal:
   volumes:
     - /tmp/logs/qanal1:/logs
 
-
 #
-# Monitoring: InfluxDB
+# Monitoring
 #
-influxdb:
-  image: tutum/influxdb
+monitoring:
+  image: samsara/monitoring
   ports:
+    - "15000:80"
+    - "5555:5555"
+    - "5556:5556"
     - "8083:8083"
     - "8086:8086"
   environment:
-    PRE_CREATE_DB: samsara
-
-#
-# Monitoring: Riemann
-#
-riemann:
-  image: samsara/riemann
-  ports:
-    - "5555:5555"
-  links:
-    - influxdb:influxdb
-
-#
-# Monitoring: Grafana
-#
-grafana:
-  image: tutum/grafana
-  ports:
-    - "15000:80"
-  links:
-    - influxdb:influxdb
-  environment:
     HTTP_USER: admin
     HTTP_PASS: samsara
-    INFLUXDB_HOST: localhost
-    INFLUXDB_PORT: 8086
-    INFLUXDB_PROTO: http
-    INFLUXDB_NAME: samsara
-    INFLUXDB_USER: root
-    INFLUXDB_PASS: root
-    INFLUXDB_IS_GRAFANADB: "true"
+  volumes:
+    - /tmp/logs/monitoring:/logs
