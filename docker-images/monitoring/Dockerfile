@@ -52,5 +52,8 @@ ADD ./configure-and-start.sh /configure-and-start.sh
 # expose grafana, rieman ports,      influx,   supervisord
 EXPOSE 80         5555 5555/udp 5556 8083 8086 15000
 
+# expose volumes
+VOLUME ["/data", "/logs"]
+
 ADD ./bootstrap.sh /bootstrap.sh
 CMD /configure-and-start.sh
