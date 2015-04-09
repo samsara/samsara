@@ -10,4 +10,7 @@ export HTTP_PASS=${HTTP_PASS:-samsara}
 # set grafana password
 echo ${HTTP_PASS} | htpasswd -i -c /opt/grafana/.htpasswd  ${HTTP_USER}
 
+# start the influxdb boostrap in background
+/bootstrap.sh &
+
 exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf

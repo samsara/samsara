@@ -108,3 +108,4 @@ monitoring:
     HTTP_PASS: samsara
   volumes:
     - /tmp/logs/monitoring:/logs
+    - /tmp/data/monitoring:/data
