@@ -8,7 +8,7 @@ function (Settings) {
         grafanaDB: true,
         type: 'influxdb',
         // this need to be proxied by nginx
-        url: "http://127.0.0.1:8086/db/samsara",
+        url: "http://"+window.location.hostname+":"+window.location.port+"/db/samsara",
         username: "root",
         password: "root"
       }
