@@ -1,21 +1,13 @@
-{
- :kafka-source
- {:zookeeper-connect  "127.0.0.1:2181"
-  :connect-retry      5000
-  :group-id           "qanal"
-  :topic              "river"
-  :partition-id       0
-  :auto-offset-reset  :earliest         ; Can only be earliest or latest
-  :fetch-size         10485760          ;size in bytes
-  }
+{:kafka-source {:zookeeper-connect  "docker:2181"
+                :topic              "events"
+                :partition-id       0
+                :auto-offset-reset  :earliest ; Can only be earliest or latest
+                }
+ :elasticsearch-target {:end-point "http://docker:9200"}
 
- :elasticsearch-target
- {:end-point          "http://127.0.0.1:9200"}
+ :tracking {:enabled true :type :riemann
+            :host "docker"
+            :port 5555}
 
- :riemann-host        "127.0.0.1" ;The riemann host to push metrics to .. can be nil
-
- :logging-options
- {:min-level          :info
-  :path               "/var/log/qanal.log" ;full path name for the file
-  :max-size           15360                ;size in bytes
-  :backlog            10}}
+ :logging-options {:min-level :info
+                   :path "/tmp/qanal.log"}}

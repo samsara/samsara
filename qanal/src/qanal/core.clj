@@ -14,18 +14,39 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 (ns qanal.core
+  (:require [clojurewerkz.elastisch.rest :as esr]
+            [clojurewerkz.elastisch.rest.bulk :as esb])
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.edn :as edn]
             [taoensso.timbre :as log]
             [taoensso.timbre.appenders.rotor :as rotor]
             [qanal.kafka :as kafka]
             [qanal.elasticsearch :as els]
-            [qanal.utils :refer [sleep exit execute-if-elapsed result-or-exception continously-try]]
-            [qanal.metrics :as metrics]
+            [qanal.utils :refer :all]
+            [samsara.trackit :as trackit]
             [schema.core :as s]
             [clojure.java.io :as io])
   (:gen-class)
   (:import (kafka.common OffsetOutOfRangeException InvalidMessageSizeException)))
+
+
+(def DEFAULT-CONFIG
+  {:kafka-source
+   {:connect-retry      5000
+    :group-id           "qanal"
+    :auto-offset-reset  :earliest       ; Can only be earliest or latest
+    :fetch-size         10485760        ;size in bytes (10mb)
+    }
+
+   :elasticsearch-target {:end-point "http://localhost:9200"}
+
+   :tracking {:enabled false
+              :prefix "samsara.qanal" }
+
+   :logging-options {:min-level :info
+                     :path "/tmp/qanal.log"    ;full path name for the file
+                     :max-size 10485760        ;size in bytes (10mb)
+                     :backlog 10}})
 
 
 (def ^:private default-rotor-config
@@ -38,6 +59,7 @@
     :validate [#(.exists (io/file %)) "The given file must exist"]]
    ])
 
+;; TODO: does the schema need to be so strict??
 (def ^:private config-schema
   {:kafka-source {:zookeeper-connect  s/Str
                   :connect-retry      s/Int
@@ -48,7 +70,7 @@
                   :fetch-size         s/Int
                   }
    :elasticsearch-target {:end-point s/Str}
-   :riemann-host (s/maybe s/Str)
+   :tracking {s/Keyword s/Any}
    :logging-options {:min-level (s/enum :trace :debug :info :warn :error)
                      :path s/Str
                      :max-size s/Int
@@ -56,39 +78,12 @@
 
 
 
-(defn- record-stats [kafka-consumer {:keys [topic partition-id consumer-offset kafka-msgs-count bulked-docs bulked-time]
-                                     :or {kafka-msgs-count 0 bulked-docs 0 bulked-time 0}
-                                     :as stats}]
-  ;(log/debug "Stats ->" stats)
-  (let [kafka-args {:topic topic :partition-id partition-id :consumer-offset consumer-offset}
-        gauge-fn-map {:backlog-fn       (fn [] (kafka/calculate-partition-backlog kafka-consumer kafka-args))}
-        rates-map {:msgs kafka-msgs-count
-                   :bulked-docs bulked-docs
-                   :bulked-time bulked-time}]
-
-    (metrics/record-qanal-counters stats)
-    (metrics/record-qanal-gauges topic partition-id gauge-fn-map)
-    (metrics/record-qanal-rates topic partition-id rates-map)
-    (metrics/sensibly-log-stats)))
-
-
-(defn- create-default-stats [{:keys [topic partition-id consumer-offset kafka-msgs-count bulked-docs bulked-time]
-                              :or {kafka-msgs-count 0 bulked-docs 0 bulked-time 0}}]
-  {:topic topic :partition-id partition-id :consumer-offset consumer-offset :kafka-msgs-count kafka-msgs-count
-   :bulked-docs bulked-docs :bulked-time bulked-time})
-
 
 (defn- apply-logging-options [logging-options]
   (let [log-level (:min-level logging-options)
         appender-config (dissoc logging-options :min-level)]
     (log/set-config! [:appenders :rotor :min-level] log-level)
     (log/set-config! [:shared-appender-config :rotor] appender-config)))
-
-(defn valid-config? [c]
-  (let [errors (s/check config-schema c)]
-    (if (empty? errors)
-      c
-      (log/warn "The configuration file has invalid values/structure : " errors))))
 
 
 (defn parse-opt-errors->str [errors]
@@ -98,7 +93,8 @@
   (when file-name
     ;; this is executed before the log is initialised
     (println "Reading config file : " file-name)
-    (edn/read-string (slurp file-name))))
+    (->> (edn/read-string (slurp file-name))
+         (merge-with merge DEFAULT-CONFIG))))
 
 
 (defn connect-to-kafka [{:keys [zookeeper-connect topic partition-id connect-retry] :as m}]
@@ -168,7 +164,9 @@
         m-consumer-offset))))
 
 
-
+;;
+;; TODO: this is ugly
+;;
 (defn get-kafka-messages [consumer state]
   (let [msg-seq (result-or-exception kafka/get-messages consumer state)
         retry (:connect-retry state)
@@ -195,25 +193,35 @@
                           " kafka messages. Reconnecting Kafka and trying again")
                 (recur (connect-to-kafka state) state)))))))
 
-
+;;
+;; TODO: nice concept having a central loop,
+;; and now that some of the not relevant stuff
+;; have been moved out is a bit cleaner,
+;; but still not clear enough...
+;; NEED CLEANER loop
+;;
 (defn siphon [{:keys [kafka-source elasticsearch-target]}]
   (loop [consumer (connect-to-kafka kafka-source)
          state (apply-initial-offset consumer kafka-source)]
-    (let [kafka-msgs (get-kafka-messages consumer state)
-          stats (create-default-stats state)]
+    (let [kafka-msgs (get-kafka-messages consumer state)]
       (if (empty? kafka-msgs)
+
         (do
-          (record-stats consumer stats)
           (sleep 1000)
           (recur consumer state))
 
-        (let [els-stats (els/bulk-index elasticsearch-target kafka-msgs)
-              last-msg-offset (:kafka-msgs-last-offset els-stats)
-              consumer-offset (inc last-msg-offset)
-              updated-stats (merge stats els-stats {:consumer-offset consumer-offset})
-              updated-state (assoc state :consumer-offset consumer-offset)]
+        ;; here we filter the invalida messages out,
+        ;; and pass only the `good-messages` to elasticsearch
+        ;; but we use the overall `kafka-msgs` to save last offset
+        ;; to avoid continuously reading a failing msg.
+        (let [good-messages (filter identity (map :value kafka-msgs))
+              _ (els/bulk-index elasticsearch-target good-messages)
+              next-consumer-offset (-> kafka-msgs last :offset inc)
+              updated-state (assoc state :consumer-offset next-consumer-offset)]
+          ;; TODO: don't like this as it won't
+          ;; consume more msgs until the check point is saved
+          ;; this would be better off in a separate thread
           (set-consumer-offset updated-state)
-          (record-stats consumer updated-stats)
           (recur consumer updated-state))))))
 
 
@@ -231,15 +239,20 @@
 
 
 
-(defn- init-tracking! [riemann-host]
-  (metrics/connect-to-riemann riemann-host))
-
+(defn- init-tracking!
+  "Initialises the metrics tracking system"
+  [{enabled :enabled :as cfg}]
+  ;; TODO: remove this when done with changes
+  (trackit/start-reporting! {:type :console :reporting-frequency-seconds 30})
+  (when enabled
+    (log/info "Sending metrics to:" cfg)
+    (trackit/set-base-metrics-name! "samsara" "qanal")
+    (trackit/start-reporting! cfg)))
 
 
 (defn init! [config]
   (init-log!      (:logging-options config))
-  ;; TODO: replace this with TRACKit
-  (init-tracking! (:riemann-host config)))
+  (init-tracking! (:tracking config)))
 
 
 
@@ -251,8 +264,8 @@
     (when (nil? config-file)
       (exit 2 "Please supply a configuration file via -c option"))
     (let [cfg (read-config-file config-file)]
-      (when-not (valid-config? cfg)
-        (exit 3 "Please fix the configuration file"))
+      (when-let [errors (s/check config-schema cfg)]
+        (exit 3 (str "Please fix the configuration file: " errors)))
       (init! cfg)
       (siphon cfg))))
 

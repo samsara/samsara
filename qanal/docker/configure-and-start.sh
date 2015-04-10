@@ -16,8 +16,12 @@ if [[ -n "${KAFKA_ZOOKEEPER_CONNECT}" ]]; then
 fi
 
 # setting defaults
+export HOSTNAME=${HOSTNAME:-qanal}
+export TRACKING_ENABLED=${TRACKING_ENABLED:-false}
 export ELS_PORT_9200_TCP_PORT=${ELS_PORT_9200_TCP_PORT:-9200}
 export RIEMANN_PORT_5555_TCP_ADDR=${RIEMANN_PORT_5555_TCP_ADDR:-localhost}
+export RIEMANN_PORT_5555_TCP_PORT=${RIEMANN_PORT_5555_TCP_PORT:-localhost}
+
 
 export CONFIG_FILE=/opt/qanal/conf/config.edn
 # replace variables in template with environment values

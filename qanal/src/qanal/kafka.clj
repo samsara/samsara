@@ -15,10 +15,12 @@
 ;; limitations under the License.
 (ns qanal.kafka
   (:import (kafka.javaapi.consumer SimpleConsumer))
-  (:require [qanal.utils :refer [result-or-exception]]
+  (:require [qanal.utils :refer [result-or-exception bytes->string from-json safe-short]]
             [clj-kafka.zk :refer (brokers committed-offset set-offset!)]
             [clj-kafka.core :refer (ToClojure)]
             [clj-kafka.consumer.simple :refer (consumer topic-meta-data messages topic-offset)]
+            [schema.core :as s]
+            [samsara.trackit :refer [track-time]]
             [taoensso.timbre :as log]))
 
 
@@ -67,6 +69,36 @@
       (log/warn "Lead Broker NOT found for topic[" topic "] partition-id[" partition-id "] !!"))))
 
 
+
+(defn from-json-safe
+  "Json parsing with exception handling"
+  [^String m]
+  (safe-short nil (str "Unable to parse this json message |" m "|")
+        (from-json m)))
+
+
+(def validate-river-format
+  "Validation schema for incoming messages"
+  {(s/required-key :index)  s/Str
+   (s/required-key :type)   s/Str
+   (s/optional-key :id)     s/Str
+   (s/required-key :source) {s/Any s/Any}})
+
+
+(defn validate-message
+  "Validate format of incoming message"
+  [msg]
+  (when msg
+    (safe-short nil (str "Invalid message format: " (prn-str msg))
+          (s/validate validate-river-format msg))))
+
+
+(defn unmarshall-values
+  "Decodes json messages into clojures maps, or set it to nil if it can't"
+  [msg]
+  (update-in msg [:value] (comp validate-message from-json-safe bytes->string)))
+
+
 (defn get-messages
   "Uses the provided arguments to consume kafka messages and return the messages in a lazy sequence.
    The lazy sequence is contains messages of the structure
@@ -75,9 +107,16 @@
    offset --> Offset in the partition
    partition --> partitionid
    key --> Key used to choose partition this message was sent to
-   value --> java.nio.ByteBuffer representing the actual content of the message"
-  [^SimpleConsumer consumer {:keys [group-id topic partition-id consumer-offset fetch-size]}]
-  (messages consumer group-id topic partition-id consumer-offset fetch-size))
+   value --> a Clojure map representing the message"
+  [^SimpleConsumer consumer
+   {:keys [group-id topic partition-id consumer-offset fetch-size]}]
+  (track-time (str "qanal.kafka.fetch-messages." topic "." partition-id)
+     (doall
+      (map unmarshall-values               ;; conv bytes to clojure maps
+           (messages consumer group-id     ;; fetch messages
+                     topic partition-id
+                     consumer-offset fetch-size)))))
+
 
 (defn get-consumer-offset
   "Returns the stored consumer offset in zookeeper for the provided group-id.
@@ -87,6 +126,7 @@
   [{:keys [zookeeper-connect group-id topic partition-id]}]
   (let [zookeeper-props {"zookeeper.connect" zookeeper-connect}]
     (committed-offset zookeeper-props group-id topic partition-id)))
+
 
 (defn get-topic-offset
   "Queries the broker (lead broker) that the consumer is associated with, and gets the offset specified by
