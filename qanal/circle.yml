@@ -1,0 +1,16 @@
+## Customize the test machine
+machine:
+  services:
+    - docker
+
+test:
+  override:
+    - lein do clean, midje, bin
+
+deployment:
+  docker-hub:
+    branch: master
+    commands:
+      - docker build -t samsara/qanal .
+      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+      - docker push samsara/qanal
