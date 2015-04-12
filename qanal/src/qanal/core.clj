@@ -282,3 +282,28 @@
                     :elasticsearch-target {:end-point "http://localhost:9200"}})
   (siphon test-config)
   )
+
+
+(comment
+
+  (def cfg (read-config-file "./config/config.edn"))
+
+  (init! cfg)
+
+  (def consumer (connect-to-kafka (:kafka-source cfg)))
+  (def state (apply-initial-offset consumer (:kafka-source cfg)))
+
+  ;; return the last point was consumed
+  (kafka/get-consumer-offset state)
+
+  ;; get first offset available in the log
+  (kafka/get-earliest-topic-offset consumer state)
+
+  ;; get lastest offset available in the log
+  (kafka/get-latest-topic-offset consumer state)
+
+  ;; get the messages
+  (get-kafka-messages consumer state)
+
+
+  )
