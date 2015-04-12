@@ -9,7 +9,7 @@ Tested against the Kafka-0.8.1.1 and Elasticsearch-1.4.4.
 Still in development, hope to do the first release real soon.
 
 ## Continous Integration
-Current build status: [![Build Status](https://travis-ci.org/samsara/qanal.svg?branch=master)](https://travis-ci.org/samsara/qanal.svg?branch=master)
+Current build status: [![Circle CI](https://circleci.com/gh/samsara/qanal/tree/master.svg?style=shield)](https://circleci.com/gh/samsara/qanal/tree/master)
 
 
 ## Configuration
