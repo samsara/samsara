@@ -358,11 +358,11 @@
     topics-conf)))
 
 (defn refresh-fetching-specs [{:keys [topics zk metadata] :as state}]
-  (update-in state [:fetching] merge (fetching-specs topics zk metadata)))
+  (update-in state [:fetching] (partial merge (fetching-specs topics zk metadata))))
 
 
 ;; TODO: REVIEW DOC-STRING
-(defn- consumer-offsets
+(defn- consumer-offsets!
   "Returns the stored consumer offset in zookeeper for the provided group-id.
    This offset is stored in the zookeeper location
            /consumers/<group-id>/offsets/<topic>/<partition-id>
@@ -382,7 +382,41 @@
 
 
 (defn refresh-consumer-offsets [{:keys [zk] :as state}]
-  (update-in state [:fetching] #(consumer-offsets zk %)))
+  (update-in state [:fetching] #(consumer-offsets! zk %)))
+
+
+(defn refresh-all-topics-metadata
+  "It refreshes all metadata, keeps track when last update was made"
+  [kafka-state]
+  (-> kafka-state
+      refresh-partitions
+      refresh-brokers
+      refresh-fetching-specs
+      refresh-consumer-offsets
+      (assoc-in [:last-update] (java.util.Date.))))
+
+
+(defn commit-offsets!
+  "it commits the consumed offsets to zookeeper and update the state"
+  [state-atom]
+  (let [{:keys [zk fetching] :as state} @state-atom
+
+        committed
+        (into {}
+              (for [[k {:keys [group-id topic partition consumer-offset committed-offset] :as v}] fetching]
+                [k
+                 (if (> consumer-offset (or committed-offset -1))
+                   (do
+                     ;; TODO: this should accept a list of topics/partions/offsets
+                     ;; TODO: what if this fails?
+                     (set-offset! zk group-id topic partition consumer-offset)
+                     (assoc v :committed-offset consumer-offset))
+                   v)]))
+        new-state (assoc state :fetching committed)]
+    ;; if it doesn't happen not a big deal, the real values are
+    ;; committed to zk, and they will be updated again
+    ;; at the next round
+    (compare-and-set! state-atom state new-state)))
 
 
 (defmacro forever-do [name sleep & body]
@@ -408,18 +442,13 @@
            (Thread/sleep _sleep#))))))
 
 
-(defn refresh-all-topics-metadata! [kafka-state]
-  (swap! kafka-state
-         #(-> %
-              refresh-partitions
-              refresh-brokers
-              refresh-fetching-specs
-              refresh-consumer-offsets
-              (assoc-in [:last-update] (java.util.Date.)))))
+(defn refresh-state! [kafka-state]
+  (swap! kafka-state refresh-all-topics-metadata))
 
 (defn- start-metadate-update-thread []
   (forever-do "updating kafka metadata" 5000
               (refresh-all-topics-metadata! kafka-state)))
+
 
 
 
@@ -433,5 +462,7 @@
   (start-metadate-update-thread)
 
   kafka-state
+
+  (commit-offsets! kafka-state)
 
   )
