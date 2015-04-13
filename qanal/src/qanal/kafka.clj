@@ -419,16 +419,25 @@
     (compare-and-set! state-atom state new-state)))
 
 
+(defmacro safe-exec [message & body]
+  `(try
+     ~@body
+     (catch Exception x#
+       (log/warn "ERROR: " x# "on:" ~message )
+       nil)))
+
+
 (defmacro forever-do [name sleep & body]
-  `(let [_name# ~name _sleep# ~sleep]
+  `(let [_sleep#   ~sleep
+         _name#    ~name]
      (async/thread
        (while true
-         (try
-           ~@body
-           (catch Exception x#
-             (log/warn "ERROR: " _name# ", reason:" x# ", will retry after:" _sleep# "ms")))
+         (safe-exec (str "" _name# ", will retry in " _sleep# "ms")
+           ~@body)
          (when (> _sleep# 0)
-           (Thread/sleep _sleep#))))))
+           (safe-exec (str "" _name# " interrupted while sleeping...")
+             (Thread/sleep _sleep#)))))))
+
 
 (defmacro forever-go [name sleep & body]
   `(let [_name# ~name _sleep# ~sleep]
@@ -448,6 +457,56 @@
 (defn- start-metadate-update-thread []
   (forever-do "updating kafka metadata" 5000
               (refresh-all-topics-metadata! kafka-state)))
+
+
+(defn lead-broker [state topic partition]
+  (get-in state [:metadata topic :partition-metadata partition :leader]))
+
+(defn lead-broker-connection [state topic partition]
+  (when-let [leader (:broker-id (lead-broker state topic partition))]
+    (get-in state [:brokers leader :consumer])))
+
+
+(defn fetch-messages
+  "Uses the provided arguments to consume kafka messages and return the messages in a lazy sequence.
+   The lazy sequence is contains messages of the structure
+   (defrecord KafkaMessage [topic offset partition key value])
+   topic --> Kafka Topic
+   offset --> Offset in the partition
+   partition --> partition
+   key --> Key used to choose partition this message was sent to
+   value --> a Clojure map representing the message"
+  [^SimpleConsumer consumer
+   {:keys [group-id topic partition consumer-offset fetch-size]}]
+  (track-time (str "qanal.kafka.fetch-messages." topic "." partition)
+     (doall
+      (map unmarshall-values               ;; conv bytes to clojure maps
+           (messages consumer group-id     ;; fetch messages
+                     topic partition
+                     consumer-offset fetch-size)))))
+
+
+
+(defn start-partition-fetcher
+  [state-atom part-key output-channel]
+  (loop [state  @state-atom]
+    (let [{:keys [topic partition] :as fetch} (get-in state [:fetching part-key])
+          conn (lead-broker-connection state topic partition)]
+      (fetch-messages conn fetch))))
+
+
+(defn start-partition-fetcher
+  [state-atom part-key output-channel]
+  (let [state @state-atom]
+    (loop [{:keys [topic partition] :as lfetch} (get-in state [:fetching part-key])
+           fetch (update-in lfetch [:consumer-offset] inc)
+           conn  (lead-broker-connection state topic partition)]
+      (let [messages    (fetch-messages conn fetch)
+            last-offset (-> messages last :offset)]
+        (doseq [msg messages]
+          (>!! output-channel msg))
+        (when (seq messages)
+          (recur (assoc conn :consumer-offset last-offset) conn))))))
 
 
 
