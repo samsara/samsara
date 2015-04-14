@@ -1,8 +1,7 @@
 {:kafka-source {:zookeeper-connect  "docker:2181"
-                :topic              "events"
-                :partition-id       0
                 :auto-offset-reset  :earliest ; Can only be earliest or latest
                 }
+ :topics {"events" :all}
  :elasticsearch-target {:end-point "http://docker:9200"}
 
  :tracking {:enabled true :type :riemann
