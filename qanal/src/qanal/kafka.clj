@@ -489,14 +489,6 @@
 
 (defn start-partition-fetcher
   [state-atom part-key output-channel]
-  (loop [state  @state-atom]
-    (let [{:keys [topic partition] :as fetch} (get-in state [:fetching part-key])
-          conn (lead-broker-connection state topic partition)]
-      (fetch-messages conn fetch))))
-
-
-(defn start-partition-fetcher
-  [state-atom part-key output-channel]
   (let [state @state-atom]
     (loop [{:keys [topic partition] :as lfetch} (get-in state [:fetching part-key])
            fetch (update-in lfetch [:consumer-offset] inc)
@@ -508,7 +500,26 @@
         (when (seq messages)
           (recur (assoc conn :consumer-offset last-offset) conn))))))
 
+(defn partition-fetcher!
+  [state-atom part-key output-channel]
+  (let [{:keys [group-id topic partition]} (get-in @state-atom [:fetching part-key])]
+    (loop [state @state-atom
+           last-consumed-offset (committed-offset (:zk cfg) group-id topic partition)]
+      (let [{:keys [topic partition] :as lfetch} (get-in state [:fetching part-key])
+            fetch (assoc lfetch :consumer-offset (inc last-consumed-offset))
+            conn  (lead-broker-connection state topic partition)
+            messages    (fetch-messages conn fetch)
+            last-offset (-> messages last :offset)]
+        (doseq [msg messages]
+          (>!! output-channel msg))
+        (when (seq messages)
+          (recur @state-atom last-consumed-offset))))))
 
+
+(def start-partition-fetcher-thread!
+  [state-atom part-key output-channel]
+  (forever-do (str "consuming: " part-key) 5000
+              (partition-fetcher! state-atom part-key output-channel)))
 
 
 (comment
