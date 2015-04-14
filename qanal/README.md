@@ -25,11 +25,12 @@ The following is the provided example (config/config.edn)
   {:zookeeper-connect  "127.0.0.1:49157"
    :connect-retry      5000
    :group-id	       "qanal"
-   :topic "river"
-   :partition-id 0
    :auto-offset-reset  :earliest ; Can only be earliest or latest
    :fetch-size	       10485760		       ;size in bytes
    }
+ 
+ ;; a map which lists all topic and partitions to consume from
+ :topics { "events" :all }
 
  :elasticsearch-target 
    {:end-point "http://127.0.0.1:9200"}
@@ -39,6 +40,29 @@ The following is the provided example (config/config.edn)
     :path "qanal.log"			     ;full path name for the file
     :max-size 15360			     ;size in bytes
     :backlog 10}}
+```
+
+You can specify multitple topics and multiple partitions at the same time:
+
+For example if you want to consume a topic called "twitter" which has 5 partition,
+and you want to consume all 5 partitions you can either specify each individual
+partition as `[0 1 2 3 4]` or you can specify `:all`.
+If you just want to consume the first 3 partitions the you can specify `[0 1 2]`
+this allow to split the load across multiple instances where every instance will
+consume only one part of the overall partitions.
+
+The following configuration show that is possible to index multiple topics
+at the same time.
+
+```
+...
+
+:topics {"twitter"   [0 1 2 3 4 5 6 7 8 9]
+         "wikipedia" :all
+         "identica"  [0 2 4] ;; only even partitions
+         }
+
+...
 ```
 
 ## Message Format (Kafka)
