@@ -88,7 +88,7 @@ qanal:
   environment:
     TRACKING_ENABLED: "true"
     KAFKA_TOPIC: events
-    KAFKA_PARTITION_ID: 0
+    KAFKA_PARTITIONS: ":all"
   volumes:
     - /tmp/logs/qanal1:/logs
 
