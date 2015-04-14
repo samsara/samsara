@@ -297,7 +297,7 @@
 
 
 (defmacro forever-do [name sleep & body]
-  `(let [_sleep#   ~sleep
+  `(let [_sleep#   (or ~sleep 1000)
          _name#    ~name]
      (async/thread
        (while true

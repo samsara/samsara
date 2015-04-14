@@ -64,11 +64,11 @@
   {:kafka-source {:zookeeper-connect  s/Str
                   :connect-retry      s/Int
                   :group-id           s/Str
-                  :topic              s/Str
-                  :partition-id       s/Int
                   :auto-offset-reset  (s/enum :earliest :latest)
                   :fetch-size         s/Int
                   }
+   ;; TODO: check correct schema rule for OR
+   :topics {s/Str (or s/Keyword [s/Int])}
    :elasticsearch-target {:end-point s/Str}
    :tracking {s/Keyword s/Any}
    :logging-options {:min-level (s/enum :trace :debug :info :warn :error)
@@ -226,7 +226,7 @@
 
 
 (defn uber-siphon
-  "doc-string"
+  "It spawns a consumer thread for a specific topic/partion."
   [{:keys [kafka-source topics] :as config}]
   (let [zk (assoc kafka-source "zookeeper.connect" (:zookeeper-connect kafka-source))
         topics-spec (kafka/list-partitions-to-fetch topics zk)
@@ -239,8 +239,9 @@
     ;;
     ;; Consuming each partition in a separate thread..
     ;;
-    (doseq [{:keys [connect-retry cfg-name] :as cfg} all-configs]
-      (kafka/forever-do (str "consuming partition: " cfg-name) connect-retry
+    (doseq [{:keys [kafka-source cfg-name] :as cfg} all-configs]
+      (log/info "Starting consumer thread for" cfg-name)
+      (kafka/forever-do (str "consuming partition: " cfg-name) (:connect-retry kafka-source)
                         (siphon cfg)))))
 
 
@@ -262,8 +263,7 @@
 (defn- init-tracking!
   "Initialises the metrics tracking system"
   [{enabled :enabled :as cfg}]
-  ;; TODO: remove this when done with changes
-  (trackit/start-reporting! {:type :console :reporting-frequency-seconds 30})
+  ;; (trackit/start-reporting! {:type :console :reporting-frequency-seconds 30})
   (when enabled
     (log/info "Sending metrics to:" cfg)
     (trackit/set-base-metrics-name! "samsara" "qanal")
@@ -301,4 +301,7 @@
       :topics {"test1" :all
               "test3" [0 2]}
      :elasticsearch-target {:end-point "http://localhost:9200"}})
-  (uber-siphon test-config))
+
+  (uber-siphon test-config)
+
+  )
