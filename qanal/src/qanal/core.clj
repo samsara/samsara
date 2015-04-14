@@ -225,6 +225,26 @@
           (recur consumer updated-state))))))
 
 
+(defn uber-siphon
+  "doc-string"
+  [{:keys [kafka-source topics] :as config}]
+  (let [zk (assoc kafka-source "zookeeper.connect" (:zookeeper-connect kafka-source))
+        topics-spec (kafka/list-partitions-to-fetch topics zk)
+        all-configs (map (fn [[topic partition]]
+                           (-> config
+                               (assoc-in [:kafka-source :topic] topic)
+                               (assoc-in [:kafka-source :partition-id] partition)
+                               (assoc-in [:cfg-name] (str topic "/" partition))))
+                         topics-spec)]
+    ;;
+    ;; Consuming each partition in a separate thread..
+    ;;
+    (doseq [{:keys [connect-retry cfg-name] :as cfg} all-configs]
+      (kafka/forever-do (str "consuming partition: " cfg-name) connect-retry
+                        (siphon cfg)))))
+
+
+
 (defn- init-log! [config]
   (log/set-config! [:timestamp-pattern]
                    "yyyy-MM-dd HH:mm:ss.SSS zzz")
@@ -267,18 +287,18 @@
       (when-let [errors (s/check config-schema cfg)]
         (exit 3 (str "Please fix the configuration file: " errors)))
       (init! cfg)
-      (siphon cfg))))
-
+      (uber-siphon cfg))))
 
 
 (comment
-  (def test-config {:kafka-source {:zookeeper-connect  "localhost:49157"
-                                   :connect-retry      5000
-                                   :group-id           "qanal"
-                                   :topic "river"
-                                   :partition-id 0
-                                   :auto-offset-reset  :earliest ; Can only be earliest or latest
-                                   :fetch-size         (* 10 1024 1024)}
-                    :elasticsearch-target {:end-point "http://localhost:9200"}})
-  (siphon test-config)
-  )
+  (def test-config
+    {:kafka-source
+     {:zookeeper-connect  "docker:49153"
+      :connect-retry      5000
+      :group-id           "qanal"
+      :auto-offset-reset  :earliest     ; Can only be earliest or latest
+      :fetch-size         (* 10 1024 1024)}
+      :topics {"test1" :all
+              "test3" [0 2]}
+     :elasticsearch-target {:end-point "http://localhost:9200"}})
+  (uber-siphon test-config))

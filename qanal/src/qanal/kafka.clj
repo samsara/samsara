@@ -16,12 +16,14 @@
 (ns qanal.kafka
   (:import (kafka.javaapi.consumer SimpleConsumer))
   (:require [qanal.utils :refer [result-or-exception bytes->string from-json safe-short]]
-            [clj-kafka.zk :refer (brokers committed-offset set-offset!)]
+            [clj-kafka.zk :refer (brokers committed-offset set-offset!) :as zk]
             [clj-kafka.core :refer (ToClojure)]
             [clj-kafka.consumer.simple :refer (consumer topic-meta-data messages topic-offset)]
             [schema.core :as s]
             [samsara.trackit :refer [track-time]]
-            [taoensso.timbre :as log]))
+            [taoensso.timbre :as log])
+  (:require [clojure.core.async :as async :refer [<!! >!! timeout chan alt!!]])
+  (:require [clj-kafka.consumer.simple :as zs]))
 
 
 ;; TODO this should be part of clj-kafka.core namespace
@@ -175,3 +177,132 @@
     (get-messages con {:group-id "someclient" :topic "river" :partition-id 0 :consumer-offset 0 :fetch-size (* 10 1024 1024)})
     (map #(-> % :value String. println)))
   )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+
+(defn index-by [extractor seq]
+  (into {} (map (juxt extractor identity) seq)))
+
+(defn get-topics-metadata
+  "it connects to a random broker and fetches the partition metadata as a map
+  of topics and :partition-metadata. For every topic, all partitions are listed.
+  For every partition the :leader broker, the :replicas brokers and all
+  the :in-sync-replicas brokers are listed with their :broker-id, :host, :port
+  and :connection string.
+
+  For example the following topic `sample-topic` has 2 partitions and replication factor of 3.
+
+
+      {\"sample-topic\"
+       {:topic \"sample-topic\",
+        :partition-metadata
+        {0
+         {:partition-id 0,
+          :leader {:connect \"192.168.59.103:49156\", :host \"192.168.59.103\", :port 49156, :broker-id 1},
+          :replicas ({...} {...} {...}),
+          :in-sync-replicas ({...} {...} {...}),
+          :error-code 0}}
+        {1
+         {:partition-id 1,
+          :leader {:connect \"192.168.59.111:49156\", :host \"192.168.59.111\", :port 49156, :broker-id 2},
+          :replicas ({...} {...} {...}),
+          :in-sync-replicas ({...} {...} {...}),
+          :error-code 0}}}}
+
+
+  Usage example:
+
+      ;; to get the topics metadata run
+      (def data (get-topics-metadata zk-cfg [ \"sample-topic\", \"another-topic\" ])
+
+      ;; to get the leader broker connection string for the partition 1 of sample-topic
+      (get-in data [\"sample-topic\" :partition-metadata 1 :leader :connect])
+      ;=> \"192.168.59.111:49156\"
+  "
+  [config topics]
+  (let [{:keys [host port] :as broker} (rand-nth (zk/brokers config))]
+    (with-open [consumer (zs/consumer host port (get config :group-id "metadata-consumer"))]
+      (->>
+       (zs/topic-meta-data consumer topics)
+       (map #(update-in % [:partition-metadata] (partial index-by :partition-id)))
+       (index-by :topic)))))
+
+
+
+(defn real-partitions
+  "Given a topic and the metadata returns the real set of partitions,
+  or empty set (#{}) if the topic doesn't exist."
+  [topic metadata]
+  (set
+   (map first
+        (get-in metadata [topic :partition-metadata] {}))))
+
+
+(defn wanted-partitions
+  "Given a topic and a configuration of partitions it returns
+  a set of partitions to process (wanted)
+
+  Example:
+
+  (wanted-partitions \"topic-with-5-partitions\" :all metadata)
+  ;=> #{0 1 2 3 4}
+
+  (wanted-partitions \"topic-with-5-partitions\" [0 3 67] metadata)
+  ;=> #{0 3}
+
+  (wanted-partitions \"not-existing-topic\" [0 3] metadata)
+  ;=> #{}
+  "
+  [topic parts metadata]
+  (let [real-parts (real-partitions topic metadata)]
+    (if (= :all parts)
+      real-parts
+      (set (filter real-parts parts)))))
+
+
+(defn fetching-specs
+  [topics-conf cfg metadata]
+  (mapcat
+   (fn [[topic parts]]
+     (->> (wanted-partitions topic parts metadata)
+          (map (fn [p] [topic p]))))
+   topics-conf))
+
+
+(defn list-partitions-to-fetch [topics-conf cfg]
+  (fetching-specs topics-conf cfg
+                  (get-topics-metadata cfg (map first topics-conf))))
+
+(comment
+  (let [cfg {"zookeeper.connect" "docker:49153" :group-id "some-consumer-id"}
+        topics-spec {"test1" :all
+                     "test3" [0 2]
+                     "test5" :all}]
+    (list-partitions-to-fetch topics-spec cfg))
+
+  )
+
+
+(defmacro safe-exec [message & body]
+  `(try
+     ~@body
+     (catch Exception x#
+       (log/warn "ERROR: " x# "on:" ~message )
+       nil)))
+
+
+(defmacro forever-do [name sleep & body]
+  `(let [_sleep#   ~sleep
+         _name#    ~name]
+     (async/thread
+       (while true
+         (safe-exec (str "" _name# ", will retry in " _sleep# "ms")
+           ~@body)
+         (when (> _sleep# 0)
+           (safe-exec (str "" _name# " interrupted while sleeping...")
+             (Thread/sleep _sleep#)))))))

@@ -11,6 +11,7 @@
                  [cheshire "5.4.0"]                         ;JSON
                  [prismatic/schema "0.4.0"]                 ;validation
                  [samsara/trackit "0.1.1"]                  ;Metrics tracking
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  ]
   :main qanal.core
 
