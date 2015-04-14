@@ -67,8 +67,7 @@
                   :auto-offset-reset  (s/enum :earliest :latest)
                   :fetch-size         s/Int
                   }
-   ;; TODO: check correct schema rule for OR
-   :topics {s/Str (or s/Keyword [s/Int])}
+   :topics {s/Str (s/either (s/enum :all) [s/Int])}
    :elasticsearch-target {:end-point s/Str}
    :tracking {s/Keyword s/Any}
    :logging-options {:min-level (s/enum :trace :debug :info :warn :error)
@@ -299,7 +298,8 @@
       :auto-offset-reset  :earliest     ; Can only be earliest or latest
       :fetch-size         (* 10 1024 1024)}
       :topics {"test1" :all
-              "test3" [0 2]}
+               "test3" [0 2]}
+     :tracking {:type :console}
      :elasticsearch-target {:end-point "http://localhost:9200"}})
 
   (uber-siphon test-config)
