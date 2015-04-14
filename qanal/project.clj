@@ -1,4 +1,4 @@
-(defproject qanal "0.1.0"
+(defproject qanal "0.2.0"
   :description "An Application that bulk indexes docs from Kafka to Elasticsearch"
   :url "https://github.com/samsara/qanal"
   :license {:name "Apache License 2.0"
