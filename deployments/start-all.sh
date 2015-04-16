@@ -17,9 +17,15 @@ EOF
 
 export BASE=$(dirname $0)
 
+# starting monitoring
+$BASE/monitoring/start.sh
+
 # starting zookeeper and kafka
-$BASE/zookeeper2/start.sh
+$BASE/zookeeper/start.sh
 $BASE/kafka/start.sh
+
+# starting elasticsearch and kibana
+$BASE/elasticsearch/start.sh
 
 # starting ingestion api
 $BASE/ingestion-api/start.sh

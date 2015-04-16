@@ -1,0 +1,7 @@
+id: grafana
+kind: Service
+apiVersion: v1beta1
+port: 15000
+containerPort: 80
+selector:
+  name: grafana

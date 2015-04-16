@@ -1,4 +1,3 @@
-# from https://github.com/fabric8io/quickstarts/blob/master/apps/zookeeper/src/main/fabric8/kubernetes.json
 id: zookeeper-1
 kind: ReplicationController
 apiVersion: v1beta1
@@ -14,7 +13,7 @@ desiredState:
         id: zookeeper-1
         containers:
           - name: zookeeper-1
-            image: fabric8/zookeeper
+            image: samsara/zookeeper:3.4.6
             ports:
               - name: zookeeper-clinet-port
                 containerPort: 2181
@@ -25,13 +24,16 @@ desiredState:
             env:
               - name: ZK_SERVER_ID
                 value: "1"
-              - name: USE_BRIDGE
-                value: "true"
             volumeMounts:
               - name: logs
                 mountPath: /opt/zookeeper/log
               - name: data
                 mountPath: /opt/zookeeper/data
+            command:
+               - "/configure-and-start.sh"
+#              - "/bin/nc"
+#              - "-l"
+#              - "12345"
         volumes:
           - name: logs
             source:

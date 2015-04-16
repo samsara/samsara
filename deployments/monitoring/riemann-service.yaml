@@ -1,0 +1,7 @@
+id: riemann
+kind: Service
+apiVersion: v1beta1
+port: 5555
+containerPort: 5555
+selector:
+  name: monitoring

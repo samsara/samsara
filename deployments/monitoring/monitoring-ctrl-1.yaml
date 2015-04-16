@@ -1,0 +1,46 @@
+id: monitoring
+kind: ReplicationController
+apiVersion: v1beta1
+desiredState:
+  replicas: 1
+  replicaSelector:
+    name: monitoring
+  podTemplate:
+    desiredState:
+      manifest:
+        version: v1beta1
+        id: monitoring
+        containers:
+          - name: monitoring
+            image: samsara/monitoring
+            ports:
+              - name: riemann
+                containerPort: 5555
+              - name: grafana
+                containerPort: 80
+            env:
+              - name: HTTP_USER
+                value: "admin"
+              - name: HTTP_PASS
+                value: "samsara"
+            volumeMounts:
+              - name: logs
+                mountPath: /logs
+              - name: data
+                mountPath: /data
+#            command:
+#               - "/configure-and-start.sh"
+#              - "/bin/nc"
+#              - "-l"
+#              - "12345"
+        volumes:
+          - name: logs
+            source:
+              hostDir:
+                path: /logs/monitoring
+          - name: data
+            source:
+              hostDir:
+                path: /data/monitoring
+    labels:
+      name: monitoring

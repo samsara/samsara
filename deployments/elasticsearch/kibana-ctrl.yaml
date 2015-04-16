@@ -1,29 +1,24 @@
-id: qanal
+id: kibana
 kind: ReplicationController
 apiVersion: v1beta1
 desiredState:
   replicas: 1
   replicaSelector:
-    name: qanal
+    name: kibana
   podTemplate:
     desiredState:
       manifest:
         version: v1beta1
-        id: qanal
+        id: kibana
         containers:
-          - name: qanal
-            image: samsara/qanal
+          - name: kibana
+            image: samsara/kibana
             cpu: 1000
             ports:
               - name: supervisord
                 containerPort: 15000
-            env:
-              - name: KAFKA_TOPIC
-                value: "events"
-              - name: KAFKA_PARTITIONS
-                value: ":all"
-              - name: TRACKING_ENABLED
-                value: "true"
+              - name: kibana
+                containerPort: 8000
             volumeMounts:
               - name: logs
                 mountPath: /logs
@@ -32,4 +27,4 @@ desiredState:
             source:
               emptyDir: {}
     labels:
-      name: qanal
+      name: kibana

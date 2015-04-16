@@ -1,35 +1,36 @@
-id: qanal
+id: elasticsearch
 kind: ReplicationController
 apiVersion: v1beta1
 desiredState:
   replicas: 1
   replicaSelector:
-    name: qanal
+    name: elasticsearch
   podTemplate:
     desiredState:
       manifest:
         version: v1beta1
-        id: qanal
+        id: elasticsearch
         containers:
-          - name: qanal
-            image: samsara/qanal
+          - name: elasticsearch
+            image: samsara/elasticsearch
             cpu: 1000
             ports:
               - name: supervisord
                 containerPort: 15000
-            env:
-              - name: KAFKA_TOPIC
-                value: "events"
-              - name: KAFKA_PARTITIONS
-                value: ":all"
-              - name: TRACKING_ENABLED
-                value: "true"
+              - name: elasticsearch
+                containerPort: 9200
+              - name: peer
+                containerPort: 9300
             volumeMounts:
               - name: logs
                 mountPath: /logs
+              - name: data
+                mountPath: /data
         volumes:
           - name: logs
             source:
               emptyDir: {}
+          - name: data
+              emptyDir: {}
     labels:
-      name: qanal
+      name: elasticsearch

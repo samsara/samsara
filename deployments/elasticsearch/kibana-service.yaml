@@ -1,0 +1,7 @@
+id: kibana
+kind: Service
+apiVersion: v1beta1
+port: 8000
+containerPort: 8000
+selector:
+  name: kibana

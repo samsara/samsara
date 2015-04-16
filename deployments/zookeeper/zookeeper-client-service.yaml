@@ -1,7 +1,7 @@
-id: zk-client
+id: zookeeper
 kind: Service
 apiVersion: v1beta1
 port: 2181
-containerPort: zookeeper-client-port
+containerPort: 2181
 selector:
   name: zookeeper
