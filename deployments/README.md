@@ -17,7 +17,7 @@ export KUBE_HOME=/your/kubernetes/home
 export PATH=$KUBE_HOME/cluster:$PATH
 
 export KUBERNETES_PROVIDER=vagrant
-export NUM_MINIONS=3
+export NUM_MINIONS=4
  
 # start cluster
 kube-up.sh
