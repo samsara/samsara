@@ -292,7 +292,7 @@
   `(try
      ~@body
      (catch Exception x#
-       (log/warn "ERROR: " x# "on:" ~message )
+       (log/warn x# "ERROR: " x# "on:" ~message )
        nil)))
 
 

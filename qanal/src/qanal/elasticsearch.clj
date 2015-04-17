@@ -17,7 +17,7 @@
   (:require [clojurewerkz.elastisch.rest :as esr]
             [clojurewerkz.elastisch.rest.bulk :as esb]
             [taoensso.timbre :as log]
-            [samsara.trackit :refer [track-time rate-tracker]]))
+            [samsara.trackit :refer [track-time track-rate]]))
 
 
 (defn make-bulk-request
@@ -36,7 +36,7 @@
   ;; TODO: connection should be cached
   (let [conn (esr/connect end-point)
         ;; track interesting metrics
-        _    ((rate-tracker "qanal.els.bulk-index.docs") (count messages))
+        _    (track-rate "qanal.els.bulk-index.docs" (count messages))
         resp (track-time "qanal.els.bulk-index.time"
                               (esb/bulk conn (mapcat make-bulk-request messages)))]
     ;; TODO: better error han
