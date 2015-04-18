@@ -1,0 +1,57 @@
+# -*- restclient -*-
+
+#
+# Here some sample requests which can
+# be used with emacs restclient-mode
+# to test the ingestion-api.
+#
+
+#
+# publish some events
+#
+POST http://docker:9000/v1/events
+Content-Type: application/json
+
+[
+  {
+    "timestamp": 1429379403876,
+    "sourceId": "3aw4sedrtcyvgbuhjkn",
+    "eventName": "user.clicked",
+    "page": "orders",
+    "item": "sku-1234"
+  }, {
+    "timestamp": 1429379403876,
+    "sourceId": "3aw4sedrtcyvgbuhjkn",
+    "eventName": "user.clicked",
+    "page": "orders",
+    "item": "sku-5433",
+    "action": "remove"
+  }
+]
+
+
+#
+# check the api-status
+# returns:
+#   - 200 when api is only
+#   - 503 when api is offline
+#
+GET http://docker:9000/v1/api-status
+
+
+#
+# set the api-status to offline
+#
+PUT http://docker:9000/v1/api-status
+Content-Type: application/json
+
+{ "status": "offline" }
+
+
+#
+# set the api-status to online
+#
+PUT http://docker:9000/v1/api-status
+Content-Type: application/json
+
+{ "status": "online" }
