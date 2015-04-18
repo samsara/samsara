@@ -9,18 +9,20 @@
 #
 # publish some events
 #
+:timestamp := (concat (format-time-string "%s") "000")
+
 POST http://docker:9000/v1/events
 Content-Type: application/json
 
 [
   {
-    "timestamp": 1429379403876,
+    "timestamp": :timestamp,
     "sourceId": "3aw4sedrtcyvgbuhjkn",
     "eventName": "user.clicked",
     "page": "orders",
     "item": "sku-1234"
   }, {
-    "timestamp": 1429379403876,
+    "timestamp": :timestamp,
     "sourceId": "3aw4sedrtcyvgbuhjkn",
     "eventName": "user.clicked",
     "page": "orders",
