@@ -57,3 +57,12 @@ PUT http://docker:9000/v1/api-status
 Content-Type: application/json
 
 { "status": "online" }
+
+#
+# Post events will only accept json or json+zip
+# in any other case a 400 shoule be returned
+#
+POST http://docker:9000/v1/events
+Content-Type: application/x-www-form-urlencoded
+
+timestamp=123456789012&eventName=wrong&sourceId=3aw4sedrtcyvgbuhjkn
