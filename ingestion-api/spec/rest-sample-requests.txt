@@ -7,11 +7,15 @@
 #
 
 #
-# publish some events
+# General vars
 #
+:host := "localhost"
 :timestamp := (concat (format-time-string "%s") "000")
 
-POST http://docker:9000/v1/events
+#
+# publish some events
+#
+POST http://:host:9000/v1/events
 Content-Type: application/json
 
 [
@@ -38,13 +42,13 @@ Content-Type: application/json
 #   - 200 when api is only
 #   - 503 when api is offline
 #
-GET http://docker:9000/v1/api-status
+GET http://:host:9000/v1/api-status
 
 
 #
 # set the api-status to offline
 #
-PUT http://docker:9000/v1/api-status
+PUT http://:host:9000/v1/api-status
 Content-Type: application/json
 
 { "status": "offline" }
@@ -53,16 +57,45 @@ Content-Type: application/json
 #
 # set the api-status to online
 #
-PUT http://docker:9000/v1/api-status
+PUT http://:host:9000/v1/api-status
 Content-Type: application/json
 
 { "status": "online" }
+
+
+################################################################################
+#                                ERROR HANDLING
+################################################################################
 
 #
 # Post events will only accept json or json+zip
 # in any other case a 400 shoule be returned
 #
-POST http://docker:9000/v1/events
+POST http://:host:9000/v1/events
 Content-Type: application/x-www-form-urlencoded
 
 timestamp=123456789012&eventName=wrong&sourceId=3aw4sedrtcyvgbuhjkn
+
+
+#
+# publish some events
+#
+POST http://:host:9000/v1/events
+Content-Type: application/json
+
+[
+  {
+    "timestamp": :timestamp,
+    "sourceId": "3aw4sedrtcyvgbuhjkn",
+    "eventNameWrong": "user.clicked",
+    "page": "orders",
+    "item": "sku-1234"
+  }, {
+    "timestamp": :timestamp,
+    "sourceId": "3aw4sedrtcyvgbuhjkn",
+    "eventName": "user.clicked",
+    "page": "orders",
+    "item": "sku-5433",
+    "action": "remove"
+  }
+]
