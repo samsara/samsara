@@ -109,3 +109,17 @@ monitoring:
   volumes:
     - /tmp/logs/monitoring:/logs
     - /tmp/data/monitoring:/data
+
+
+#
+# Bootstrap
+#
+bootstrap:
+  image: samsara/kafka
+  links:
+    - zookeeper:zookeeper
+    - kafka:kafka
+    - elasticsearch:elasticsearch
+  command: bash -c "curl -sSL 'https://raw.githubusercontent.com/samsara/samsara-docker-images/master/bootstrap/bootstrap.sh' | bash"
+  volumes:
+    - /tmp/logs/bootstrap:/logs

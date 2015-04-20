@@ -63,3 +63,6 @@ curl -sSL "http://$ELASTICSEARCH_PORT_9200_TCP_ADDR:9200/_cat/indices?v" \
 
 # list indices
 curl -sSL "http://$ELASTICSEARCH_PORT_9200_TCP_ADDR:9200/_cat/indices?v"
+
+# now just pause
+nc -kl 12345
