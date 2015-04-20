@@ -59,43 +59,6 @@ fig ps
 
 ```
 
-**IMPORTANT:** once services are started no topics are created. So you need to
-bootstrap the cluster with the right configuration as the default one is better
-suited for large clusters:
-
-```bash
-fig run kafka bash
-% /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --create --topic events --replication-factor 1 --partitions 1
-
-% /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --describe
-
-Topic:events	PartitionCount:1	ReplicationFactor:1	Configs:
-	Topic: events	Partition: 0	Leader: 1	Replicas: 1	Isr: 1
-
-
-# optionally start a console consumer
-% /opt/kafka/bin/kafka-console-consumer.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --topic events
-
-% exit
-```
-
-On the docker host:
-
-```bash
-curl -XPUT 'http://localhost:9200/events-test' -d '{
-    "settings" : {
-        "number_of_shards" : 3,
-        "number_of_replicas" : 0
-    }
-}'
-
-curl -XPUT 'http://localhost:9200/kibana' -d '{
-    "settings" : {
-        "number_of_shards" : 1,
-        "number_of_replicas" : 0
-    }
-}'
-```
 Once the service is up and running you can then access
 the following main services
 
@@ -138,6 +101,47 @@ To stop all services.
 ```
 fig kill
 ```
+
+### How to do manual bootstrap
+
+**IMPORTANT:** once services are started no topics are created. So you need to
+bootstrap the cluster with the right configuration as the default one is better
+suited for large clusters:
+
+```bash
+fig run kafka bash
+% /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --create --topic events --replication-factor 1 --partitions 1
+
+% /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --describe
+
+Topic:events	PartitionCount:1	ReplicationFactor:1	Configs:
+	Topic: events	Partition: 0	Leader: 1	Replicas: 1	Isr: 1
+
+
+# optionally start a console consumer
+% /opt/kafka/bin/kafka-console-consumer.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --topic events
+
+% exit
+```
+
+On the docker host:
+
+```bash
+curl -XPUT 'http://localhost:9200/events-test' -d '{
+    "settings" : {
+        "number_of_shards" : 3,
+        "number_of_replicas" : 0
+    }
+}'
+
+curl -XPUT 'http://localhost:9200/kibana' -d '{
+    "settings" : {
+        "number_of_shards" : 1,
+        "number_of_replicas" : 0
+    }
+}'
+```
+
 
 ### How To build and push docker images
 
