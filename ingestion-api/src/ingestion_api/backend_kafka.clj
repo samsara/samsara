@@ -20,6 +20,15 @@
    "producer.type"            "async"
    "message.send.max.retries" "5" })
 
+
+(defn- to-json
+  "Encodes `data` into json"
+  [data]
+  (json/generate-string
+   data
+   {:pretty false
+    :date-format "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"}))
+
 ;;
 ;;  Kafka backend sends the events into a Kafka topic as single
 ;;  json lines.
@@ -29,7 +38,9 @@
 
   (send [_ events]
     (->> events
-         (map (juxt (constantly topic) :sourceId  #(json/generate-string % {:pretty false})))
+         (map (juxt (constantly topic)
+                    :sourceId
+                    to-json))
          (map (fn [[topic key message]] (kp/message topic key message)))
          (kp/send-messages producer))))
 
