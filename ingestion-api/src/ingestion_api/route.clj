@@ -1,6 +1,6 @@
 (ns ingestion-api.route
   (:require [ingestion-api.route-util :refer [gzip-req-wrapper]])
-  (:require [samsara.trackit :refer [distribution-tracker]])
+  (:require [samsara.trackit :refer [track-distribution]])
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [compojure.route :as route]
@@ -17,10 +17,6 @@
        {:status 404 :body {:status "ERROR" :message "Not found"}}))
 
 
-(def track-payload-size
-  (delay (distribution-tracker "ingestion.payload.size")))
-
-
 (defroutes app-routes
 
   (context "/v1" []
@@ -29,7 +25,7 @@
           (if-let [errors (is-invalid? events)]
             {:status 400 :body (map #(if % % "OK") errors)}
             (do
-              (@track-payload-size (count events))
+              (track-distribution "ingestion.payload.size" (count events))
               (->> events
                    (inject-receivedAt (System/currentTimeMillis))
                    apply-transformation
