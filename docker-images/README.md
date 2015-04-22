@@ -104,13 +104,12 @@ fig kill
 
 ### How to do manual bootstrap
 
-**IMPORTANT:** once services are started no topics are created. So you need to
-bootstrap the cluster with the right configuration as the default one is better
-suited for large clusters:
+An automatic bootstrap process should be triggered via the **bootstrap** container.
+In case it fails of you want to set up the topics manually run the following commands.
 
 ```bash
 fig run kafka bash
-% /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --create --topic events --replication-factor 1 --partitions 1
+% /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --create --topic events --replication-factor 1 --partitions 5
 
 % /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --describe
 
