@@ -3,10 +3,10 @@
 A system to process and enrich and correlate events in realtime.
 
 
-## Usage
-
 ![Moebius strip](/doc/images/Moebius_strip.png)
 
+
+## Usage
 
 
 ## License
