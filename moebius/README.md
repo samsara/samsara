@@ -1,14 +1,16 @@
 # moebius
 
-A Clojure library designed to ... well, that part is up to you.
+A system to process and enrich and correlate events in realtime.
+
 
 ## Usage
 
-FIXME
+![Moebius strip](/doc/images/Moebius_strip.png)
+
+
 
 ## License
 
-Copyright © 2015 FIXME
+Copyright © 2015 Samsara's authors
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the Apache License v 2.0 (http://www.apache.org/licenses/LICENSE-2.0)

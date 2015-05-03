@@ -120,7 +120,7 @@
    (inject-as e :ciao :bello))
 
 (defenrich even-odd? [{a :a :as e}]
-  (assoc e :even? (even? a)))
+  (inject-if e (even? a) :even? true))
 
 (defn write-n [n]
   (fn [e]
@@ -144,4 +144,4 @@
         ciao))
 
 
-(cycler f evs )
+(cycler f evs)

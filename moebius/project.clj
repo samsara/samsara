@@ -1,5 +1,5 @@
 (defproject moebius "0.1.0-SNAPSHOT"
-  :description "A system to process and generate events"
+  :description "A system to process and enrich and correlate events in realtime"
 
   :url "https://samsara.github.com/"
 
@@ -10,7 +10,8 @@
                  [cheshire "5.4.0"]
                  [prismatic/schema "0.4.0"]
                  [com.taoensso/timbre "3.4.0"]
-                 [samsara/trackit "0.2.0"]]
+                 [samsara/trackit "0.2.0"]
+                 [samsara/samsara-utils "0.1.0-SNAPSHOT"]]
 
   :main moebius.core
 
