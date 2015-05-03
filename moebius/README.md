@@ -1,4 +1,4 @@
-# moebius
+# Möbius (Moebius)
 
 A system to process and enrich and correlate events in realtime.
 
