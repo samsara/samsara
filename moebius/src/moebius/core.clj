@@ -45,47 +45,73 @@
 
 
 
-(defn enricher [f]
+(defn enricher
+  "Takes a function which accepts an event and wraps the result
+  into an array as expected by the `cycler`"
+  [f]
   (fn [event]
-    (let[r (f event)]
-      (if r [r] []))))
+    [(f event)]))
 
 
-(defn correlator [f]
+(defn correlator
+  "Takes a function which accept an event and turns the output into
+  something expected by the cycler"
+  [f]
   (fn [event]
     (let [r (f event)]
-      (or r []))))
+      (or r [nil]))))
 
 
-(defn filterer [pred]
+(defn filterer
+  "Similar to `filter` it takes a predicate which applied to
+  an event return something truthy for the events to keep."
+  [pred]
   (fn [event]
-    (if (pred event) [event] [])))
+    [(when (pred event) event)]))
 
 
-(defn pipeline [& fs]
+(defn pipeline
+  "Pipeline composese stearming processing functions
+  into a chain of processing which is then applied by
+  `cycler`"
+  [& fs]
   (->> fs
        (map (fn [f]
-              (fn [[head & tail]]
-                (concat (f head) tail))))
+              (fn [[head & tail :as evs]]
+                (if head
+                  (concat (f head) tail)
+                  evs))))
        reverse
        (apply comp)
        (#(comp % (fn [e] [e])))))
 
 
-(defmacro defenrich [name params & body]
+(defmacro defenrich
+  "handy macro to define an enrichment function"
+  [name params & body]
   `(def ~name
      (enricher
       (fn ~params
         ~@body))))
 
 
-(defmacro defcorrelate [name params & body]
+(defmacro defcorrelate
+  "handy macro to define an correlation function"
+  [name params & body]
   `(def ~name
      (correlator
       (fn ~params
         ~@body))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmacro deffilter
+  "handy macro to define an filter function"
+  [name params & body]
+  `(def ~name
+     (filterer
+      (fn ~params
+        ~@body))))
+
 
 
 (defn inject-if
@@ -134,45 +160,46 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-(def events
-  [{:eventName "game.started" :timestamp 1 :sourceId "a" :level 1}
-   {:eventName "game.level.completed" :timestamp 2 :sourceId "a" :levelCompleted 1}
-   {:eventName "game.level.completed" :timestamp 3 :sourceId "a" :levelCompleted 2}
-   {:eventName "game.level.completed" :timestamp 4 :sourceId "a" :levelCompleted 3}
-   {:eventName "game.stopped" :timestamp 2 :sourceId "a" :level 4}])
-
-
-
-(def evs [{:a 1} {:a 2} {:a 5}])
+(comment
+  (def events
+    [{:eventName "game.started" :timestamp 1 :sourceId "a" :level 1}
+     {:eventName "game.level.completed" :timestamp 2 :sourceId "a" :levelCompleted 1}
+     {:eventName "game.level.completed" :timestamp 3 :sourceId "a" :levelCompleted 2}
+     {:eventName "game.level.completed" :timestamp 4 :sourceId "a" :levelCompleted 3}
+     {:eventName "game.stopped" :timestamp 2 :sourceId "a" :level 4}])
 
 
-(defenrich ciao [e]
-   (inject-as e :ciao :bello))
 
-(defenrich even-odd? [{a :a :as e}]
-  (inject-if e (even? a) :even? true))
-
-(defn write-n [n]
-  (fn [e]
-    (assoc e :number n)))
-
-(def write1 (enricher (write-n 1)))
-(def write2 (enricher (write-n 2)))
-(def write3 (enricher (write-n 3)))
-
-(defcorrelate p1 [{a :a :as e}]
-  (if (= a 2)
-    [e {:a (inc a) } {:a (inc (inc a))}]
-    [e]))
-
-(def f (pipeline
-        even-odd?
-        write3
-        p1
-        write2
-        write1
-        ciao))
+  (def evs [{:a 1} {:a 2} {:a 5}])
 
 
-(cycler f evs)
+  (defenrich ciao [e]
+    (inject-as e :ciao :bello))
+
+  (defenrich even-odd? [{a :a :as e}]
+    (inject-if e (even? a) :even? true))
+
+  (defn write-n [n]
+    (fn [e]
+      (assoc e :number n)))
+
+  (def write1 (enricher (write-n 1)))
+  (def write2 (enricher (write-n 2)))
+  (def write3 (enricher (write-n 3)))
+
+  (defcorrelate p1 [{a :a :as e}]
+    (if (= a 2)
+      [e {:a (inc a) } {:a (inc (inc a))}]
+      [e]))
+
+  (def f (pipeline
+          even-odd?
+          write3
+          p1
+          write2
+          write1
+          ciao))
+
+
+  (cycler f evs)
+)
