@@ -39,10 +39,10 @@ to Samsara the following events:
 ```Clojure
 (def events
   [{:eventName "game.started"         :timestamp 1430760258401 :sourceId "device1" :level 1}
-   {:eventName "game.ad.shown"        :timestamp 1430760258402 :sourceId "device1"}
+   {:eventName "game.ad.displayed"    :timestamp 1430760258402 :sourceId "device1"}
    {:eventName "game.level.completed" :timestamp 1430760258403 :sourceId "device1" :levelCompleted 1}
    {:eventName "game.level.completed" :timestamp 1430760258404 :sourceId "device1" :levelCompleted 2}
-   {:eventName "game.ad.shown"        :timestamp 1430760258405 :sourceId "device1"}
+   {:eventName "game.ad.displayed"    :timestamp 1430760258405 :sourceId "device1"}
    {:eventName "game.level.completed" :timestamp 1430760258406 :sourceId "device1" :levelCompleted 3}
    {:eventName "game.stopped"         :timestamp 1430760258407 :sourceId "device1" :level 4}])
 
@@ -110,17 +110,141 @@ Let's try it out.
 
 ;; when applied to a non matching event, the event is left unchanged
 
-(current-level {:eventName "game.ad.shown"
+(current-level {:eventName "game.ad.displayed"
                 :timestamp 1430760258402 
                 :sourceId "device1"})
 
-;;=>[{:eventName "game.ad.shown"
+;;=>[{:eventName "game.ad.displayed"
 ;;    :timestamp 1430760258402
 ;;    :sourceId "device1"}]
+```
 
+### Filters
+
+Somatimes you want to filter out some of the events you receive. Although
+this is not very frequent it might still happen. Usually is better to store
+everything as you never know if in the future you will need these events.
+
+So if you want to fiter some events you can create a filter with `deffilter`.
+Let's assume that we want to remove all events called "game.ad.displayed":
+
+
+```Clojure
+(deffilter no-ads [{:keys [eventName]}]
+  (not= eventName "game.ad.displayed"))
+
+
+;; when the event doesn't match it is left unchanged
+(no-ads {:eventName "game.level.completed"
+         :timestamp 1430760258403
+         :sourceId "device1"
+         :levelCompleted 1})
+
+;;=>[{:eventName "game.level.completed"
+;;    :timestamp 1430760258403
+;;    :sourceId "device1"
+;;    :levelCompleted 1}]
+
+
+;; when it matches it should return an array with a `nil` event
+(no-ads  {:eventName "game.ad.displayed"
+          :timestamp 1430760258402
+          :sourceId "device1"})
+;;=> [nil]
+```
+
+### Correlate
+
+Another interesting capability of a stream processing system is to
+generate/derive new events from a given event.  The capability to
+generate new events is very important in order to keep client small and
+send only a minimal number of significant events, and do the hard work
+on the server side.
+
+In our example let's assume that every time a user starts from the
+`level 1` it means that a new user is starting the game. Obviously most
+of the time there are better ways to find if there are new users playing
+with your new game, but for the sake of this example let's assume that 
+derive this information in this way it make sense. So let's write a 
+correlation function.
+
+```Clojure
+(defcorrelate new-player
+  [{:keys [eventName level timestamp sourceId] :as event}]
+
+  (when (and (= eventName "game.started")
+             (= level 1))
+    [{:timestamp timestamp :sourceId sourceId :eventName "game.new.player"}]))
+```
+
+A correlation function can return `nil`, `[]`, *1 or more events`.
+**Every new event generated here will be processed by the same
+Moebius pipeline as if was send by the client**.
+In this case when the event matches the criteria selected,
+an new event is returned. Let's try it into the REPL.
+
+```Clojure
+(new-player {:eventName "game.started"
+             :timestamp 1430760258401
+             :sourceId "device1"
+             :level 1})
+
+;;=>[{:eventName "game.started"
+;;    :timestamp 1430760258401
+;;    :sourceId "device1"
+;;    :level 1}
+;;   {:timestamp 1430760258401
+;;    :sourceId "device1"
+;;    :eventName "game.new.player"}]
 
 ```
 
+### Compose your processing
+
+Now let's put all the things together into a single streaming function.
+
+```Clojure
+;; With the `moebius` function you can combine all the streaming
+;; processing functions pretty much in the same way as `comp` does
+;; ** with the important difference that the function listed will
+;;    be executed in the same order they apper (left-to-right)**
+
+(def mf (moebius
+         game-name
+         current-level
+         no-ads
+         new-player))
+```
+
+`moebius` return a function which will apply all composed functions
+to all given events.
+
+```Clojure
+(mf events)
+
+;;=>[{:eventName "game.started", :game-name "Apocalypse Now", :level 1, :sourceId "device1", :timestamp 1430760258401}
+;;   {:game-name "Apocalypse Now", :timestamp 1430760258401, :sourceId "device1", :eventName "game.new.player"}
+;;   {:levelCompleted 1, :eventName "game.level.completed", :game-name "Apocalypse Now", :level 2, :sourceId "device1", :timestamp 1430760258403}
+;;   {:levelCompleted 2, :eventName "game.level.completed", :game-name "Apocalypse Now", :level 3, :sourceId "device1", :timestamp 1430760258404}
+;;   {:levelCompleted 3, :eventName "game.level.completed", :game-name "Apocalypse Now", :level 4, :sourceId "device1", :timestamp 1430760258406}
+;;   {:eventName "game.stopped", :game-name "Apocalypse Now", :level 4, :sourceId "device1", :timestamp 1430760258407}]
+```
+
+A few things need to be noted here.
+
+  - The `game-name` has been applied to all events, even the event
+    generated by the correlation function.
+  - The `current-level` has been injected in all `game.level.completed`
+  - The `game.ad.displayed` are now present in the result. The functions
+    after `no-ads` wouldn't receive the event at all, while the
+    functions which appear before will receive it and they could do some
+    processing on it before it get discarded.
+  - Finally the `game.new.player` is generated and it went through the
+    full processing. Infact the `game-name` has been injected even if
+    the function appears before the corellation function.
+
+The function generated by `moebius` can be used to process events in 
+batches of any size.
 
 
 ## License

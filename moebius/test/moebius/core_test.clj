@@ -25,23 +25,20 @@
 
        ;; correlator accepts a function which optionally perform
        ;; a transformation to the given event and it can return
-       ;; 0, 1 or more events
-       ((correlator (fn [x] [x]))  {:a 1})    =>     [{:a 1}]
+       ;; 0, 1 or more new events
+       ((correlator (fn [x] [x]))  {:a 1})    =>     [{:a 1}{:a 1}]
 
-       ;; if the function changes the event, the new event must
-       ;; be returned
-       ((correlator #(vector (assoc % :b 2))) {:a 1})    =>     [{:a 1 :b 2}]
 
        ;; if the correlation function return nil, an array with
        ;; a nil element should be returned which will cause the
        ;; the moebius to filter the event out.
-       ((correlator (fn [x] [nil]))     {:a 1})    =>     [nil]
+       ((correlator (fn [x] [nil]))     {:a 1})    =>     [{:a 1} nil]
 
 
        ;; if the correlator function return more than one element
        ;; then the list the list is preserved and added to the
        ;; element to process
-       ((correlator (fn [x] [{:a 1} {:a 2} {:a 3}]))     {:a 1})    =>     [{:a 1} {:a 2} {:a 3}]
+       ((correlator (fn [x] [{:a 2} {:a 3}]))     {:a 1})    =>     [{:a 1} {:a 2} {:a 3}]
 
        )
 
@@ -67,11 +64,9 @@
 
        ;; when :a is 2 then emits a.2, a.3, a.4
        (let [f (fn [{a :a :as e}]
-                 (if (= a 2)
-                   [e
-                    (update-in e [:a] inc)
-                    (update-in e [:a] (comp inc inc))]
-                   [e]))]
+                 (when (= a 2)
+                   [(update-in e [:a] inc)
+                    (update-in e [:a] (comp inc inc))]))]
 
          (cycler (correlator f)
           [{:a 1} {:a 2} {:a 5}])
@@ -94,17 +89,13 @@
              wr2  (enricher (fn [e] (assoc e :w 2)))
              nob4 (filterer (fn [{b :b :as e}] (not= 4 b)))
              cor  (correlator (fn [{a :a :as e}]
-                                (if (= a 2)
-                                  [e
-                                   (update-in e [:a] inc)
-                                   (update-in e [:a] (comp inc inc))]
-                                  [e])))
+                                (when (= a 2)
+                                  [(update-in e [:a] inc)
+                                   (update-in e [:a] (comp inc inc))])))
              cor2 (correlator (fn [{a :a :as e}]
-                                (if (= a 3)
-                                  [e
-                                   {:a 5}
-                                   {:a 6}]
-                                  [e])))
+                                (when (= a 3)
+                                  [{:a 5}
+                                   {:a 6}])))
              events [{:a 1} {:a 2} {:a 7}]]
 
 
@@ -182,17 +173,13 @@
              wr2  (enricher (fn [e] (assoc e :w 2)))
              nob4 (filterer (fn [{b :b :as e}] (not= 4 b)))
              cor  (correlator (fn [{a :a :as e}]
-                                (if (= a 2)
-                                  [e
-                                   (update-in e [:a] inc)
-                                   (update-in e [:a] (comp inc inc))]
-                                  [e])))
+                                (when (= a 2)
+                                  [(update-in e [:a] inc)
+                                   (update-in e [:a] (comp inc inc))])))
              cor2 (correlator (fn [{a :a :as e}]
-                                (if (= a 3)
-                                  [e
-                                   {:a 5}
-                                   {:a 6}]
-                                  [e])))
+                                (when (= a 3)
+                                  [{:a 5}
+                                   {:a 6}])))
              events [{:a 1} {:a 2} {:a 7}]]
 
 

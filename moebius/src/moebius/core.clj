@@ -53,13 +53,15 @@
     [(f event)]))
 
 
+
 (defn correlator
   "Takes a function which accept an event and turns the output into
   something expected by the cycler"
   [f]
   (fn [event]
     (let [r (f event)]
-      (or r [nil]))))
+      (cons event r))))
+
 
 
 (defn filterer
@@ -68,6 +70,7 @@
   [pred]
   (fn [event]
     [(when (pred event) event)]))
+
 
 
 (defn pipeline
@@ -86,6 +89,7 @@
        (#(comp % (fn [e] [e])))))
 
 
+
 (defmacro defenrich
   "handy macro to define an enrichment function"
   [name params & body]
@@ -95,6 +99,7 @@
         ~@body))))
 
 
+
 (defmacro defcorrelate
   "handy macro to define an correlation function"
   [name params & body]
@@ -102,6 +107,7 @@
      (correlator
       (fn ~params
         ~@body))))
+
 
 
 (defmacro deffilter
@@ -159,71 +165,8 @@
 
 
 
-
 (defn moebius
   "It takes a list of functions transformation and produces a function
    which applied to a sequence of events will apply those transformations."
   [& fs]
   (partial cycler (apply pipeline fs)))
-
-
-
-
-(def events
-  [{:eventName "game.started"         :timestamp 1 :sourceId "device1" :level 1}
-   {:eventName "game.ad.shown"        :timestamp 2 :sourceId "device1"}
-   {:eventName "game.level.completed" :timestamp 3 :sourceId "device1" :levelCompleted 1}
-   {:eventName "game.level.completed" :timestamp 4 :sourceId "device1" :levelCompleted 2}
-   {:eventName "game.ad.shown"        :timestamp 5 :sourceId "device1"}
-   {:eventName "game.level.completed" :timestamp 6 :sourceId "device1" :levelCompleted 3}
-   {:eventName "game.stopped"         :timestamp 7 :sourceId "device1" :level 4}])
-
-(def events
-  [{:eventName "game.started"         :timestamp 1430760258401 :sourceId "device1" :level 1}
-   {:eventName "game.ad.shown"        :timestamp 1430760258402 :sourceId "device1"}
-   {:eventName "game.level.completed" :timestamp 1430760258403 :sourceId "device1" :levelCompleted 1}
-   {:eventName "game.level.completed" :timestamp 1430760258404 :sourceId "device1" :levelCompleted 2}
-   {:eventName "game.ad.shown"        :timestamp 1430760258405 :sourceId "device1"}
-   {:eventName "game.level.completed" :timestamp 1430760258406 :sourceId "device1" :levelCompleted 3}
-   {:eventName "game.stopped"         :timestamp 1430760258407 :sourceId "device1" :level 4}])
-
-
-(defenrich game-name
-  [event]
-  (assoc event :game-name "Apocalypse Now"))
-
-
-(defenrich current-level
-  [{:keys [levelCompleted] :as event}]
-  (when-event-is event "game.level.completed"
-                 (inject-as event :level (inc levelCompleted))))
-
-
-(deffilter no-ads [{:keys [eventName]}]
-  (not= eventName "game.ad.shown"))
-
-
-(defcorrelate new-player
-  [{:keys [eventName level timestamp sourceId] :as event}]
-
-  (if (and (= eventName "game.started")
-         (= level 1))
-    [event {:timestamp timestamp :sourceId sourceId :eventName "game.new.player"}]
-    [event]))
-
-
-(def mf (moebius
-         game-name
-         current-level
-         no-ads
-         new-player))
-
-(mf events)
-
-(System/currentTimeMillis)
-
-(game-name {:eventName "game.started" :timestamp 1430760258401 :sourceId "device1" :level 1})
-[{:game-name "Apocalypse Now", :eventName "game.started", :level 1, :sourceId "device1", :timestamp 1430760258401}]
-
-
-[{:level 2, :levelCompleted 1, :eventName "game.level.completed", :sourceId "device1", :timestamp 1430760258403}]
