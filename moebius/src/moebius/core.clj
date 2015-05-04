@@ -123,11 +123,13 @@
     event))
 
 
+
 (defn inject-as
   "injects `value` if not null, to the given `event`
   with the `property` name"
   [event property value]
   (inject-if event value property value))
+
 
 
 (defmacro when-event-is
@@ -158,48 +160,70 @@
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(comment
-  (def events
-    [{:eventName "game.started" :timestamp 1 :sourceId "a" :level 1}
-     {:eventName "game.level.completed" :timestamp 2 :sourceId "a" :levelCompleted 1}
-     {:eventName "game.level.completed" :timestamp 3 :sourceId "a" :levelCompleted 2}
-     {:eventName "game.level.completed" :timestamp 4 :sourceId "a" :levelCompleted 3}
-     {:eventName "game.stopped" :timestamp 2 :sourceId "a" :level 4}])
+(defn moebius
+  "It takes a list of functions transformation and produces a function
+   which applied to a sequence of events will apply those transformations."
+  [& fs]
+  (partial cycler (apply pipeline fs)))
 
 
 
-  (def evs [{:a 1} {:a 2} {:a 5}])
+
+(def events
+  [{:eventName "game.started"         :timestamp 1 :sourceId "device1" :level 1}
+   {:eventName "game.ad.shown"        :timestamp 2 :sourceId "device1"}
+   {:eventName "game.level.completed" :timestamp 3 :sourceId "device1" :levelCompleted 1}
+   {:eventName "game.level.completed" :timestamp 4 :sourceId "device1" :levelCompleted 2}
+   {:eventName "game.ad.shown"        :timestamp 5 :sourceId "device1"}
+   {:eventName "game.level.completed" :timestamp 6 :sourceId "device1" :levelCompleted 3}
+   {:eventName "game.stopped"         :timestamp 7 :sourceId "device1" :level 4}])
+
+(def events
+  [{:eventName "game.started"         :timestamp 1430760258401 :sourceId "device1" :level 1}
+   {:eventName "game.ad.shown"        :timestamp 1430760258402 :sourceId "device1"}
+   {:eventName "game.level.completed" :timestamp 1430760258403 :sourceId "device1" :levelCompleted 1}
+   {:eventName "game.level.completed" :timestamp 1430760258404 :sourceId "device1" :levelCompleted 2}
+   {:eventName "game.ad.shown"        :timestamp 1430760258405 :sourceId "device1"}
+   {:eventName "game.level.completed" :timestamp 1430760258406 :sourceId "device1" :levelCompleted 3}
+   {:eventName "game.stopped"         :timestamp 1430760258407 :sourceId "device1" :level 4}])
 
 
-  (defenrich ciao [e]
-    (inject-as e :ciao :bello))
-
-  (defenrich even-odd? [{a :a :as e}]
-    (inject-if e (even? a) :even? true))
-
-  (defn write-n [n]
-    (fn [e]
-      (assoc e :number n)))
-
-  (def write1 (enricher (write-n 1)))
-  (def write2 (enricher (write-n 2)))
-  (def write3 (enricher (write-n 3)))
-
-  (defcorrelate p1 [{a :a :as e}]
-    (if (= a 2)
-      [e {:a (inc a) } {:a (inc (inc a))}]
-      [e]))
-
-  (def f (pipeline
-          even-odd?
-          write3
-          p1
-          write2
-          write1
-          ciao))
+(defenrich game-name
+  [event]
+  (assoc event :game-name "Apocalypse Now"))
 
 
-  (cycler f evs)
-)
+(defenrich current-level
+  [{:keys [levelCompleted] :as event}]
+  (when-event-is event "game.level.completed"
+                 (inject-as event :level (inc levelCompleted))))
+
+
+(deffilter no-ads [{:keys [eventName]}]
+  (not= eventName "game.ad.shown"))
+
+
+(defcorrelate new-player
+  [{:keys [eventName level timestamp sourceId] :as event}]
+
+  (if (and (= eventName "game.started")
+         (= level 1))
+    [event {:timestamp timestamp :sourceId sourceId :eventName "game.new.player"}]
+    [event]))
+
+
+(def mf (moebius
+         game-name
+         current-level
+         no-ads
+         new-player))
+
+(mf events)
+
+(System/currentTimeMillis)
+
+(game-name {:eventName "game.started" :timestamp 1430760258401 :sourceId "device1" :level 1})
+[{:game-name "Apocalypse Now", :eventName "game.started", :level 1, :sourceId "device1", :timestamp 1430760258401}]
+
+
+[{:level 2, :levelCompleted 1, :eventName "game.level.completed", :sourceId "device1", :timestamp 1430760258403}]
