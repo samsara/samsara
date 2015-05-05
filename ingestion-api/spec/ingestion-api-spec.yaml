@@ -33,7 +33,8 @@ paths:
         This handler is responsible for ingesting data coming for the clients
         services and devices. It should validate the payload received, and inject
         an additional attribute `receivedAt` with the system timestamp (in millis)
-        on every event.
+        on every event, and the `publishedAt` with the timestamp (in millis)
+        received from the header `X-Samsara-publishedTimestamp`.
 
         Finally it is responsible to forwards individual events received to
         the back end queueing system which can be one of **Apache Kafka**,
@@ -50,20 +51,24 @@ paths:
         right handler on a per request basis.
         *This request returns an empty body* check the status codes for more info.
         
+        If the `X-Samsara-publishedTimestamp` is missing a the payload is accepted,
+        but a warning message is returnted.
+        
         Example of a plain JSON payload:
         
         ```
         cat <<EOF | curl -i -H "Content-Type: application/json" \
+                        -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
                         -XPOST "http://localhost:9000/v1/events" -d @-
         [
           {
-            "timestamp": 1424444803463,
+            "timestamp": $(date +%s000),
             "sourceId": "3aw4sedrtcyvgbuhjkn",
             "eventName": "user.clicked",
             "page": "orders",
             "item": "sku-1234"
           }, {
-            "timestamp": 1424444804587,
+            "timestamp": $(date +%s000),
             "sourceId": "3aw4sedrtcyvgbuhjkn",
             "eventName": "user.clicked",
             "page": "orders",
@@ -78,18 +83,19 @@ paths:
         
         ```
         cat <<EOF | gzip | curl -i -H "Content-Type: application/json" \
+                                -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
                                 -H "Content-Encoding: gzip" \
                                 -XPOST "http://localhost:9000/v1/events" \
                                 --data-binary @-
         [
           {
-            "timestamp": 1424444803463,
+            "timestamp": $(date +%s000),
             "sourceId": "3aw4sedrtcyvgbuhjkn",
             "eventName": "user.clicked",
             "page": "orders",
             "item": "sku-1234"
           }, {
-            "timestamp": 1424444804587,
+            "timestamp": $(date +%s000),
             "sourceId": "3aw4sedrtcyvgbuhjkn",
             "eventName": "user.clicked",
             "page": "orders",

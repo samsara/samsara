@@ -1,4 +1,4 @@
-(defproject ingestion-api "0.2.1-SNAPSHOT"
+(defproject ingestion-api "0.3.0-SNAPSHOT"
   :description "Ingestion APIs for Samsara's analytics"
   :url "https://samsara.github.com/"
   :license {:name "Apache License 2.0"

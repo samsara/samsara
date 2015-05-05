@@ -172,6 +172,7 @@ Example of a plain JSON payload:
 
 ```
 cat <<EOF | curl -i -H "Content-Type: application/json" \
+                -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
                 -XPOST "http://localhost:9000/v1/events" -d @-
 [
   {
@@ -196,6 +197,7 @@ Example of a GZIP JSON payload:
 
 ```
 cat <<EOF | gzip | curl -i -H "Content-Type: application/json" \
+                        -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
                         -H "Content-Encoding: gzip" \
                         -XPOST "http://localhost:9000/v1/events" \
                         --data-binary @-
