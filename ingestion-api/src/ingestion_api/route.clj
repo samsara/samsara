@@ -9,37 +9,44 @@
             [clojure.pprint :refer [pprint]])
   (:require [ingestion-api.status :refer [change-status! is-online?]]
             [ingestion-api.events :refer [send! is-invalid? inject-receivedAt
-                                          apply-transformation]]))
+                                          inject-publishedAt apply-transformation]]))
 
 
 (defn not-found []
    (rfn request
        {:status 404 :body {:status "ERROR" :message "Not found"}}))
 
+(defn warn-when-missing-header [postingTimestamp]
+  (when-not postingTimestamp
+    {:status "OK"
+     :warning "For completeness, please provide the 'X-Samsara-publishedTimestamp' header."}))
 
 (defroutes app-routes
 
   (context "/v1" []
 
-   (POST  "/events"   {events :body}
-          (if-let [errors (is-invalid? events)]
-            {:status 400 :body (map #(if % % "OK") errors)}
-            (do
-              (track-distribution "ingestion.payload.size" (count events))
-              (->> events
-                   (inject-receivedAt (System/currentTimeMillis))
-                   apply-transformation
-                   send!)
-              {:status 202 :body nil})))
+           (POST  "/events"   {events :body
+                               {postingTimestamp "x-samsara-publishedtimestamp"} :headers}
+                  (if-let [errors (is-invalid? events)]
+                    {:status 400 :body (map #(if % % "OK") errors)}
+                    (do
+                      (track-distribution "ingestion.payload.size" (count events))
+                      (->> events
+                           (inject-receivedAt (System/currentTimeMillis))
+                           (inject-publishedAt postingTimestamp)
+                           apply-transformation
+                           send!)
+                      {:status 202
+                       :body (warn-when-missing-header postingTimestamp)})))
 
-   (GET "/api-status" []
-        {:status (if (is-online?) 200 503)
-         :body {:status (if (is-online?) "online" "offline")}})
+           (GET "/api-status" []
+                {:status (if (is-online?) 200 503)
+                 :body {:status (if (is-online?) "online" "offline")}})
 
-   (PUT "/api-status" {{new-status :status} :body}
-        (if-not (= :error (change-status! new-status))
-          {:status 200 :body nil}
-          {:status 400 :body nil})))
+           (PUT "/api-status" {{new-status :status} :body}
+                (if-not (= :error (change-status! new-status))
+                  {:status 200 :body nil}
+                  {:status 400 :body nil})))
 
   (not-found))
 

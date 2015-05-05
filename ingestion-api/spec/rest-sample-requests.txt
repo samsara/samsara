@@ -17,7 +17,7 @@
 #
 POST http://:host:9000/v1/events
 Content-Type: application/json
-
+X-Samsara-publishedTimestamp: :timestamp
 [
   {
     "timestamp": :timestamp,

@@ -57,8 +57,19 @@
         (s/check events-schema events))))
 
 
+
 (defn inject-receivedAt
   "it injects the timestamp of when the events were received
   by the servers."
   [receivedAt events]
   (map #(update-in % [:receivedAt] (fn [ov] (or ov receivedAt))) events))
+
+
+
+(defn inject-publishedAt
+  "it injects the timestamp of when the events were sent by the client
+  to the servers."
+  [published events]
+  (if published
+    (map #(update-in % [:publishedAt] (fn [ov] (or ov published))) events)
+    events))
