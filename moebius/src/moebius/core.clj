@@ -21,6 +21,7 @@
          :processed  (if head (conj processed head) processed)}))))
 
 
+
 (defn cycler
   "It takes a functiona and a list of events.
   The function `f` must return a list of 0, 1 or more elements.
@@ -150,7 +151,7 @@
               (assoc :property2 6)))
 
 
-   alternatively you can provide a list of event's names:
+  alternatively you can provide a list of event's names:
 
       (when-event-is event [\"game.started\" \"game.level.completed\"]
           (assoc event :new-property \"a-value\"))
