@@ -135,26 +135,26 @@
 
 
 
-(facts "about `when-event-is`: if the eventName matches the given name, or names,
+(facts "about `when-event-name-is`: if the eventName matches the given name, or names,
                 then do something, otherwise lave the event unchanged"
 
        (let [event {:eventName "event1"}]
 
 
          ;; if the event name doesn't match don't do anything
-         (when-event-is event "another-event"
+         (when-event-name-is event "another-event"
                         (assoc event :b 2))
          => {:eventName "event1"}
 
 
          ;; if the event name matches then apply the body
-         (when-event-is event "event1"
+         (when-event-name-is event "event1"
                         (assoc event :b 2))
          => {:eventName "event1" :b 2}
 
 
          ;; if the event name matches any of the given name then apply the body
-         (when-event-is event ["event2" "event1" "event"]
+         (when-event-name-is event ["event2" "event1" "event"]
                         (assoc event :b 2))
          => {:eventName "event1" :b 2}
 

@@ -140,12 +140,32 @@
 
 
 (defmacro when-event-is
-  "if the eventName of the given event is equal to the give name
-   then evaluate the body. nil otherwhise.
+  "if condition is evaluated to true then the body
+   is evaluated otherwise the event is returned untouched.
 
    example:
 
-      (when-event-is event \"game.started\"
+      (when-event-is event (= \"OK\" (:property1 event))
+          (-> event
+              (assoc :new-property \"a-value\")
+              (assoc :property2 6)))
+
+  "
+  [event cond & body]
+  `(let [event# ~event]
+     (if ~cond
+       ~@body
+       event#)))
+
+
+
+(defmacro when-event-name-is
+  "if the eventName of the given event is equal to the give name
+  then evaluate the body. Oterwhise the event is returned unchanged.
+
+   example:
+
+      (when-event-name-is event \"game.started\"
           (-> event
               (assoc :new-property \"a-value\")
               (assoc :property2 6)))
@@ -153,16 +173,15 @@
 
   alternatively you can provide a list of event's names:
 
-      (when-event-is event [\"game.started\" \"game.level.completed\"]
+      (when-event-name-is event [\"game.started\" \"game.level.completed\"]
           (assoc event :new-property \"a-value\"))
 
   "
   [event name & body]
   `(let [_event# ~event _name# ~name
          _names# (if (string? _name#) [_name#] _name#)]
-     (if (contains? (set _names#) (:eventName _event#))
-       ~@body
-       _event#)))
+     (when-event-is _event# (contains? (set _names#) (:eventName _event#))
+       ~@body)))
 
 
 
