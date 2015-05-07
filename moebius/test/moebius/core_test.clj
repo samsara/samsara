@@ -181,6 +181,31 @@
 
 
 
+
+(tabular
+ (facts "about `when-event-match`: if the match any of the conditions, them apply the corresponding expression,
+                otherwise leve the event unchanged"
+
+       (let [event ?event]
+         (when-event-match event
+                           [{:eventName "game.started" :level 0}]               (assoc event :new-player true)
+                           [{:eventName _ :level (_ :guard #(= 0 (mod % 11)))}] (assoc event :level-type :extra-challenge)
+                           [{:eventName "game.new.level" :level _}]             (assoc event :level-type :normal)
+                           [{:eventName _ :level (_ :guard even?)}]             (assoc event :start :even-level)))
+       =>     ?result )
+
+ ?event                                               ?result
+ {:eventName "game.started" :level 0 :device "x1"}    {:eventName "game.started" :level 0 :device "x1" :new-player true}
+ {:eventName "game.started" :level 8}                 {:eventName "game.started" :level 8 :start :even-level}
+ {:eventName "game.new.level" :level 33}              {:eventName "game.new.level" :level 33 :level-type :extra-challenge}
+ {:eventName "game.new.level" :level 32}              {:eventName "game.new.level" :level 32 :level-type :normal}
+ {:eventName "game.resume.level" :level 32}           {:eventName "game.resume.level" :level 32 :start :even-level}
+ {:eventName "something.not.matching" :level 5}       {:eventName "something.not.matching" :level 5}
+ )
+
+
+
+
 (facts "about `moebius`: it composes your streaming functions and produce a function which applied
                 to the events will process all events with the given pipeline"
 

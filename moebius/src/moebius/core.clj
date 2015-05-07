@@ -1,7 +1,8 @@
 (ns moebius.core
   (:require [clojure.string :as s])
   (:require [clojure.java.io :as io])
-  (:require [taoensso.timbre :as log]))
+  (:require [taoensso.timbre :as log])
+  (:require [clojure.core.match :refer [match]]))
 
 
 
@@ -182,6 +183,31 @@
          _names# (if (string? _name#) [_name#] _name#)]
      (when-event-is _event# (contains? (set _names#) (:eventName _event#))
        ~@body)))
+
+
+
+(defmacro when-event-match
+  "if the eventName of the given event is equal to the give name
+  then evaluate the body. Oterwhise the event is returned unchanged.
+
+   example:
+
+
+       (let [event {:eventName \"game.started\" :level 8}]
+          (when-event-match event
+            [{:eventName \"game.started\" :level 0}]               (assoc event :new-player true)
+            [{:eventName _ :level (_ :guard even?)}]             (assoc event :start :even-level)
+            [{:eventName _ :level (_ :guard #(= 0 (mod % 11)))}] (assoc event :level-type :extra-challenge)
+            [{:eventName \"game.new.level\" :level _}]             (assoc event :level-type :normal)))
+
+  It implies a `:else` statement so you can't use one in yours.
+
+  "
+  [event & body]
+  `(let [_event# ~event]
+     (match [_event#]
+            ~@body
+            :else _event#)))
 
 
 

@@ -11,7 +11,8 @@
                  [prismatic/schema "0.4.0"]
                  [com.taoensso/timbre "3.4.0"]
                  [samsara/trackit "0.2.0"]
-                 [samsara/samsara-utils "0.1.0-SNAPSHOT"]]
+                 [samsara/samsara-utils "0.1.0-SNAPSHOT"]
+                 [org.clojure/core.match "0.3.0-alpha4"]]
 
   :main moebius.core
 
