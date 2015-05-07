@@ -135,6 +135,24 @@
 
 
 
+(facts "about `when-event-is`: if the condition is truthy then do something, otherwise lave the event unchanged"
+
+
+       (let [event {:eventName "event1"}]
+
+         ;; if the condition is not satisfied then don't do anything
+         (when-event-is event (= true false)
+                        (assoc event :b 2))
+         => {:eventName "event1"}
+
+
+         ;; if the condition is not satisfied then apply the body
+         (when-event-is event (= 1 1)
+                        (assoc event :b 2))
+         => {:eventName "event1" :b 2}))
+
+
+
 (facts "about `when-event-name-is`: if the eventName matches the given name, or names,
                 then do something, otherwise lave the event unchanged"
 
