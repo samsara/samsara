@@ -162,7 +162,7 @@
 
 (defmacro when-event-name-is
   "if the eventName of the given event is equal to the give name
-  then evaluate the body. Oterwhise the event is returned unchanged.
+  then evaluate the body. Otherwhise the event is returned unchanged.
 
    example:
 
@@ -187,8 +187,8 @@
 
 
 (defmacro when-event-match
-  "if the eventName of the given event is equal to the give name
-  then evaluate the body. Oterwhise the event is returned unchanged.
+  "If the event matches one of the patterns the related expression is evaluated and returned.
+   If none matches the event is left unchanged.
 
    example:
 
