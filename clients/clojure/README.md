@@ -1,6 +1,6 @@
 # samsara-clj-sdk
 
-Clojure SDK for Samsara.
+Clojure SDK for Samsara. [![Circle CI](https://circleci.com/gh/samsara/samsara-clj-sdk/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara-clj-sdk/tree/master)
 
 ## Usage
 
