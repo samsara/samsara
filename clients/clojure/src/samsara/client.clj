@@ -22,7 +22,7 @@
          :max-buffer-size 1500
          }))
 
-(defn get-samsara-config [] (deref samsara-config))
+(defn get-samsara-config [] @samsara-config)
 
 (defn set-config! [config]
   "Set samsara configuration.
@@ -66,12 +66,12 @@
   "Set event headers"
   (swap! !event-headers! into headers))
 
-(defn get-event-headers [] (deref !event-headers!))
+(defn get-event-headers [] @!event-headers!)
 
 (defn- enrich-event [event]
   "Enriches the event with default properties etc."
   (conj event (get-event-headers) {:timestamp (System/currentTimeMillis)
-                                   :sourceId ((deref samsara-config) :sourceId)}))
+                                   :sourceId (@samsara-config :sourceId)}))
 
 (defn- prepare-event [event]
   "Enriches and validates the event and throws an Exception if validation fails."
