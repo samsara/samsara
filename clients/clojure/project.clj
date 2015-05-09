@@ -1,8 +1,8 @@
 (defproject samsara/samsara-client "0.1.0-beta"
   :description "Clojure SDK for Samsara"
   :url "http://samsara.github.io"
-  :license {:name "Apache License v 2.0"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :license {:name "Apache License 2.0"
+            :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [com.taoensso/timbre "3.4.0"]
                  [http-kit "2.1.16"]
