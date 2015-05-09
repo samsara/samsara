@@ -1,4 +1,4 @@
-(defproject samsara/samsara-utils "0.1.0-SNAPSHOT"
+(defproject samsara/samsara-utils "0.1.0"
   :description "Common utilities from Samsara's project"
 
   :url "https://samsara.github.com/"
@@ -12,4 +12,6 @@
 
   :profiles {:dev {:dependencies [[midje "1.6.3"]]
                    :plugins [[lein-midje "3.1.3"]]}}
-)
+
+  :deploy-repositories[["clojars" {:url "https://clojars.org/repo/"
+                                   :sign-releases false}]])
