@@ -4,6 +4,7 @@
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.6.0"]
+                 [samsara/samsara-utils "0.1.0"]
                  [http-kit "2.1.19"]
                  [ring/ring-devel "1.3.2"]
                  [ring/ring-core "1.3.2"]
@@ -15,7 +16,7 @@
                  [com.taoensso/timbre "3.4.0"]
                  [org.clojure/tools.cli "0.3.1"]
                  [samsara/trackit "0.2.0"]
-                 [samsara/samsara-utils "0.1.0"]]
+                 ]
 
   :main ingestion-api.core
 

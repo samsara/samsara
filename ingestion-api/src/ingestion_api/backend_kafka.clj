@@ -5,7 +5,7 @@
   (:require [ingestion-api.docker :refer [docker-link-into]])
   (:require [clj-kafka.producer :as kp])
   (:require [schema.core :as s])
-  (:require [cheshire.core :as json]))
+  (:require [samsara.utils :refer [to-json]]))
 
 
 (def default-producer-config
@@ -20,14 +20,6 @@
    "producer.type"            "async"
    "message.send.max.retries" "5" })
 
-
-(defn- to-json
-  "Encodes `data` into json"
-  [data]
-  (json/generate-string
-   data
-   {:pretty false
-    :date-format "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"}))
 
 ;;
 ;;  Kafka backend sends the events into a Kafka topic as single
