@@ -20,6 +20,7 @@
          :sourceId (str (java.util.UUID/randomUUID))
          :publish-interval 3600 ;seconds
          :max-buffer-size 1500
+         :send-timeout-ms  3000
          }))
 
 (defn get-samsara-config [] @samsara-config)
@@ -90,7 +91,7 @@
 (defn- send-events [events]
   "Send events to samsara api"
   (let [{:keys [status error] :as resp} @(http/post (str (:url (get-samsara-config)) "/events")
-                                                    {:timeout 500 ;;ms
+                                                    {:timeout (:send-timeout-ms (get-samsara-config))
                                                      :headers {"Content-Type" "application/json"
                                                                "X-Samsara-publishedTimestamp" (str (System/currentTimeMillis))}
                                                      :body (to-json events)})]
