@@ -21,6 +21,16 @@
     {:status "OK"
      :warning "For completeness, please provide the 'X-Samsara-publishedTimestamp' header."}))
 
+
+(defn- to-long
+  "Convert a string to a number when possible, nil otherwhise."
+  [^String num]
+  (when num
+    (try
+      (Long/parseLong num)
+      (catch Exception x nil))))
+
+
 (defroutes app-routes
 
   (context "/v1" []
@@ -33,7 +43,7 @@
                       (track-distribution "ingestion.payload.size" (count events))
                       (->> events
                            (inject-receivedAt (System/currentTimeMillis))
-                           (inject-publishedAt postingTimestamp)
+                           (inject-publishedAt (to-long postingTimestamp))
                            apply-transformation
                            send!)
                       {:status 202
