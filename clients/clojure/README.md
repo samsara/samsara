@@ -55,7 +55,7 @@ The interval to publish events and the maximum ring buffer size can also be conf
 ;; :url - Samsara URL
 ;; :publish-interval - How often should events be flushed to the api in seconds.
 ;; :max-buffer-size - Max size of the ring buffer.
-(samsara/set-config! {:publish_interval 60 :max-buffer-size 10000})
+(samsara/set-config! {:publish-interval 60 :max-buffer-size 10000})
 ```
 
 
