@@ -79,7 +79,7 @@
 (defn- enrich-event [event]
   "Enriches the event with default properties etc."
   (conj event (get-event-headers) {:timestamp (System/currentTimeMillis)
-                                   :sourceId (@samsara-config :sourceId)}))
+                                   :sourceId (:sourceId @samsara-config)}))
 
 (defn- prepare-event [event]
   "Enriches and validates the event and throws an Exception if validation fails."
@@ -89,7 +89,7 @@
 
 (defn- send-events [events]
   "Send events to samsara api"
-  (let [{:keys [status error] :as resp} @(http/post (str ((get-samsara-config) :url) "/events")
+  (let [{:keys [status error] :as resp} @(http/post (str (:url (get-samsara-config)) "/events")
                                                     {:timeout 500 ;;ms
                                                      :headers {"Content-Type" "application/json"
                                                                "X-Samsara-publishedTimestamp" (str (System/currentTimeMillis))}
@@ -131,9 +131,9 @@
 (defn !init! []
   "Initializes the ring buffer and the timer."
   (let [config (get-samsara-config)
-        max-buffer-size (config :max-buffer-size)
+        max-buffer-size (:max-buffer-size config)
         did-set (compare-and-set! !buffer! nil (ring-buffer max-buffer-size))
-        publish-interval (config :publish-interval)
+        publish-interval (:publish-interval config)
         times (periodic-seq (t/now) (-> publish-interval t/seconds))]
 
     (when did-set
