@@ -1,9 +1,9 @@
 (ns samsara.client
+  (:require [samsara.utils :refer [to-json]])
   (:require [taoensso.timbre :as log])
   (:require [org.httpkit.client :as http])
-  (:require [validateur.validation :as val])
-  (:require [clojure.data.json :as json])
   (:require [samsara.ring-buffer :refer :all])
+  (:require [schema.core :as s])
   (:require [chime :refer [chime-ch]]
             [clj-time.core :as t]
             [clj-time.periodic :refer [periodic-seq]]
@@ -37,28 +37,36 @@
   (swap! samsara-config into config))
 
 
-(def ^{:private true} event-validation-set
 
-  (val/validation-set
-   (val/presence-of :eventName :message "is required")
-   (val/presence-of :timestamp :message "is required")
-   (val/presence-of :sourceId :message "is required")
-   (val/numericality-of :timestamp :message "should be numeric")))
+(def single-event-schema
+  "Schema validation for events"
+  {
+   (s/required-key :timestamp) s/Int
+   (s/required-key :sourceId)  s/Str
+   (s/required-key :eventName) s/Str
+   s/Keyword s/Any})
 
-(defn- validation-error-msg [errors]
-  "Takes validation errors and returns a single line containing all errors separated by commas."
-  (apply str  (interpose "," (flatten (for [err (seq errors)
-                                            :let [key (first err)
-                                                  msgs (second err)]]
-                                        (map #(str key " " %1) msgs))))))
 
-(defn- validate-event [event]
-  "Validates the event and throws an Exception if Invalid"
-  (let [errs (seq (event-validation-set event))]
-    (if (nil? errs)
-      true
-      (throw (IllegalArgumentException. (validation-error-msg errs)))
-      )))
+;; this is the validation
+;; for the entire payload
+;; which it is just a composition of
+;; other prismatic/schema (nice)
+(def events-schema
+  "Schema for a batch of events"
+  [ single-event-schema ])
+
+
+(defn- validate-event [events]
+  "Validates the event [or the list of events]
+    and throws an Exception if Invalid"
+  (try
+    (let [schema (if (map? events) single-event-schema events-schema)]
+      (s/validate schema events))
+    (catch clojure.lang.ExceptionInfo x
+      ;; TODO: is this necessary? maybe we can just use the
+      ;; prismatic/schema exception
+      (throw (IllegalArgumentException. "Validation error" x)))))
+
 
 (def ^{:private true} !event-headers! (atom {}))
 
@@ -85,7 +93,7 @@
                                                     {:timeout 500 ;;ms
                                                      :headers {"Content-Type" "application/json"
                                                                "X-Samsara-publishedTimestamp" (str (System/currentTimeMillis))}
-                                                     :body (json/write-str events)})]
+                                                     :body (to-json events)})]
     ;;Throw the exception from HttpKit to the caller.
     (when error
       (log/error "Failed to connect to samsara with error: " error)
@@ -93,18 +101,17 @@
     ;;Throw an exception if status is not 201.
     (when (not (= 202 status))
       (log/error "Publish failed with status:" status)
-      (throw (Exception. (str "PublishFailed with status=" status)))
-      )
-    )
-  )
+      (throw (RuntimeException. (str "PublishFailed with status=" status))))))
+
 
 (defn publish-events [events]
   "Takes a vector containing events and publishes to samsara immediately."
-  (let [e (map #(prepare-event %1) events)]
-    (send-events e)))
+  (validate-event events)
+  (send-events events))
 
 
 (def ^:private !buffer! (atom nil))
+
 
 (defn- flush-buffer []
   "Flushes the event buffer to samsara api. Does nothing if another flush-buffer is in progress."

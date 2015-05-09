@@ -33,14 +33,33 @@
 (set-config! {:publish-interval 3600 :max-buffer-size 5})
 
 (facts "publish-events validates events and sends them. Returns nil when successful and Exception on failure."
-       (fake-http 202 (fn [] (publish-events [{:appName "Samsara"}]))) => (throws IllegalArgumentException)
-       (fake-http 202 (fn [] (publish-events [{:eventName "AppOpened" :appName "Samsara"}]))) => nil
-       ;;Multiple events with mix of good and bad events.
-       (fake-http 202 (fn [] (publish-events [{:eventName "AppOpened"} {}]))) => (throws IllegalArgumentException)
-       ;;Multiple events all good
-       (fake-http 202 (fn [] (publish-events [{:eventName "AppOpened"} {:eventName "AppOpened"}]))) => nil
-       (fake-http 500 (fn [] (publish-events [{:eventName "AppClosed"}]))) => (throws Exception)
-       )
+       (let [evt1 {:eventName "app.opened" :appName "Samsara"
+                   :timestamp (System/currentTimeMillis)
+                   :sourceId "d1"}
+             evt2 {:eventName "app.closed" :appName "Samsara"
+                   :timestamp (System/currentTimeMillis)
+                   :sourceId "d1"}]
+
+         (fake-http 202 (fn [] (publish-events [{:appName "Samsara"}])))
+         => (throws IllegalArgumentException)
+
+         (fake-http 202 (fn [] (publish-events [evt1])))
+         => nil
+
+         ;;Multiple events with mix of good and bad events.
+         (fake-http 202 (fn [] (publish-events [evt1 {}])))
+         => (throws IllegalArgumentException)
+
+         ;;Multiple events all good
+         (fake-http 202 (fn [] (publish-events [evt1 evt2])))
+         => nil
+
+         (fake-http 500 (fn [] (publish-events [evt2])))
+         => (throws Exception)
+
+         ))
+
+
 
 (fact "enrich-event adds event headers, timestamp and sourceId fields to the event"
       (let [e {:eventName "AppOpened"}
@@ -56,9 +75,7 @@
                          (if (contains? (opts :headers) "X-Samsara-publishedTimestamp")
                            {:status 202}
                            {:status 500}))]
-        (#'samsara.client/send-events [{:eventName "AppOpened"}]) => nil
-        )
-      )
+        (#'samsara.client/send-events [{:eventName "AppOpened"}]) => nil))
 
 (fact "calling record-event buffers the event in a ring buffer and periodically flushes it"
       ;;flush the buffer to avoid unintended residue
