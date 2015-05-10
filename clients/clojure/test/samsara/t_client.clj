@@ -77,9 +77,8 @@
 
 
 (fact "enrich-event adds event headers, timestamp and sourceId fields to the event"
-      (let [e {:eventName "AppOpened"}
-            h (set-event-headers! {:version 5 :channel "paid"})]
-        (keys (#'samsara.client/enrich-event e)) => (contains [:timestamp :eventName :sourceId :version :channel] :in-any-order)
+      (let [e {:eventName "AppOpened"}]
+        (keys (#'samsara.client/enrich-event e)) => (contains [:timestamp :eventName :sourceId] :in-any-order)
         )
       )
 
@@ -158,6 +157,6 @@
                                  ;;(get-events-in-buffer) => (contains ["Twelve" "Eleven" "Ten" "Nine" "Eight"] :in-any-order)
                                  {:status 500})]
                 (#'samsara.client/flush-buffer)
-                (get-events-in-buffer) => (contains ["Twelve" "Eleven" "Ten" "Nine" "Eight"] :in-any-order)))))
+                (get-events-in-buffer) => (contains ["Twelve" "Eleven" "Ten" "Nine" "Five"] :in-any-order)))))
 
 ;(record-event-with-name "Hello")

@@ -94,18 +94,11 @@
       (throw (IllegalArgumentException. "Validation error" x)))))
 
 
-(def ^{:private true} !event-headers! (atom {}))
-
-(defn set-event-headers! [headers]
-  "Set event headers"
-  (swap! !event-headers! into headers))
-
-(defn get-event-headers [] @!event-headers!)
-
 (defn- enrich-event [event]
   "Enriches the event with default properties etc."
-  (conj event (get-event-headers) {:timestamp (System/currentTimeMillis)
-                                   :sourceId (:sourceId *config*)}))
+  (merge {:timestamp (System/currentTimeMillis)
+          :sourceId (:sourceId *config*)}
+         event))
 
 (defn- prepare-event [event]
   "Enriches and validates the event and throws an Exception if validation fails."
