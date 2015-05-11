@@ -242,3 +242,23 @@
          => [{:a 1 :w 1} {:b 4 :w 1} {:a 2 :w 1}]
 
          ))
+
+
+(tabular
+ (facts "about `match-glob`: globs should simplify name matching"
+
+       (match-glob ?glob  ?name)    =>     ?result )
+
+ ?glob                    ?name                         ?arrow    ?result
+ "game.started"           "game.started"                   =>      truthy
+ "game.started"           "game_started"                   =>      falsey
+ "game.*"                 "game.started"                   =>      truthy
+ "game.*"                 "game.level.started"             =>      falsey
+ "game.**"                "game.level.started"             =>      truthy
+ "game.**.started"        "game.level.started"             =>      truthy
+ "game.**.started"        "game.level.2.started"           =>      truthy
+ "game.**.started"        "game.level.3.stopped"           =>      falsey
+ "game.**.started"        "mygame.level.4.started"         =>      falsey
+ "game.**.started"        "game.level.5.started2"          =>      falsey
+
+ )

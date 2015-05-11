@@ -211,6 +211,39 @@
 
 
 
+(defn match-glob
+  "Glob matching simplifies the event matching when names
+  are in a dotted form. Allowed globs are:
+
+  Dotted forms name are as follow:
+
+    <segment>.<segment>.<...>.<segment>
+
+    *  - single * matches any single segment
+    ** - matches multiple segments
+
+  For example:
+
+    (match-glob \"game.*.started\"  \"game.level.started\")   => truthy
+    (match-glob \"game.*.started\"  \"game.level.2.started\") => falsey
+    (match-glob \"game.**.started\" \"game.level.2.started\") => truthy
+    (match-glob \"game.**\"         \"game.level.5.stopped\") => truthy
+    (match-glob \"game.**\"         \"game.anything.else\")   => truthy
+
+  "
+  [glob name]
+  (re-matches
+   (re-pattern
+    (-> (str "^" glob "$")
+        (s/replace "." "\\.")
+        (s/replace "**" "[[::multi::]]")
+        (s/replace "*"  "[[::single::]]")
+        (s/replace "[[::multi::]]"  ".*")
+        (s/replace "[[::single::]]" "[^.]*")))
+   name))
+
+
+
 (defn moebius
   "It takes a list of functions transformation and produces a function
    which applied to a sequence of events will apply those transformations."
