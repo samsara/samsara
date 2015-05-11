@@ -92,12 +92,6 @@
         (#'samsara.client/send-events [{:eventName "AppOpened"}]) => nil))
 
 (fact "calling record-event buffers the event in a ring buffer and periodically flushes it"
-      ;;flush the buffer to avoid unintended residue
-
-      (with-empty-buffer
-        (record-event-with-name "One")
-        (prn (get-events-in-buffer))
-        (fake-http 202 (fn [] (#'samsara.client/flush-buffer))))
 
 
       (fact "record-event buffers events"
@@ -158,5 +152,3 @@
                                  {:status 500})]
                 (#'samsara.client/flush-buffer)
                 (get-events-in-buffer) => (contains ["Twelve" "Eleven" "Ten" "Nine" "Five"] :in-any-order)))))
-
-;(record-event-with-name "Hello")

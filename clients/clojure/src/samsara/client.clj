@@ -135,7 +135,7 @@
     (if (seq events)
       (try
         (send-events (map second events))
-        (dequeue! @!buffer! events)
+        (swap! !buffer! dequeue! events)
         (catch Throwable t
           (log/error t "Flush failed. Leaving events in the buffer to try again.")))
       (log/info "Nothing to send."))))
@@ -174,6 +174,8 @@
 
 (defn record-event [event]
   "Buffers the events to be published later."
-  (-> (enqueue! @!buffer! (prepare-event event))
+  (->> (prepare-event event)
+      (swap! !buffer! enqueue!)
+      (snapshot)
       last
       second))

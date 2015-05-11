@@ -31,7 +31,7 @@
     "Returns a list containing just the items in the buffer.")
   )
 
-(deftype RingBuffer [^:clojure.lang.Atom !counter! ^:clojure.lang.Atom !buffer!]
+(deftype RingBuffer [counter buffer]
   ;;Ring Buffer Implementation for Samsara Client. This type uses amalloy/ring-buffer.
   ;;Every item is assigned an unique id and added as a pair like [1 {:eventName...].
   ;;This id will be used to remove the items which have been successfully processed.
@@ -41,22 +41,20 @@
 
   Object
   (toString [this]
-    (pr-str @!buffer!))
+    (pr-str buffer))
 
   PRingBuffer
   (enqueue! [this item]
-    (let [id (swap! !counter! inc)]
-      (swap! !buffer! into [[id item]])))
-  (snapshot [this]
-    @!buffer!)
+    (let [id (inc counter)]
+      (RingBuffer. id (into buffer [[id item]]))))
+  (snapshot [this] buffer)
   (items [this]
-    (map second @!buffer!))
+    (map second buffer))
   (dequeue! [this items]
-    (swap! !buffer! drop-items items)
-    )
+    (RingBuffer. counter (drop-items buffer items)))
   )
 
 (defn ring-buffer
   "Create an empty ring buffer with the specified [capacity]."
   [capacity]
-  (RingBuffer. (atom 0) (atom (rb/ring-buffer capacity)) ) )
+  (RingBuffer. 0 (rb/ring-buffer capacity)))
