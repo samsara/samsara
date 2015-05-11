@@ -211,6 +211,26 @@
 
 
 
+(def
+  ^{:doc
+    "Given a glob pattern it compiles it down to a regular expression
+     which can be used with functions like `re-matches`, `re-find`, etc.
+     To improve performances the function is `memoized` so common
+     patterns are compiled only once."
+    :arglists '([glob])}
+  glob-pattern
+  (memoize
+   (fn [glob]
+     (re-pattern
+      (-> (str "^" glob "$")
+          (s/replace "." "\\.")
+          (s/replace "**" "[[::multi::]]")
+          (s/replace "*"  "[[::single::]]")
+          (s/replace "[[::multi::]]"  ".*")
+          (s/replace "[[::single::]]" "[^.]*"))))))
+
+
+
 (defn match-glob
   "Glob matching simplifies the event matching when names
   are in a dotted form. Allowed globs are:
@@ -232,15 +252,7 @@
 
   "
   [glob name]
-  (re-matches
-   (re-pattern
-    (-> (str "^" glob "$")
-        (s/replace "." "\\.")
-        (s/replace "**" "[[::multi::]]")
-        (s/replace "*"  "[[::single::]]")
-        (s/replace "[[::multi::]]"  ".*")
-        (s/replace "[[::single::]]" "[^.]*")))
-   name))
+  (re-matches (glob-pattern glob) name))
 
 
 
