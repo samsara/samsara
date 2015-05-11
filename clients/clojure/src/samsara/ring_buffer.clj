@@ -41,16 +41,16 @@
 
   Object
   (toString [this]
-    (pr-str (deref !buffer!)))
+    (pr-str @!buffer!))
 
   PRingBuffer
   (enqueue! [this item]
     (let [id (swap! !counter! inc)]
       (swap! !buffer! into [[id item]])))
   (snapshot [this]
-    (deref !buffer!))
+    @!buffer!)
   (items [this]
-    (map second (deref !buffer!)))
+    (map second @!buffer!))
   (dequeue! [this items]
     (swap! !buffer! drop-items items)
     )
