@@ -8,10 +8,10 @@ test:
   override:
     - lein do clean, test, bin
 
-deployment:
-  docker-hub:
-    branch: master
-    commands:
-      - docker build -t samsara/ingestion-api .
-      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-      - docker push samsara/ingestion-api
+## deployment:
+##   docker-hub:
+##     branch: master
+##     commands:
+##       - docker build -t samsara/ingestion-api .
+##       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+##       - docker push samsara/ingestion-api
