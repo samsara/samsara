@@ -5,7 +5,7 @@ machine:
 
 test:
   override:
-    - lein do clean, midje, bin:
+    - 'lein do clean, midje, bin':
       environment:
         MIDJE_COLORIZE: NONE
   post:
