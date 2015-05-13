@@ -5,7 +5,9 @@ machine:
 
 test:
   override:
-    - lein do clean, midje, bin
+    - lein do clean, midje, bin:
+      environment:
+        MIDJE_COLORIZE: NONE
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - cp report.xml $CIRCLE_TEST_REPORTS/junit/
