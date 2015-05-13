@@ -12,12 +12,12 @@
                  [prismatic/schema "0.4.0"]                 ;validation
                  [samsara/trackit "0.2.0"]                  ;Metrics tracking
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [midje-junit-formatter "0.1.0-SNAPSHOT"]
                  ]
   :main qanal.core
 
   :profiles {:uberjar {:aot :all}
-             :dev {:dependencies [[midje "1.6.3"]]
+             :dev {:dependencies [[midje "1.6.3"]
+                                  [midje-junit-formatter "0.1.0-SNAPSHOT"]]
                    :plugins [[lein-midje "3.1.3"]
                              [lein-bin "0.3.5"]]}}
 
