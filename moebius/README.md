@@ -1,4 +1,4 @@
-# Möbius (Moebius)
+# Möbius (Moebius) [![Circle CI](https://circleci.com/gh/samsara/samsara-moebius/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara-moebius/tree/master)
 
 A system to process and enrich and correlate events in realtime.
 
