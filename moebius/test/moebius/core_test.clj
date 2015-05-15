@@ -29,7 +29,7 @@
        ((correlator (fn [x] [x]))  {:a 1})    =>     [{:a 1}{:a 1}]
 
 
-       ;; if the correlation function return nil, an array with
+       ;; if the correlation function return [nil], an array with
        ;; a nil element should be returned which will cause the
        ;; the moebius to filter the event out.
        ((correlator (fn [x] [nil]))     {:a 1})    =>     [{:a 1} nil]
@@ -40,6 +40,17 @@
        ;; element to process
        ((correlator (fn [x] [{:a 2} {:a 3}]))     {:a 1})    =>     [{:a 1} {:a 2} {:a 3}]
 
+
+       ;; if the correlation function return nil, an array with
+       ;; a nil element should be returned which will cause the
+       ;; the moebius to filter the event out.
+       ((correlator (fn [x] nil))     {:a 1})    =>     [{:a 1}]
+
+
+       ;; if a correlator function retrurn an event (a map)
+       ;; rather than returning a list/vector and the result
+       ;; is wrapped into an vector
+       ((correlator (fn [x] x))  {:a 1})    =>     [{:a 1} {:a 1}]
        )
 
 
@@ -110,6 +121,7 @@
          ;; order matters (from left-right)
          (cycler (pipeline wr1 wr2) [{:a 1} {:b 4} {:a 2}])
          => [{:a 1 :w 2} {:b 4 :w 2} {:a 2 :w 2}]
+
 
          (cycler (pipeline wr2 wr1) [{:a 1} {:b 4} {:a 2}])
          => [{:a 1 :w 1} {:b 4 :w 1} {:a 2 :w 1}]

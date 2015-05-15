@@ -61,8 +61,9 @@
   something expected by the cycler"
   [f]
   (fn [event]
-    (let [r (f event)]
-      (cons event r))))
+    (let [r  (f event)
+          rn (if (map? r) [r] r)]
+      (cons event rn))))
 
 
 
@@ -249,6 +250,7 @@
     (match-glob \"game.**.started\" \"game.level.2.started\") => truthy
     (match-glob \"game.**\"         \"game.level.5.stopped\") => truthy
     (match-glob \"game.**\"         \"game.anything.else\")   => truthy
+    (match-glob \"game.**.ended\"   \"game.1.2.3.ended\")     => truthy
 
   "
   [glob name]

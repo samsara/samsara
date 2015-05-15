@@ -292,6 +292,7 @@ Here some example of glob matching.
 (match-glob "game.**.started" "game.level.2.started") ;;=> truthy
 (match-glob "game.**"         "game.level.5.stopped") ;;=> truthy
 (match-glob "game.**"         "game.anything.else")   ;;=> truthy
+(match-glob "game.**.ended"   "game.1.2.3.ended")     ;;=> truthy
 ```
 
 To use you simply use in a condition statement:
