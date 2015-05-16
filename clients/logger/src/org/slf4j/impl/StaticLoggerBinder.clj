@@ -1,27 +1,31 @@
 (ns org.slf4j.impl.StaticLoggerBinder
-  (:import [org.slf4j.impl SamsaraLoggerFactory]
-           [org.slf4j ILoggerFactory]
-           [org.slf4j.spi LoggerFactoryBinder])
-  (:gen-class :implements LoggerFactoryBinder
-              :constructors {[] []}
-              :init object-state
-              :methods [^:static [getSingleton [] StaticLoggerBinder]
-                        ^:static [getLoggerFactory [] ILoggerFactory]
-                        ^:static [getLoggerFactoryClassStr [] String]]))
-
-(def ^:private singleton (StaticLoggerBinder.))
+  ;;(:import [org.slf4j.impl SamsaraLoggerFactory])
+  (:gen-class :implements [org.slf4j.spi.LoggerFactoryBinder]
+              ;;:constructors {[] []}
+              ;;:init state
+              :methods [^:static [getSingleton [] Object]
+                        [getLoggerFactory [] org.slf4j.ILoggerFactory]
+                        [getLoggerFactoryClassStr [] String]
+                        ]))
 
 (def REQUESTED_API_VERSION "1.7.12")
 
-(defn- -init []
-  [[] (atom {:loggerFactory (SamsaraLoggerFactory. )})])
+(defn- singleton [] 
+  ;;bit of a hack this
+  (memoize (->  "org.slf4j.impl.SamsaraLoggerBinder"
+                Class/forName
+                (.newInstance))))
 
-(defn- -getSingleton []
-  singleton)
+#_(defn- -init []
+  [[] {:loggerFactory (SamsaraLoggerFactory. )}])
 
-(defn- -getLoggerFactory []
-  (:loggerFactory @object-state))
+(defn -getSingleton []
+  (singleton))
 
-(defn- -getLoggerFactoryClassStr []
-  (-> (:loggerFactory @object-state) (.class) (.getName)))
- 
+(defn- -getLoggerFactory [this]
+  #_(:loggerFactory (.state this))
+  (.getLoggerFactory (singleton)))
+
+(defn- -getLoggerFactoryClassStr [this]
+  #_(-> (:loggerFactory (.state this)) (.class) (.getName))
+  (.getLoggerFactoryClassStr (singleton)))
