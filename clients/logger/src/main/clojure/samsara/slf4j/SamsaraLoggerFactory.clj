@@ -1,5 +1,5 @@
-(ns samsara.slf4j.LoggerFactory
-  (:import [samsara.slf4j Logger]
+(ns samsara.slf4j.SamsaraLoggerFactory
+  (:import [samsara.slf4j SamsaraLogger]
            [org.slf4j Logger])
   (:gen-class :implements [org.slf4j.ILoggerFactory]
               :constructors {[] []}
@@ -14,7 +14,7 @@
   (locking this
     (if-let [logger (get-in @(.state this) [:logger-map name])]
       logger
-      (let [logger (Logger. name)]
+      (let [logger (SamsaraLogger. name)]
         (swap! (.state this) assoc-in [:logger-map  name] logger)
         logger))))
 

@@ -1,4 +1,4 @@
-(ns samsara.slf4j.Logger 
+(ns samsara.slf4j.SamsaraLogger 
   (:import [org.slf4j.helpers FormattingTuple MessageFormatter])
   (:gen-class :extends org.slf4j.helpers.MarkerIgnoringBase
               :constructors {[String] []}
