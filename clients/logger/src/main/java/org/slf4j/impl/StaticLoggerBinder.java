@@ -4,7 +4,7 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.LoggerFactory;
 import org.slf4j.spi.LoggerFactoryBinder;
 
-import org.slf4j.impl.SamsaraLoggerFactory;
+import samsara.slf4j.LoggerFactory;
 
 /**
  * The binding of {@link LoggerFactory} class with an actual instance of
@@ -37,7 +37,7 @@ public class StaticLoggerBinder implements LoggerFactoryBinder {
     // to avoid constant folding by the compiler, this field must *not* be final
     public static String REQUESTED_API_VERSION = "1.6.99"; // !final
 
-    private static final String loggerFactoryClassStr = SamsaraLoggerFactory.class.getName();
+    private static final String loggerFactoryClassStr = LoggerFactory.class.getName();
 
     /**
      * The ILoggerFactory instance returned by the {@link #getLoggerFactory}
@@ -46,7 +46,7 @@ public class StaticLoggerBinder implements LoggerFactoryBinder {
     private final ILoggerFactory loggerFactory;
 
     private StaticLoggerBinder() {
-        loggerFactory = new SamsaraLoggerFactory();
+        loggerFactory = new LoggerFactory();
     }
 
     public ILoggerFactory getLoggerFactory() {
