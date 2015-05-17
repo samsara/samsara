@@ -1,4 +1,5 @@
 (ns samsara.slf4j.SamsaraLogger 
+  (:require [samsara.logger.core :refer [send-event]])
   (:import [org.slf4j.helpers FormattingTuple MessageFormatter])
   (:gen-class :extends org.slf4j.helpers.MarkerIgnoringBase
               :constructors {[String] []}
@@ -12,7 +13,11 @@
              :current-log-level :info})])
 
 (defn- -log [level ^String msg ^Throwable t]
-  (println "**SAMSARA**" level msg t))
+  (send-event {:eventName "log"
+               :loggingFramework "SLF4J"
+               :level level
+               :message msg
+               :throwable t}))
 
 (defn- level-value [level]
   (level levels))
