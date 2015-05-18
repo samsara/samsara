@@ -308,7 +308,6 @@ To use you simply use in a condition statement:
 ## TODO
 
   * state management
-  * connect pipelines
   * docstring in macros
   * perf-tests
   * metrics tracking

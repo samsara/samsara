@@ -21,6 +21,7 @@
        )
 
 
+
 (facts "about `correlator`: results are normalised for the `cycler`"
 
        ;; correlator accepts a function which optionally perform
@@ -54,6 +55,7 @@
        )
 
 
+
 (facts "about `filterer`: results are normalised for the `cycler`"
 
        ;; filterer accepts a filtering predicate just like core/filter
@@ -63,6 +65,7 @@
        ((filterer :b)  {:a 1})    =>     [nil]
 
        )
+
 
 
 (facts "about `cycler`: it applies the functions to all given events and expands the result"
@@ -89,6 +92,7 @@
        => [ {:a 2} {:a 4} ]
 
        )
+
 
 
 (facts "about `pipeline`: it composes your streaming function and maintain the specified order"
@@ -130,12 +134,96 @@
 
 
 
+(facts "about `pipeline` you should be able to compose pipeline as well"
+
+
+       ;; testing composition of pipelines with enrichers
+       (let [e1 (enricher #(assoc % :e1 true))
+             e2 (enricher #(assoc % :e2 true))]
+         (cycler (pipeline
+                  (pipeline e1)
+                  (pipeline e2))
+                 [{:a 1}]))
+       => [{:a 1 :e1 true :e2 true}]
+
+
+       ;; testing composition of pipelines with correlation
+       (let [e1 (enricher #(assoc % :e1 true))
+             e2 (enricher #(assoc % :e2 true))
+             c1 (correlator #(when (:a %) {:c1 true}))
+             c2 (correlator #(when (:a %) {:c2 true}))]
+         (cycler (pipeline
+                  (pipeline e1 c1)
+                  (pipeline e2 c2))
+                 [{:a 1}]))
+       => [{:e2 true, :e1 true, :a 1}
+           {:e2 true, :e1 true, :c2 true}
+           {:e2 true, :e1 true, :c1 true}]
+
+
+       ;; testing composition of pipelines with filters
+       (let [e1 (enricher #(assoc % :e1 true))
+             e2 (enricher #(assoc % :e2 true))
+             c1 (correlator #(when (:a %) {:c1 true}))
+             c2 (correlator #(when (:a %) {:c2 true}))
+             f1 (filterer #(not= 1 (:a %)))]
+         (cycler (pipeline
+                  (pipeline e1 c1)
+                  (pipeline e2 c2 f1))
+                 [{:a 1}]))
+       => [{:e2 true, :e1 true, :c2 true}
+           {:e2 true, :e1 true, :c1 true}]
+
+
+       ;; testing composition of deep pipelines
+       (let [e1 (enricher #(assoc % :e1 true))
+             e2 (enricher #(assoc % :e2 true))
+             c1 (correlator #(when (:a %) {:c1 true}))
+             c2 (correlator #(when (:a %) {:c2 true}))
+             f1 (filterer #(not= 1 (:a %)))]
+         (cycler (pipeline
+                  e1
+                  (pipeline
+                   e2
+                   (pipeline
+                    c1
+                    (pipeline
+                     c2
+                     (pipeline f1)))))
+                 [{:a 1}]))
+       => [{:e2 true, :e1 true, :c2 true}
+           {:e2 true, :e1 true, :c1 true}]
+
+
+       ;; testing composition of pipelines of pipelines
+       (let [e1 (enricher #(assoc % :e1 true))
+             e2 (enricher #(assoc % :e2 true))
+             c1 (correlator #(when (:a %) {:c1 true}))
+             c2 (correlator #(when (:a %) {:c2 true}))
+             f1 (filterer #(not= 1 (:a %)))]
+         (cycler (pipeline
+                  (pipeline
+                   (pipeline e1)
+                   (pipeline e2))
+                  (pipeline
+                   (pipeline c1)
+                   (pipeline c2))
+                  (pipeline f1))
+                 [{:a 1}]))
+       => [{:e2 true, :e1 true, :c2 true}
+           {:e2 true, :e1 true, :c1 true}]
+
+       )
+
+
+
 (facts "about `inject-if`: it injects the value to the event if the condition is truthy"
 
        (inject-if {:a 1} true :b 1) => {:a 1 :b 1}
        (inject-if {:a 1} false :b 1) => {:a 1}
 
        )
+
 
 
 (facts "about `inject-as`: it injects a value with the given property name if the value isn't nil"
@@ -193,7 +281,6 @@
 
 
 
-
 (tabular
  (facts "about `when-event-match`: if the match any of the conditions, them apply the corresponding expression,
                 otherwise leve the event unchanged"
@@ -214,7 +301,6 @@
  {:eventName "game.resume.level" :level 32}           {:eventName "game.resume.level" :level 32 :start :even-level}
  {:eventName "something.not.matching" :level 5}       {:eventName "something.not.matching" :level 5}
  )
-
 
 
 
@@ -254,6 +340,7 @@
          => [{:a 1 :w 1} {:b 4 :w 1} {:a 2 :w 1}]
 
          ))
+
 
 
 (tabular
