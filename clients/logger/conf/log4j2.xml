@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" packages="samsara.log4j2">
+    <Properties>
+        <Property name="log-path">log</Property>
+    </Properties>
+    <Appenders>
+        <SamsaraAppender name="samsara-log" apiUrl="">
+            <PatternLayout>
+                <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss} %msg%n</pattern>
+            </PatternLayout>
+        </SamsaraAppender>
+    </Appenders>
+    <Loggers>
+        <Logger name="My Logger" level="debug" additivity="false">
+            <appender-ref ref="samsara-log" level="debug"/>
+        </Logger>
+        <Root level="info" additivity="false">
+            <AppenderRef ref="samsara-log"/>
+        </Root>
+    </Loggers>
+</Configuration>
