@@ -84,12 +84,12 @@ queries such as "Average current level over time".
 ```Clojure
 (defenrich current-level
   [{:keys [levelCompleted] :as event}]
-  (when-event-is event "game.level.completed"
+  (when-event-name-is event "game.level.completed"
                  (inject-as event :level (inc levelCompleted))))
 ```
 
 This is another enrichment example as we `enrich` a particular set of
-events with additional information. `when-event-is` compares the `eventName`
+events with additional information. `when-event-name-is` compares the `eventName`
 to a given name. `inject-as` it assoc the `:level` property into the event,
 as long as the value is not `nil`. Now every "game.level.completed" event
 will be enriched with this new property. All others will be left unchanged.
@@ -299,9 +299,9 @@ To use you simply use in a condition statement:
 
 ```Clojure
 (defenrich current-level
-  [{:keys [levelCompleted] :as event}]
-  (when-event-is event (match-glob "game.**.completed"
-                 (inject-as event :level (inc levelCompleted))))
+  [{:keys [levelCompleted eventName] :as event}]
+  (when (match-glob "game.**.completed" eventName)
+     (inject-as event :level (inc levelCompleted))))
 ```
 
 
@@ -311,6 +311,7 @@ To use you simply use in a condition statement:
   * docstring in macros
   * perf-tests
   * metrics tracking
+  * add metata into pipleline
   * add REPL  
 
 ## License

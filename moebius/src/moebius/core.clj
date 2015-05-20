@@ -52,7 +52,10 @@
   into an array as expected by the `cycler`"
   [f]
   (fn [event]
-    [(f event)]))
+    (let [result (f event)]
+      (if result
+        [result]
+        [event]))))
 
 
 
@@ -141,29 +144,9 @@
 
 
 
-(defmacro when-event-is
-  "if condition is evaluated to true then the body
-   is evaluated otherwise the event is returned untouched.
-
-   example:
-
-      (when-event-is event (= \"OK\" (:property1 event))
-          (-> event
-              (assoc :new-property \"a-value\")
-              (assoc :property2 6)))
-
-  "
-  [event cond & body]
-  `(let [event# ~event]
-     (if ~cond
-       ~@body
-       event#)))
-
-
-
 (defmacro when-event-name-is
   "if the eventName of the given event is equal to the give name
-  then evaluate the body. Otherwhise the event is returned unchanged.
+  then evaluate the body. Otherwhise `nil` is returned.
 
    example:
 
@@ -182,14 +165,14 @@
   [event name & body]
   `(let [_event# ~event _name# ~name
          _names# (if (string? _name#) [_name#] _name#)]
-     (when-event-is _event# (contains? (set _names#) (:eventName _event#))
+     (when (contains? (set _names#) (:eventName _event#))
        ~@body)))
 
 
 
 (defmacro when-event-match
   "If the event matches one of the patterns the related expression is evaluated and returned.
-   If none matches the event is left unchanged.
+   If none matches `nil` is returned.
 
    example:
 
@@ -208,7 +191,7 @@
   `(let [_event# ~event]
      (match [_event#]
             ~@body
-            :else _event#)))
+            :else nil)))
 
 
 

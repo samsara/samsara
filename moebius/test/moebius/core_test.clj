@@ -13,10 +13,9 @@
        ;; be returned
        ((enricher #(assoc % :b 2)) {:a 1})    =>     [{:a 1 :b 2}]
 
-       ;; if the enrichment function return nil, then an empty
-       ;; array should be returned which will cause the
-       ;; the moebius to filter the event out.
-       ((enricher (fn [x] nil))     {:a 1})    =>     [nil]
+       ;; if the enrichment function return nil
+       ;; then the event is left unchanged
+       ((enricher (fn [x] nil))     {:a 1})    =>     [{:a 1}]
 
        )
 
@@ -235,24 +234,6 @@
 
 
 
-(facts "about `when-event-is`: if the condition is truthy then do something, otherwise lave the event unchanged"
-
-
-       (let [event {:eventName "event1"}]
-
-         ;; if the condition is not satisfied then don't do anything
-         (when-event-is event (= true false)
-                        (assoc event :b 2))
-         => {:eventName "event1"}
-
-
-         ;; if the condition is not satisfied then apply the body
-         (when-event-is event (= 1 1)
-                        (assoc event :b 2))
-         => {:eventName "event1" :b 2}))
-
-
-
 (facts "about `when-event-name-is`: if the eventName matches the given name, or names,
                 then do something, otherwise lave the event unchanged"
 
@@ -262,7 +243,7 @@
          ;; if the event name doesn't match don't do anything
          (when-event-name-is event "another-event"
                         (assoc event :b 2))
-         => {:eventName "event1"}
+         => nil
 
 
          ;; if the event name matches then apply the body
@@ -299,7 +280,7 @@
  {:eventName "game.new.level" :level 33}              {:eventName "game.new.level" :level 33 :level-type :extra-challenge}
  {:eventName "game.new.level" :level 32}              {:eventName "game.new.level" :level 32 :level-type :normal}
  {:eventName "game.resume.level" :level 32}           {:eventName "game.resume.level" :level 32 :start :even-level}
- {:eventName "something.not.matching" :level 5}       {:eventName "something.not.matching" :level 5}
+ {:eventName "something.not.matching" :level 5}       nil
  )
 
 
@@ -344,20 +325,20 @@
 
 
 (tabular
- (facts "about `match-glob`: globs should simplify name matching"
+   (facts "about `match-glob`: globs should simplify name matching"
 
-       (match-glob ?glob  ?name)    =>     ?result )
+         (match-glob ?glob  ?name)    =>     ?result )
 
- ?glob                    ?name                         ?arrow    ?result
- "game.started"           "game.started"                   =>      truthy
- "game.started"           "game_started"                   =>      falsey
- "game.*"                 "game.started"                   =>      truthy
- "game.*"                 "game.level.started"             =>      falsey
- "game.**"                "game.level.started"             =>      truthy
- "game.**.started"        "game.level.started"             =>      truthy
- "game.**.started"        "game.level.2.started"           =>      truthy
- "game.**.started"        "game.level.3.stopped"           =>      falsey
- "game.**.started"        "mygame.level.4.started"         =>      falsey
- "game.**.started"        "game.level.5.started2"          =>      falsey
+   ?glob                    ?name                         ?arrow    ?result
+   "game.started"           "game.started"                   =>      truthy
+   "game.started"           "game_started"                   =>      falsey
+   "game.*"                 "game.started"                   =>      truthy
+   "game.*"                 "game.level.started"             =>      falsey
+   "game.**"                "game.level.started"             =>      truthy
+   "game.**.started"        "game.level.started"             =>      truthy
+   "game.**.started"        "game.level.2.started"           =>      truthy
+   "game.**.started"        "game.level.3.stopped"           =>      falsey
+   "game.**.started"        "mygame.level.4.started"         =>      falsey
+   "game.**.started"        "game.level.5.started2"          =>      falsey
 
  )
