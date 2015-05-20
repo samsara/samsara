@@ -1,6 +1,7 @@
 (ns samsara.slf4j.SamsaraLogger 
   (:require [samsara.logger.core :refer [send-event]])
-  (:import [org.slf4j.helpers FormattingTuple MessageFormatter])
+  (:import [org.slf4j.helpers FormattingTuple MessageFormatter]
+           [java.net InetAddress UnknownHostException])
   (:gen-class :extends org.slf4j.helpers.MarkerIgnoringBase
               :constructors {[String] []}
               :state state
@@ -8,16 +9,38 @@
 
 (def levels (zipmap [:trace :debug :info :warn :error] [0 1 2 3 4]))
 
-(defn- -init[^String name]
-  [[] (atom {:name name
-             :current-log-level :info})])
+(def ^:private default-sourceId (str "SLF4J-"
+                                     (try
+                                       (.getCanonicalHostName (InetAddress/getLocalHost))
+                                       (catch UnknownHostException uhe
+                                         "UnknownHostException"))))
 
-(defn- -log [level ^String msg ^Throwable t]
-  (send-event {:eventName "log"
-               :loggingFramework "SLF4J"
-               :level level
-               :message msg
-               :throwable t}))
+(defn- generate-config []
+  {:url (System/getenv "SAMSARA_API_URL")
+   :sourceId (or (System/getenv "SAMSARA_SOURCE_ID") default-sourceId)}
+  )
+
+(defn- warn-message []
+  (println "****************************************************************")
+  (println "SAMSARA: The environment variable \"SAMSARA_API_URL\" is not set")
+  (println "SAMSARA: Samsara SLF4J logger will just print to console")
+  (println "****************************************************************\n"))
+
+(defn- -init[^String name]
+  (let [conf (generate-config)]
+    (when (nil? (:url conf))
+      (warn-message))
+    [[] (atom {:name name
+               :current-log-level :info
+               :samsara-conf conf})]))
+
+(defn- -log [this level ^String msg ^Throwable t]
+  (let [conf (:samsara-conf @(.state this))]
+    (send-event conf {:eventName "log"
+                      :loggingFramework "SLF4J"
+                      :level level
+                      :message msg
+                      :throwable t})))
 
 (defn- level-value [level]
   (level levels))
@@ -31,7 +54,7 @@
 (defn- -format-log [this level ^String format args]
   (when (is-level-enabled this level)
     (let [^FormattingTuple tp (MessageFormatter/arrayFormat format (into-array Object args))]
-      (-log level (.getMessage tp) (.getThrowable tp)))))
+      (-log this level (.getMessage tp) (.getThrowable tp)))))
 
 
 (defn -isTraceEnabled [this]
@@ -39,10 +62,10 @@
 
 (defn -trace
   ([this ^String msg]
-   (-log :trace msg nil))
+   (-log this :trace msg nil))
 
   ([this ^String msg ^Throwable t]
-   (-log :trace msg t))
+   (-log this :trace msg t))
   
   ([this ^String format ^Object p & params]
    (-format-log this :trace format (conj params p))))
@@ -53,10 +76,10 @@
 
 (defn -debug
   ([this ^String msg]
-   (-log :debug msg nil))
+   (-log this :debug msg nil))
 
   ([this ^String msg ^Throwable t]
-   (-log :debug msg t))
+   (-log this :debug msg t))
   
   ([this ^String format ^Object p & params]
    (-format-log this :debug format (conj params p))))
@@ -67,10 +90,10 @@
 
 (defn -info
   ([this ^String msg]
-   (-log :info msg nil))
+   (-log this :info msg nil))
 
   ([this ^String msg ^Throwable t]
-   (-log :info msg t))
+   (-log this :info msg t))
 
   ([this ^String format ^Object p & params]
    (-format-log this :info format (conj params p))))
@@ -81,10 +104,10 @@
 
 (defn -warn
   ([this ^String msg]
-   (-log :warn msg nil))
+   (-log this :warn msg nil))
 
   ([this ^String msg ^Throwable t]
-   (-log :warn msg t))
+   (-log this :warn msg t))
 
   ([this ^String format ^Object p & params]
    (-format-log this :warn format (conj params p))))
@@ -95,10 +118,10 @@
 
 (defn -error
   ([this ^String msg]
-   (-log :error msg nil))
+   (-log this :error msg nil))
 
   ([this ^String msg ^Throwable t]
-   (-log :error msg t))
+   (-log this :error msg t))
 
   ([this ^String format ^Object p & params]
    (-format-log this :error format (conj params p))))

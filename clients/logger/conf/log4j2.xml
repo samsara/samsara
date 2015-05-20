@@ -4,7 +4,7 @@
         <Property name="log-path">log</Property>
     </Properties>
     <Appenders>
-        <SamsaraAppender name="samsara-log" apiUrl="">
+        <SamsaraAppender name="samsara-log" apiUrl="" sourceId="someApp">
             <PatternLayout>
                 <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss} %msg%n</pattern>
             </PatternLayout>

@@ -20,15 +20,16 @@ public class SamsaraAppender extends AbstractAppender
 {
     private SamsaraLogger samsaraLogger;
 
-    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, String apiUrl, boolean ignoreExceptions) 
+    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, String apiUrl, String sourceId, boolean ignoreExceptions) 
     {
         super(name, filter, layout, ignoreExceptions);
-        samsaraLogger = new SamsaraLogger(apiUrl);
+        samsaraLogger = new SamsaraLogger(apiUrl, sourceId);
     }
 
     @PluginFactory
     public static SamsaraAppender createAppender(@PluginAttribute("name") String name,
                                                  @PluginAttribute("apiUrl") String apiUrl,
+                                                 @PluginAttribute("sourceId") String sourceId,
                                                  @PluginAttribute("ignoreExceptions") boolean ignoreExceptions,
                                                  @PluginElement("Layout") Layout<? extends Serializable> layout,
                                                  @PluginElement("Filter") Filter filter)
@@ -44,7 +45,7 @@ public class SamsaraAppender extends AbstractAppender
             layout = PatternLayout.createDefaultLayout();
         }
 
-        return new SamsaraAppender(name, filter, layout, apiUrl, ignoreExceptions);
+        return new SamsaraAppender(name, filter, layout, apiUrl, sourceId, ignoreExceptions);
     }
 
     @Override
