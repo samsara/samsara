@@ -13,7 +13,7 @@
                                      (try
                                        (.getCanonicalHostName (InetAddress/getLocalHost))
                                        (catch UnknownHostException uhe
-                                         "UnknownHostException"))))
+                                         "UnknownHost"))))
 
 (defn- generate-config []
   {:url (System/getenv "SAMSARA_API_URL")
