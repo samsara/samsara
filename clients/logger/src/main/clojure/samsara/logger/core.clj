@@ -8,12 +8,17 @@
                           (catch UnknownHostException uhe
                             "UnknownHost")))
 
+(def ^:private init-class (-> (Thread/currentThread)
+                              (.getStackTrace)
+                              last
+                              (.getClassName)))
+
 (def ^:private pid (-> (ManagementFactory/getRuntimeMXBean)
                        (.getName)
                        (.split "@")
                        first))
 
-(def ^:private default-app-id (str hostname "-" pid ))
+(def ^:private default-app-id (str hostname "-" init-class "-" pid ))
 
 (defn- event->samsara-event [conf {:keys [timestamp sourceId eventName appId]
                                    :or {timestamp (System/currentTimeMillis)
