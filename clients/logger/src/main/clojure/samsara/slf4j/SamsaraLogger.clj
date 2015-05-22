@@ -20,16 +20,20 @@
    :sourceId (or (System/getenv "SAMSARA_SOURCE_ID") default-sourceId)}
   )
 
-(defn- warn-message []
-  (println "****************************************************************")
-  (println "SAMSARA: The environment variable \"SAMSARA_API_URL\" is not set")
-  (println "SAMSARA: Samsara SLF4J logger will just print to console")
-  (println "****************************************************************\n"))
+;; Not too happy with this. Might just write this whole class in Java
+(def ^:private warning-printed? (atom nil))
+(defn- print-warning []
+  (when-not @warning-printed?
+    (println "****************************************************************")
+    (println "SAMSARA: The environment variable \"SAMSARA_API_URL\" is not set")
+    (println "SAMSARA: Samsara SLF4J logger will just print to console")
+    (println "****************************************************************\n")
+    (reset! warning-printed? true)))
 
 (defn- -init[^String name]
   (let [conf (generate-config)]
     (when (nil? (:url conf))
-      (warn-message))
+      (print-warning))
     [[] (atom {:name name
                :current-log-level :info
                :samsara-conf conf})]))

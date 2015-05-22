@@ -9,16 +9,19 @@
 (def level<->keyword (zipmap [Level/ALL Level/TRACE Level/DEBUG Level/INFO Level/WARN Level/ERROR Level/FATAL Level/OFF]
                              [:all :trace :debug :info :warn :error :fatal :off]))
 
-(defn- warn-message []
-  (println "****************************************************************")
-  (println "SAMSARA: The environment variable \"SAMSARA_API_URL\" is not set")
-  (println "SAMSARA: Samsara Log4j2 logger will just print to console")
-  (println "****************************************************************\n"))
+(def ^:private warning-printed? (atom nil))
+(defn- print-warning []
+  (when-not @warning-printed?
+    (println "****************************************************************")
+    (println "SAMSARA: The apiUrl property for SamsaraAppender (log4j2.xml) has not been set")
+    (println "SAMSARA: Samsara Log4j2 logger will just print to console")
+    (println "****************************************************************\n")
+    (reset! warning-printed? true)))
 
 
 (defn- -init [^String api-url ^String source-id]
   (when (empty? api-url)
-    (warn-message))
+    (print-warning))
   [[] {:url api-url
        :sourceId source-id}])
 
