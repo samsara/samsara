@@ -1,5 +1,5 @@
 (ns samsara.log4j2.SamsaraLogger
-  (:require [samsara.logger.core :refer [send-event]])
+  (:require [samsara.logger.core :as slc])
   (:import [org.apache.logging.log4j Level])
   (:gen-class :constructors {[String String] []}
               :state state
@@ -20,16 +20,16 @@
 
 
 (defn- -init [^String api-url ^String source-id]
-  (when (empty? api-url)
-    (print-warning))
-  [[] {:url api-url
-       :sourceId source-id}])
+  (let [conf {:url api-url :sourceId source-id}]
+    (if (empty? api-url)
+      (print-warning)
+      (slc/set-config conf))
+    [[] conf]))
 
 
 (defn- -logEvent [this ^Level level ^String msg ^Throwable t]
-  (let [conf (.state this)]
-    (send-event conf {:eventName "log"
-                      :loggingFramework "Log4j2"
-                      :level (level<->keyword level)
-                      :message msg
-                      :throwable t})))
+  (slc/send-event {:eventName "log"
+               :loggingFramework "Log4j2"
+               :level (level<->keyword level)
+               :message msg
+               :throwable t}))

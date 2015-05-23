@@ -1,5 +1,5 @@
 (ns samsara.slf4j.SamsaraLogger 
-  (:require [samsara.logger.core :refer [send-event]])
+  (:require [samsara.logger.core :as slc])
   (:import [org.slf4j.helpers FormattingTuple MessageFormatter]
            [java.net InetAddress UnknownHostException])
   (:gen-class :extends org.slf4j.helpers.MarkerIgnoringBase
@@ -30,21 +30,20 @@
     (println "****************************************************************\n")
     (reset! warning-printed? true)))
 
-(defn- -init[^String name]
+(defn- -init [^String name]
   (let [conf (generate-config)]
-    (when (nil? (:url conf))
-      (print-warning))
-    [[] (atom {:name name
-               :current-log-level :info
-               :samsara-conf conf})]))
+    (if (empty? (:url conf))
+      (print-warning)
+      (slc/set-config conf))
+
+    [[] (atom {:name name :current-log-level :info :samsara-conf conf})]))
 
 (defn- -log [this level ^String msg ^Throwable t]
-  (let [conf (:samsara-conf @(.state this))]
-    (send-event conf {:eventName "log"
-                      :loggingFramework "SLF4J"
-                      :level level
-                      :message msg
-                      :throwable t})))
+  (slc/send-event  {:eventName "log"
+                    :loggingFramework "SLF4J"
+                    :level level
+                    :message msg
+                    :throwable t}))
 
 (defn- level-value [level]
   (level levels))

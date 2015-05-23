@@ -6,7 +6,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.slf4j/slf4j-api "1.7.12"]
                  [org.apache.logging.log4j/log4j-core "2.3"]
-                 [samsara/samsara-client "0.1.0-beta"]]
+                 [samsara/samsara-client "0.1.0-beta2"]]
   :aot [samsara.logger.core
         samsara.slf4j.SamsaraLogger
         samsara.slf4j.SamsaraLoggerFactory
