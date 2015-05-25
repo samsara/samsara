@@ -2,6 +2,7 @@ package samsara;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.samza.system.IncomingMessageEnvelope;
@@ -29,8 +30,8 @@ public class SamsaraSystem implements StreamTask {
     }
 
 
-    protected String pipeline( String event ){
-        return (String)pipeline.invoke( event );
+    protected List<List<String>> pipeline( String event ){
+        return (List<List<String>>) pipeline.invoke( event );
     }
 
 
@@ -40,9 +41,12 @@ public class SamsaraSystem implements StreamTask {
         String message   = (String) envelope.getMessage();
         String partition = (String) envelope.getKey();
 
-        //System.out.println("MESSAGE:" + message);
-        String output = pipeline(message);
-        collector.send(new OutgoingMessageEnvelope(OUTPUT_STREAM, partition, output));
+        for( List<String> el : pipeline(message) ) {
+                String outkey    = el.get(0);
+                String output    = el.get(1);
+                //System.out.println("MESSAGE:[" + outkey + "]:" + output);
+                collector.send(new OutgoingMessageEnvelope(OUTPUT_STREAM, outkey, output));
+        }
 
     }
 }

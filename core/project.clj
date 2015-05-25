@@ -12,6 +12,9 @@
                  [org.apache.samza/samza-kafka_2.10 "0.9.0"]
                  [samsara/moebius "0.1.0-SNAPSHOT"]
                  [samsara/samsara-utils "0.1.0"]
+                 [samsara/trackit "0.2.0"]
+                 [com.taoensso/timbre "3.4.0"]
+                 [org.clojure/tools.cli "0.3.1"]
                  ]
 
   :main samsara-core.main
