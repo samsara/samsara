@@ -17,7 +17,7 @@ import clojure.lang.IFn;
 public class SamsaraSystem implements StreamTask {
 
 
-    private final SystemStream OUTPUT_STREAM = new SystemStream("kafka", "messages");
+    private final SystemStream OUTPUT_STREAM = new SystemStream("kafka", "events");
 
     private final IFn pipeline;
 
@@ -41,10 +41,12 @@ public class SamsaraSystem implements StreamTask {
         String message   = (String) envelope.getMessage();
         String partition = (String) envelope.getKey();
 
+        System.out.println("INPUT:[" + partition + "]:" + message);
+
         for( List<String> el : pipeline(message) ) {
                 String outkey    = el.get(0);
                 String output    = el.get(1);
-                //System.out.println("MESSAGE:[" + outkey + "]:" + output);
+                System.out.println("OUTPUT:[" + outkey + "]:" + output);
                 collector.send(new OutgoingMessageEnvelope(OUTPUT_STREAM, outkey, output));
         }
 
