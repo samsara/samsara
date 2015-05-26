@@ -1,0 +1,8 @@
+{:job-name "%%JOB_NAME%%"
+ :input-topic "%%INPUT_TOPIC%%"
+ :output-topic "%%OUTPUT_TOPIC%%"
+ ;; a CSV list of hosts and ports (and optional path)
+ :zookeepers "%%ZOOKEEPER_PORT_2181_TCP_ADDR%%:%%ZOOKEEPER_PORT_2181_TCP_PORT%%"
+ ;; a CSV list of host and ports of kafka brokers
+ :brokers "%%KAFKA_PORT_9092_TCP_ADDR%%:%%KAFKA_PORT_9092_TCP_PORT%%"
+ :offset "%%OFFSET_RESET%%"}
