@@ -41,7 +41,6 @@ The `lein-bin` will produce an executable uberjar in `./target/ingestion-api`.
   Samsara Ingestion API
 -----------------------------| v0.1.0- |-------
 
-ERROR: Missing configuration.
 
 SYNOPSIS
        ./ingestion-api -c config.edn
