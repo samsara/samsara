@@ -4,6 +4,6 @@
    ;;:backend {:type :kafka-docker :topic "events" :docker {:link "kafka.*" :port "9092" :to "metadata.broker.list"} }
 
  :transform {
-             :transform-fn (fn [e] {:index "events-test" :type "events" :source e })
-             :apply-transformation true}
+             :transform-fn nil ;(fn [e] {:index "events-test" :type "events" :source e })
+             :apply-transformation false}
 }
