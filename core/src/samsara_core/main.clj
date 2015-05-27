@@ -1,4 +1,6 @@
 (ns samsara-core.main
+  (:require [samsara-core.core :as core])
+  (:require [samsara-core.samza :as samza])
   (:require [clojure.string :as s])
   (:require [clojure.java.io :as io])
   (:require [taoensso.timbre :as log])
@@ -10,15 +12,25 @@
 
 
 (def DEFAULT-CONFIG
-  {:job-name "Samsara"
-   :input-topic "ingestion"
-   :output-topic "events"
-   ;; a CSV list of hosts and ports (and optional path)
-   :zookeepers "127.0.0.1:2181"
-   ;; a CSV list of host and ports of kafka brokers
-   :brokers "127.0.0.1:9092"
-   :offset :smallest
-   })
+  {:topics
+   {:job-name "Samsara"
+    :input-topic "ingestion"
+    :output-topic "events"
+    ;; a CSV list of hosts and ports (and optional path)
+    :zookeepers "127.0.0.1:2181"
+    ;; a CSV list of host and ports of kafka brokers
+    :brokers "127.0.0.1:9092"
+    :offset :smallest}
+
+   ;; this section controls the indexing strategy
+   :index
+   {
+    ;; strategy can be either :single or :daily
+    ;; if daily the base-index will be used as prefix
+    ;; and date will appened eg: events-2015-05-27
+    :strategy :single
+    :base-index "events"
+    :event-type "events"}})
 
 
 (defn samza-config [{:keys [job-name input-topic output-topic zookeepers brokers offset]}]
@@ -34,6 +46,7 @@
    "systems.kafka.consumer.auto.offset.reset" (name offset)
    "systems.kafka.producer.bootstrap.servers" brokers
    })
+
 
 (def cli-options
   "Command line options"
@@ -127,7 +140,7 @@ DESCRIPTION
   (->> (io/file config-file)
       slurp
       read-string
-      (merge DEFAULT-CONFIG)))
+      (merge-with merge DEFAULT-CONFIG)))
 
 
 (defn- init-log!
@@ -156,6 +169,12 @@ DESCRIPTION
     (start-reporting! cfg)))
 
 
+
+(defn- init-pipeline! [{:keys [index] :as config}]
+  (alter-var-root #'samza/internal-pipeline (constantly (core/samsara-processor index))))
+
+
+
 (defn init!
   "Initializes the system and returns the actual configuration used."
   [config-file]
@@ -163,12 +182,14 @@ DESCRIPTION
 
     (init-log!      (-> config :log))
     (init-tracking! (-> config :tracking))
+    (init-pipeline! config)
 
     config))
 
 
-(defn start! [config]
-  (.run (JobRunner. (MapConfig. (samza-config config)))))
+(defn start! [{:keys [topics] :as config}]
+  (.run (JobRunner. (MapConfig. (samza-config topics)))))
+
 
 (defn -main
  [& args]
@@ -181,7 +202,7 @@ DESCRIPTION
      :default
      (let [_ (println (headline))
            {config-file :config} options
-           {:keys [input-topic output-topic] :as config} (init! config-file)]
+           {{:keys [input-topic output-topic]} :topics :as config} (init! config-file)]
        ;; starting server
        (start! config)
        (log/info "Samsara CORE processing started: " input-topic "->" output-topic)))))

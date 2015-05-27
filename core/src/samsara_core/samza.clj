@@ -1,13 +1,15 @@
 (ns samsara-core.samza
-  (:require [samsara-core.core :refer [samsara-processor]])
   (:require [samsara.utils :refer [to-json from-json]]))
+
+;; runtime pipeline initialized by init-pipeline!
+(def internal-pipeline nil)
 
 
 (defn process-kafka-event [event]
   (->> event
        from-json
        vector
-       samsara-processor
+       internal-pipeline
        (map (juxt :sourceId to-json))))
 
 

@@ -1,5 +1,6 @@
 (ns samsara-core.core
-  (:require [moebius.core :refer :all]))
+  (:require [moebius.core :refer :all])
+  (:require [digest :refer [sha-256]]))
 
 
 (defenrich inject-kibana-timestamp
@@ -31,10 +32,43 @@
 
 
 
-(def samsara-pipeline
+(defenrich inject-id
+  #_"It inject a consistent and repeatable ID is not already provided"
+  [{:keys [timestamp eventName sourceId id] :as event}]
+  (when-not id
+    (inject-as event :id (sha-256 (str timestamp "/" eventName "/" sourceId)))))
+
+
+
+(defn- index-name
+  "returns the index name based where the event should land"
+  [{:keys [strategy base-index] :as indexing-strategy} {:keys [receivedAt] :as event}]
+  (case (keyword strategy)
+    :daily (format "%s-%tF" base-index (java.util.Date. receivedAt))
+    base-index))
+
+
+
+(defn format-to-qanal
+  "It formats the event into the qanal format"
+  [{:keys [strategy base-index event-type] :as indexing-strategy}]
+  (enricher
+   (fn [{:keys [receivedAt id] :as event}]
+     {:index (index-name indexing-strategy event)
+      :type event-type
+      :id id
+      :source event})))
+
+
+
+(defn samsara-pipeline [indexing-strategy]
   (pipeline
    inject-kibana-timestamp
-   is-timestamp-reliable))
+   is-timestamp-reliable
+   inject-id
+   (format-to-qanal indexing-strategy)))
 
 
-(def samsara-processor (moebius samsara-pipeline))
+
+(defn samsara-processor [indexing-strategy]
+  (moebius (samsara-pipeline indexing-strategy)))

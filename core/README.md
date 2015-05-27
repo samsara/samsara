@@ -49,16 +49,25 @@ DESCRIPTION
 The configuration is a EDN file with the following format.
 
 ```Clojure
-{
-  :job-name "Samsara"
-  :input-topic "ingestion"
-  :output-topic "events"
-  ;; a CSV list of hosts and ports (and optional path)
-  :zookeepers "127.0.0.1:2181"
-  ;; a CSV list of host and ports of kafka brokers
-  :brokers "127.0.0.1:9092"
-  :offset :smallest
-}
+{:topics
+   {:job-name "Samsara"
+    :input-topic "ingestion"
+    :output-topic "events"
+    ;; a CSV list of hosts and ports (and optional path)
+    :zookeepers "127.0.0.1:2181"
+    ;; a CSV list of host and ports of kafka brokers
+    :brokers "127.0.0.1:9092"
+    :offset :smallest}
+
+   ;; this section controls the indexing strategy
+   :index
+   {
+    ;; strategy can be either :single or :daily
+    ;; if daily the base-index will be used as prefix
+    ;; and date will appened eg: events-2015-05-27
+    :strategy :single 
+    :base-index "events"
+    :event-type "events"}}
 ```
 
 ## How to build and run the Docker container

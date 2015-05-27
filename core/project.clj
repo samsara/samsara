@@ -15,6 +15,7 @@
                  [samsara/trackit "0.2.0"]
                  [com.taoensso/timbre "3.4.0"]
                  [org.clojure/tools.cli "0.3.1"]
+                 [digest "1.4.4"]
                  ]
 
   :main samsara-core.main
