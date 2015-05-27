@@ -18,7 +18,17 @@ wait_for kafka     $KAFKA_PORT_9092_TCP_ADDR       9092
 
 
 # if the topic doesn't exist create one
-echo "checking if topic is created"
+echo "checking if topic ingestion is created"
+/opt/kafka/bin/kafka-topics.sh \
+    --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
+    --describe \
+    | grep -q "Topic: ingestion" \
+    ||  /opt/kafka/bin/kafka-topics.sh \
+            --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
+            --create --topic ingestion \
+            --replication-factor 1 --partitions 5
+
+echo "checking if topic events is created"
 /opt/kafka/bin/kafka-topics.sh \
     --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
     --describe \
@@ -41,7 +51,7 @@ wait_for ElasticSearch $ELASTICSEARCH_PORT_9200_TCP_ADDR 9200
 echo "checking if events index is created"
 curl -sSL "http://$ELASTICSEARCH_PORT_9200_TCP_ADDR:9200/_cat/indices?v" \
     | grep -q 'events' \
-    || curl -sSL -XPUT "http://$ELASTICSEARCH_PORT_9200_TCP_ADDR:9200/events-test" \
+    || curl -sSL -XPUT "http://$ELASTICSEARCH_PORT_9200_TCP_ADDR:9200/events" \
             -d '{
     "settings" : {
         "number_of_shards" : 3,

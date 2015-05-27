@@ -40,8 +40,9 @@ ingestion:
     - "9000:9000"
     - "15003:15000"
   environment:
-    TRANSFORM_FN: "(fn [e] {:index \"events-test\" :type \"events\" :source (assoc e :ts (java.util.Date. (:timestamp e)))})"
-    TRANSFORM_ENABLE: "true"
+    OUTPUT_TOPIC: "ingestion"
+    # TRANSFORM_FN: ""
+    TRANSFORM_ENABLE: "false"
     TRACKING_ENABLED: "true"
   volumes:
     - /tmp/logs/ingestion-api:/logs
