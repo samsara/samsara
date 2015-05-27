@@ -20,8 +20,8 @@
    :log   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}
 
    :backend  {:type :console :pretty? true}
-   ;;:backend {:type :kafka :topic "events" :metadata.broker.list "192.168.59.103:9092"}
-   ;;:backend {:type :kafka-docker :topic "events" :docker {:link "kafka.*" :port "9092" :to "metadata.broker.list"} }
+   ;;:backend {:type :kafka :topic "ingestion" :metadata.broker.list "192.168.59.103:9092"}
+   ;;:backend {:type :kafka-docker :topic "ingestion" :docker {:link "kafka.*" :port "9092" :to "metadata.broker.list"} }
    :transform {:transform-fn nil :apply-transformation false}
 
    :tracking {:enabled false :type :console}
