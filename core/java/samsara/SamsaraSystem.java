@@ -17,7 +17,7 @@ import clojure.lang.IFn;
 public class SamsaraSystem implements StreamTask {
 
 
-    private final SystemStream OUTPUT_STREAM = new SystemStream("kafka", "events");
+    private final SystemStream outputStream;
 
     private final IFn pipeline;
 
@@ -27,6 +27,11 @@ public class SamsaraSystem implements StreamTask {
         IFn require = Clojure.var("clojure.core", "require");
         require.invoke(Clojure.read("samsara-core.samza"));
         pipeline = Clojure.var("samsara-core.samza", "pipeline");
+
+        IFn getOutputTopic = Clojure.var("samsara-core.samza", "output-topic!");
+        String outputTopic = (String) getOutputTopic.invoke();
+        System.out.println("(*) SamsaraSystem outputTopic: " + outputTopic);
+        outputStream = new SystemStream("kafka", outputTopic);
     }
 
 
@@ -47,7 +52,7 @@ public class SamsaraSystem implements StreamTask {
                 String outkey    = el.get(0);
                 String output    = el.get(1);
                 System.out.println("OUTPUT:[" + outkey + "]:" + output);
-                collector.send(new OutgoingMessageEnvelope(OUTPUT_STREAM, outkey, output));
+                collector.send(new OutgoingMessageEnvelope(outputStream, outkey, output));
         }
 
     }

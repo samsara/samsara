@@ -1,13 +1,10 @@
 (ns samsara-core.main
-  (:require [samsara-core.core :as core])
   (:require [samsara-core.samza :as samza])
   (:require [clojure.string :as s])
   (:require [clojure.java.io :as io])
   (:require [taoensso.timbre :as log])
   (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!]])
   (:require [clojure.tools.cli :refer [parse-opts]])
-  (:import [org.apache.samza.job JobRunner]
-           [org.apache.samza.config MapConfig])
   (:gen-class))
 
 
@@ -32,20 +29,6 @@
     :base-index "events"
     :event-type "events"}})
 
-
-(defn samza-config [{:keys [job-name input-topic output-topic zookeepers brokers offset]}]
-  {"job.factory.class" "org.apache.samza.job.local.ThreadJobFactory"
-   "job.name"          job-name
-   "task.class"        "samsara.SamsaraSystem"
-   "task.inputs"       (str "kafka." input-topic)
-   "serializers.registry.string.class" "org.apache.samza.serializers.StringSerdeFactory"
-   "systems.kafka.samza.factory" "org.apache.samza.system.kafka.KafkaSystemFactory"
-   "systems.kafka.samza.key.serde" "string"
-   "systems.kafka.samza.msg.serde" "string"
-   "systems.kafka.consumer.zookeeper.connect" zookeepers
-   "systems.kafka.consumer.auto.offset.reset" (name offset)
-   "systems.kafka.producer.bootstrap.servers" brokers
-   })
 
 
 (def cli-options
@@ -170,11 +153,6 @@ DESCRIPTION
 
 
 
-(defn- init-pipeline! [{:keys [index] :as config}]
-  (alter-var-root #'samza/internal-pipeline (constantly (core/samsara-processor index))))
-
-
-
 (defn init!
   "Initializes the system and returns the actual configuration used."
   [config-file]
@@ -182,13 +160,10 @@ DESCRIPTION
 
     (init-log!      (-> config :log))
     (init-tracking! (-> config :tracking))
-    (init-pipeline! config)
+    (samza/init-pipeline! config)
 
     config))
 
-
-(defn start! [{:keys [topics] :as config}]
-  (.run (JobRunner. (MapConfig. (samza-config topics)))))
 
 
 (defn -main
@@ -204,5 +179,5 @@ DESCRIPTION
            {config-file :config} options
            {{:keys [input-topic output-topic]} :topics :as config} (init! config-file)]
        ;; starting server
-       (start! config)
+       (samza/start! config)
        (log/info "Samsara CORE processing started: " input-topic "->" output-topic)))))
