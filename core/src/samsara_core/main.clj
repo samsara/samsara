@@ -13,6 +13,7 @@
    {:job-name "Samsara"
     :input-topic "ingestion"
     :output-topic "events"
+    :output-topic-partition-fn (comp :sourceId :source)
     ;; a CSV list of hosts and ports (and optional path)
     :zookeepers "127.0.0.1:2181"
     ;; a CSV list of host and ports of kafka brokers

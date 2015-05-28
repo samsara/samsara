@@ -30,7 +30,8 @@
        from-json
        vector
        internal-pipeline
-       (map (juxt :sourceId to-json))))
+       ;; TODO: partition key should be handled better
+       (map (juxt (-> *config* :topics :output-topic-partition-fn) to-json))))
 
 
 
