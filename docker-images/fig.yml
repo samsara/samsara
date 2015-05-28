@@ -48,6 +48,24 @@ ingestion:
     - /tmp/logs/ingestion-api:/logs
 
 #
+# Samsara CORE
+#
+core:
+  image: samsara/samsara-core
+  links:
+    - kafka:kafka
+    - zookeeper:zookeeper
+    - monitoring:riemann
+  ports:
+    - "15010:15000"
+  environment:
+    INDEX_STRATEGY: ":single"
+    TRACKING_ENABLED: "true"
+  volumes:
+    - /tmp/logs/core:/logs
+
+
+#
 # ElasticSearch
 #
 elasticsearch:
