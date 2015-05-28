@@ -27,7 +27,15 @@
     ;; and date will appened eg: events-2015-05-27
     :strategy :single
     :base-index "events"
-    :event-type "events"}})
+    :event-type "events"}
+
+   ;; metrics trackings
+   :tracking
+   {:enabled false :type :console}
+
+   ;; logging
+   :log
+   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}})
 
 
 
