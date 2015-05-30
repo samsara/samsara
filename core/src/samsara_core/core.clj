@@ -61,14 +61,14 @@
 
 
 
-(defn samsara-pipeline [indexing-strategy]
+(defn make-samsara-pipeline [config]
   (pipeline
    inject-kibana-timestamp
    is-timestamp-reliable
    inject-id
-   (format-to-qanal indexing-strategy)))
+   (format-to-qanal (:index config))))
 
 
 
-(defn samsara-processor [indexing-strategy]
-  (moebius (samsara-pipeline indexing-strategy)))
+(defn make-samsara-processor [config]
+  (moebius (make-samsara-pipeline config)))

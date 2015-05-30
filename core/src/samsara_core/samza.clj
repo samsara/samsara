@@ -5,7 +5,8 @@
            [org.apache.samza.config MapConfig]))
 
 ;; runtime pipeline initialized by init-pipeline!
-(def internal-pipeline nil)
+(def ^:dynamic *pipeline* nil)
+(def ^:dynamic *raw-pipeline* nil)
 (def ^:dynamic *config* nil)
 
 
@@ -25,13 +26,14 @@
 
 
 
-(defn process-kafka-event [event]
-  (->> event
-       from-json
-       vector
-       internal-pipeline
-       ;; TODO: partition key should be handled better
-       (map (juxt (-> *config* :topics :output-topic-partition-fn) to-json))))
+(defn make-raw-pipeline [config]
+  (let [part-key-fn (-> config :topics :output-topic-partition-fn)]
+    (fn [event]
+      (->> event
+           from-json
+           vector
+           *pipeline*
+           (map (juxt part-key-fn to-json))))))
 
 
 
@@ -40,7 +42,7 @@
   with the partition key and the event in json format
   f(x) -> List<[part-key, json-event]>"
   [^String event]
-  (process-kafka-event event))
+  (*raw-pipeline* event))
 
 
 
@@ -49,9 +51,10 @@
 
 
 
-(defn init-pipeline! [{:keys [index] :as config}]
-  (alter-var-root #'internal-pipeline (constantly (core/samsara-processor index)))
-  (alter-var-root #'*config* (constantly config)))
+(defn init-pipeline! [config]
+  (alter-var-root #'*pipeline*     (constantly (core/make-samsara-processor config)))
+  (alter-var-root #'*raw-pipeline* (constantly (make-raw-pipeline config)))
+  (alter-var-root #'*config*       (constantly config)))
 
 
 (defn start! [{:keys [topics] :as config}]
