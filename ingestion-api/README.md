@@ -177,13 +177,13 @@ cat <<EOF | curl -i -H "Content-Type: application/json" \
   {
     "timestamp": $(date +%s000),
     "sourceId": "3aw4sedrtcyvgbuhjkn",
-    "eventName": "user.clicked",
+    "eventName": "user.item.added",
     "page": "orders",
     "item": "sku-1234"
   }, {
     "timestamp": $(date +%s000),
     "sourceId": "3aw4sedrtcyvgbuhjkn",
-    "eventName": "user.clicked",
+    "eventName": "user.item.removed",
     "page": "orders",
     "item": "sku-5433",
     "action": "remove"
@@ -204,13 +204,13 @@ cat <<EOF | gzip | curl -i -H "Content-Type: application/json" \
   {
     "timestamp": $(date +%s000),
     "sourceId": "3aw4sedrtcyvgbuhjkn",
-    "eventName": "user.clicked",
+    "eventName": "user.item.added",
     "page": "orders",
     "item": "sku-1234"
   }, {
     "timestamp": $(date +%s000),
     "sourceId": "3aw4sedrtcyvgbuhjkn",
-    "eventName": "user.clicked",
+    "eventName": "user.item.removed",
     "page": "orders",
     "item": "sku-5433",
     "action": "remove"
