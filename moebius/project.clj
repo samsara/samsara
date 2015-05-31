@@ -14,10 +14,10 @@
                  [samsara/samsara-utils "0.1.0"]
                  [org.clojure/core.match "0.3.0-alpha4"]]
 
-  :main moebius.core
-
   :profiles {:uberjar {:aot :all}
              :dev {:dependencies [[midje "1.6.3"]]
                    :plugins [[lein-midje "3.1.3"]
                              [lein-bin "0.3.5"]]}}
-)
+
+  :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
+                                   :sign-releases false}]])
