@@ -167,6 +167,8 @@ pipeline.<topic>.pipeline-processing.time
             99.9% <=               ''
 ```
 
+These metrics can be pushed to any of the following systems: **graphite, grafana, ganglia, statsd, riemann.**
+
 ## License
 
 Copyright © 2015 Samsara's authors
