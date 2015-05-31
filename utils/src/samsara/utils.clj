@@ -1,5 +1,6 @@
 (ns samsara.utils
-  (:require [cheshire.core :as json]))
+  (:require [cheshire.core :as json])
+  (:require [taoensso.timbre :as log]))
 
 
 (defn to-json
@@ -24,6 +25,7 @@
         ((fn [s] (if pretty (str s \newline) s))))))
 
 
+
 (defn from-json
   "Convert a json string into a Clojure data structure
    with keyword as keys"
@@ -32,6 +34,7 @@
     nil
     (-> data
         (json/parse-string true))))
+
 
 
 (defn dissoc-in
@@ -47,3 +50,21 @@
           (dissoc m k)))
       m)
     (dissoc m k)))
+
+
+
+(defmacro safely [message & body]
+  `(let [message# ~message]
+     (try
+       ~@body
+       (catch Throwable x#
+         (log/warn x# "Exception during" message#)
+         nil))))
+
+
+
+(defn invariant [invf]
+  (fn [x]
+    (safely "invariant operation"
+            (invf x))
+    x))

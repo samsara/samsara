@@ -1,4 +1,4 @@
-(defproject samsara/samsara-utils "0.1.0"
+(defproject samsara/samsara-utils "0.2.0"
   :description "Common utilities from Samsara's project"
 
   :url "https://samsara.github.com/"
