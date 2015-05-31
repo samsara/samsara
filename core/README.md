@@ -118,12 +118,16 @@ The `<topic>` refers to the kafka topic which you are consuming, by default is `
 ```
 # counters to track the total size of
 # proceccesed data in bytes 
+
 pipeline.<topic>.in.total-size.count             
 pipeline.<topic>.out.total-size.count
 
+
 # Track distribution of the message size
+
 pipeline.<topic>.in.size
 pipeline.<topic>.out.size
+
 # for the above metrics these details are tracked
 
        count = number of messages processed
@@ -138,9 +142,11 @@ pipeline.<topic>.out.size
         99% <=           ''
       99.9% <=           ''
 
+
 # Tracking processing time and rate for
 # pipeline processing : internal pipeline
 # overall processing : including marshalling/unmarshalling
+
 pipeline.<topic>.overall-processing.time
 pipeline.<topic>.pipeline-processing.time
 
