@@ -136,11 +136,11 @@ pipeline.<topic>.out.size
         mean = mean size
       stddev = standard deviation is size
       median = median size
-        75% <= various percentiles on size
-        95% <=           ''
-        98% <=           ''
-        99% <=           ''
-      99.9% <=           ''
+         p75 <= various percentiles on size
+         p95 <=           ''
+         p98 <=           ''
+         p99 <=           ''
+        p999 <=           ''
 
 
 # Tracking processing time and rate for
@@ -151,20 +151,20 @@ pipeline.<topic>.overall-processing.time
 pipeline.<topic>.pipeline-processing.time
 
              count = number of event processed
-         mean rate = mean rate x second
-     1-minute rate = rate x second over last 1 minute
-     5-minute rate = rate x second over last 5 minutes
-    15-minute rate = rate x second over last 15 minutes
+         mean_rate = mean rate x second
+           m1_rate = rate x second over last 1 minute
+           m5_rate = rate x second over last 5 minutes
+          m15_rate = rate x second over last 15 minutes
                min = min execution time
                max = max execution time
               mean = mean execution time
             stddev = standard deviation on execution time
             median = mean execution time
-              75% <= various percentiles on execution time
-              95% <=               ''
-              98% <=               ''
-              99% <=               ''
-            99.9% <=               ''
+              p75 <= various percentiles on execution time
+              p95 <=               ''
+              p98 <=               ''
+              p99 <=               ''
+             p999 <=               ''
 ```
 
 These metrics can be pushed to any of the following systems: **graphite, grafana, ganglia, statsd, riemann.**
