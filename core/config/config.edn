@@ -9,4 +9,7 @@
   :offset :smallest}
 
  :index
- {:strategy :single :base-index "events"}}
+ {:strategy :single :base-index "events"}
+
+ :tracking {:enabled true :type :console
+            :reporting-frequency-seconds 600}}
