@@ -108,6 +108,59 @@ that the mounted volume (`/tmp/samsara-core`) will be on the `boot2docker` virtu
 To access them you can log into `boot2docker` with the following command: `boot2docker ssh`.
 
 
+## Tracking of metrics
+
+To track metrics I use [TRACKit!](https://github.com/samsara/trackit) and we expose the
+following metrics:
+
+The `<topic>` refers to the kafka topic which you are consuming, by default is `ingestion`.
+
+```
+# counters to track the total size of
+# proceccesed data in bytes 
+pipeline.<topic>.in.total-size.count             
+pipeline.<topic>.out.total-size.count
+
+# Track distribution of the message size
+pipeline.<topic>.in.size
+pipeline.<topic>.out.size
+# for the above metrics these details are tracked
+
+       count = number of messages processed
+         min = min size
+         max = max size
+        mean = mean size
+      stddev = standard deviation is size
+      median = median size
+        75% <= various percentiles on size
+        95% <=           ''
+        98% <=           ''
+        99% <=           ''
+      99.9% <=           ''
+
+# Tracking processing time and rate for
+# pipeline processing : internal pipeline
+# overall processing : including marshalling/unmarshalling
+pipeline.<topic>.overall-processing.time
+pipeline.<topic>.pipeline-processing.time
+
+             count = number of event processed
+         mean rate = mean rate x second
+     1-minute rate = rate x second over last 1 minute
+     5-minute rate = rate x second over last 5 minutes
+    15-minute rate = rate x second over last 15 minutes
+               min = min execution time
+               max = max execution time
+              mean = mean execution time
+            stddev = standard deviation on execution time
+            median = mean execution time
+              75% <= various percentiles on execution time
+              95% <=               ''
+              98% <=               ''
+              99% <=               ''
+            99.9% <=               ''
+```
+
 ## License
 
 Copyright © 2015 Samsara's authors
