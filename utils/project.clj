@@ -13,5 +13,5 @@
   :profiles {:dev {:dependencies [[midje "1.6.3"]]
                    :plugins [[lein-midje "3.1.3"]]}}
 
-  :deploy-repositories[["clojars" {:url "https://clojars.org/repo/"
+  :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
                                    :sign-releases false}]])
