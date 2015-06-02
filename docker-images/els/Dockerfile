@@ -5,7 +5,7 @@ MAINTAINER Samsara's team (https://github.com/samsara/samsara-docker-images)
 #
 # Kafka installation
 #
-ENV ELS_VERSION 1.5.0
+ENV ELS_VERSION 1.5.2
 
 
 RUN wget -nv "https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-${ELS_VERSION}.deb" -O /tmp/els.deb && \

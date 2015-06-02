@@ -6,7 +6,7 @@ MAINTAINER Samsara's team (https://github.com/samsara/samsara-docker-images)
 # Kibana installation
 #
 
-RUN export KIBANA_VERSION=4.0.1 && \
+RUN export KIBANA_VERSION=4.0.2 && \
     curl -sSL "https://download.elasticsearch.org/kibana/kibana/kibana-${KIBANA_VERSION}-linux-x64.tar.gz" | tar -zxvf - -C /opt && \
     ln -s /opt/kibana-* /opt/kibana && \
     mv /opt/kibana/config/kibana.yml /opt/kibana/config/kibana.yml.orig

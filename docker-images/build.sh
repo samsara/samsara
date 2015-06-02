@@ -34,5 +34,5 @@ build-and-tag $BASE/base       base-image-jdk8 "u1410-j8u40"
 
 build-and-tag $BASE/zookeeper  zookeeper       "3.4.6"
 build-and-tag $BASE/kafka      kafka           "0.8.2.1"
-build-and-tag $BASE/els        elasticsearch   "1.5.0"
-build-and-tag $BASE/kibana     kibana          "4.0.1"
+build-and-tag $BASE/els        elasticsearch   "1.5.2"
+build-and-tag $BASE/kibana     kibana          "4.0.2"

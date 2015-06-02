@@ -27,11 +27,11 @@ docker push samsara/kafka:0.8.2.1
 # PUSHING ElasticSearch image
 #
 docker push samsara/elasticsearch:latest
-docker push samsara/elasticsearch:1.5.0
+docker push samsara/elasticsearch:1.5.2
 
 
 #
 # PUSHING Kibana image
 #
 docker push samsara/kibana:latest
-docker push samsara/kibana:4.0.1
+docker push samsara/kibana:4.0.2
