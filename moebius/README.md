@@ -310,9 +310,7 @@ To use you simply use in a condition statement:
   * state management
   * docstring in macros
   * perf-tests
-  * metrics tracking
   * add metata into pipleline
-  * add REPL  
 
 ## License
 
