@@ -8,6 +8,12 @@
 ;; TOOD: tx-log + compaction: single key or all keys x sourceId?
 ;;
 
+;;
+;; This protocol contains the function to manage the state
+;; from a pipeline user perspective. The KeyValue store
+;; can be backed by several different implementations
+;; depending on the runtime configuration.
+;; 
 (defprotocol KV
   "A key value store protocol"
 
@@ -18,7 +24,12 @@
     "It returns the current value of the given key. nil if not found."))
 
 
-
+;;
+;; The Transaction Log protocol is attached to a KeyValue store
+;; to produce a event stream which can be restored when necessary
+;; Also this protocol can have several different implementation
+;; depending on the hosting cloud or the chosen solution.
+;; 
 (defprotocol Tx-Log
   "A transaction log protocol"
 
