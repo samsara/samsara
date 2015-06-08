@@ -13,7 +13,7 @@
 ;; from a pipeline user perspective. The KeyValue store
 ;; can be backed by several different implementations
 ;; depending on the runtime configuration.
-;; 
+;;
 (defprotocol KV
   "A key value store protocol"
 
@@ -21,7 +21,8 @@
     "Set the given key to the give value. Returns the new KV store")
 
   (get [kvstore sourceId key]
-    "It returns the current value of the given key. nil if not found."))
+    "It returns the current value of the given key. nil if not found.")
+;;  )
 
 
 ;;
@@ -29,9 +30,9 @@
 ;; to produce a event stream which can be restored when necessary
 ;; Also this protocol can have several different implementation
 ;; depending on the hosting cloud or the chosen solution.
-;; 
-(defprotocol Tx-Log
-  "A transaction log protocol"
+;;
+;;(defprotocol Tx-Log
+;; "A transaction log protocol"
 
   (update [kvstore sourceId key value]
     "Set the given key to the give value. Returns the new KV store")
@@ -60,7 +61,7 @@
 
 
   ;; implementing Tx-Log semantics
-  Tx-Log
+  ;; Tx-Log
   (update [kvstore sourceId key value]
     (InMemoryKVstore.
      (-> (:data kvstore)
@@ -109,4 +110,6 @@
 
   ;; still the same
   (= kv1' kv2')
+
+  (get kv1' "a" :test)
 )
