@@ -43,4 +43,28 @@
                  (kv/set "s2" "key1" "v2")
                  (kv/get "s2" "key1"))         =>       "v2"
 
-                 ))
+                 )
+
+
+       (fact "if a key hasn't been set or remove should return `nil`"
+
+             ;; assertion                             expected result
+             (-> kvstore
+                 (kv/set "s1" "key1" "v1")
+                 (kv/set "s2" "key1" "v2")
+                 (kv/get "s3" "key1"))         =>       nil
+
+             (-> kvstore
+                 (kv/set "s1" "key1" "v1")
+                 (kv/set "s2" "key1" "v2")
+                 (kv/get "s1" "key5"))         =>       nil
+
+             (-> kvstore
+                 (kv/set "s1" "key1" "v1")
+                 (kv/set "s1" "key1" nil)
+                 (kv/get "s1" "key1"))         =>       nil
+                 )
+
+
+
+       )
