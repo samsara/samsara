@@ -4,8 +4,7 @@
 ;;
 ;; TODO: multi set function
 ;; TODO: force keys to string?
-;; TODO: Do ve need the version? (think repartitioning)
-;; TOOD: tx-log + compaction: single key or all keys x sourceId?
+;; TODO: Do we need the version? (think repartitioning)
 ;;
 
 ;;
@@ -33,8 +32,8 @@
 (defprotocol Tx-Log
  "A transaction log protocol"
 
-  (update [kvstore sourceId key value]
-    "Set the given key to the give value. Returns the new KV store")
+  (update [kvstore sourceId f]
+    "Update a given keys. Returns the new KV store")
 
   (snapshot [kvstore]
     "Return the current value of the kvstore")
@@ -52,7 +51,7 @@
   ;; implementing KV protocol
   KV
   (set [kvstore sourceId key value]
-    (update kvstore sourceId key value))
+    (update kvstore sourceId #(assoc % key value)))
 
 
   (get [kvstore sourceId key]
@@ -61,16 +60,18 @@
 
   ;; implementing Tx-Log semantics
   Tx-Log
-  (update [kvstore sourceId key value]
+  (update [kvstore sourceId f]
     (InMemoryKVstore.
      (-> (:data kvstore)
          ;; increment version number
          (update-in [:version] inc)
          ;; update the given key
-         (assoc-in [:snapshot sourceId key] value)
+         (update-in [:snapshot sourceId] f)
          ;; add a tx-log record
-         ((fn [{:keys [version] :as data}]
-            (update-in data [:tx-log] conj [version [sourceId key] value]))))))
+         ((fn [{:keys [version tx-log snapshot] :as data}]
+            (update-in data [:tx-log] conj
+                       [version sourceId (clojure.core/get snapshot sourceId)]))))))
+
 
   (tx-log [kvstore]
     (-> kvstore :data :tx-log))
@@ -81,8 +82,8 @@
 
 
   (restore [kvstore tx-log]
-    (reduce (fn [kv [_ [sourceId key] value]]
-         (update kv sourceId key value))
+    (reduce (fn [kv [_ sourceId value]]
+         (update kv sourceId (constantly value)))
        kvstore tx-log)))
 
 
