@@ -21,8 +21,7 @@
     "Set the given key to the give value. Returns the new KV store")
 
   (get [kvstore sourceId key]
-    "It returns the current value of the given key. nil if not found.")
-;;  )
+    "It returns the current value of the given key. nil if not found."))
 
 
 ;;
@@ -31,8 +30,8 @@
 ;; Also this protocol can have several different implementation
 ;; depending on the hosting cloud or the chosen solution.
 ;;
-;;(defprotocol Tx-Log
-;; "A transaction log protocol"
+(defprotocol Tx-Log
+ "A transaction log protocol"
 
   (update [kvstore sourceId key value]
     "Set the given key to the give value. Returns the new KV store")
@@ -61,7 +60,7 @@
 
 
   ;; implementing Tx-Log semantics
-  ;; Tx-Log
+  Tx-Log
   (update [kvstore sourceId key value]
     (InMemoryKVstore.
      (-> (:data kvstore)
