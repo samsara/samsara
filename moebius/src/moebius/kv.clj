@@ -1,8 +1,7 @@
 (ns moebius.kv
-  (:refer-clojure :exclude [set get remove update]))
+  (:refer-clojure :exclude [set get update]))
 
 ;;
-;; TODO: multi set function
 ;; TODO: force keys to string?
 ;; TODO: Do we need the version? (think repartitioning)
 ;;
@@ -20,7 +19,10 @@
     "Set the given key to the give value. Returns the new KV store")
 
   (get [kvstore sourceId key]
-    "It returns the current value of the given key. nil if not found."))
+    "It returns the current value of the given key. nil if not found.")
+
+  (del [kvstore sourceId key]
+    "It deletes the given key from the kv store. Returns a new KV store."))
 
 
 ;;
@@ -51,11 +53,17 @@
   ;; implementing KV protocol
   KV
   (set [kvstore sourceId key value]
-    (update kvstore sourceId #(assoc % key value)))
+    (if value
+      (update kvstore sourceId #(assoc % key value))
+      (del kvstore sourceId key)))
 
 
   (get [kvstore sourceId key]
     (get-in kvstore [:data :snapshot sourceId key]))
+
+
+  (del [kvstore sourceId key]
+    (update kvstore sourceId #(dissoc % key)))
 
 
   ;; implementing Tx-Log semantics
