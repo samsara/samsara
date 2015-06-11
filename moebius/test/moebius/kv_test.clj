@@ -237,17 +237,3 @@
                      (kv/restore (kv/tx-log kv1)))]
 
          (kv/tx-log kv2) => []))
-
-
-(def  kv0 (kv/make-in-memory-kvstore))
-(def  kv1 (-> kv0
-              (kv/set "s1" "key1" "v1")
-              (kv/set "s2" "key1" "vB")
-              (kv/set "s1" "key1" "v2")
-              (kv/del "s1" "key1")
-              (kv/set "s2" "key2" "vC")))
-
-(def  kv2 (-> (kv/make-in-memory-kvstore)
-              (kv/restore (kv/tx-log kv1))))
-
-kv2
