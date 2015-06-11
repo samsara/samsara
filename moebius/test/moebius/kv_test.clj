@@ -179,3 +179,75 @@
                      (kv/restore (kv/tx-log kv1)))]
 
          (kv/snapshot kv1) => (kv/snapshot kv2)))
+
+
+
+
+(facts "about Tx-Log protocol: flush-tx-log must be able to flush the given transactions"
+
+       ;; flushing a tx-log which hasn't changed should empty it
+       (let [kv0 (kv/make-in-memory-kvstore)
+             kv1 (-> kv0
+                     (kv/set "s1" "key1" "v1")
+                     (kv/set "s2" "key1" "vB")
+                     (kv/set "s1" "key1" "v2")
+                     (kv/del "s1" "key1")
+                     (kv/set "s2" "key2" "vC"))
+
+             txlog (kv/tx-log kv1)
+
+             kvf (kv/flush-tx-log kv1 txlog)]
+
+         (kv/tx-log kvf) => [])
+
+
+       ;; flushing a tx-log which has changed should remove
+       ;; only the given tx
+       (let [kv0 (kv/make-in-memory-kvstore)
+             kv1 (-> kv0
+                     (kv/set "s1" "key1" "v1")
+                     (kv/set "s2" "key1" "vB")
+                     (kv/set "s1" "key1" "v2")
+                     (kv/del "s1" "key1")
+                     (kv/set "s2" "key2" "vC"))
+
+             txlog (kv/tx-log kv1)
+
+             kv2 (-> kv1
+                     (kv/set "s3" "key3" "v3"))
+
+             kvf (kv/flush-tx-log kv2 txlog)]
+
+         (kv/tx-log kvf) => [[6 "s3" {"key3" "v3"}]]))
+
+
+
+(facts "about Tx-Log protocol: restore must flush the tx-log after restore"
+
+       ;; mix instructions restore
+       (let [kv0 (kv/make-in-memory-kvstore)
+             kv1 (-> kv0
+                     (kv/set "s1" "key1" "v1")
+                     (kv/set "s2" "key1" "vB")
+                     (kv/set "s1" "key1" "v2")
+                     (kv/del "s1" "key1")
+                     (kv/set "s2" "key2" "vC"))
+
+             kv2 (-> (kv/make-in-memory-kvstore)
+                     (kv/restore (kv/tx-log kv1)))]
+
+         (kv/tx-log kv2) => []))
+
+
+(def  kv0 (kv/make-in-memory-kvstore))
+(def  kv1 (-> kv0
+              (kv/set "s1" "key1" "v1")
+              (kv/set "s2" "key1" "vB")
+              (kv/set "s1" "key1" "v2")
+              (kv/del "s1" "key1")
+              (kv/set "s2" "key2" "vC")))
+
+(def  kv2 (-> (kv/make-in-memory-kvstore)
+              (kv/restore (kv/tx-log kv1))))
+
+kv2

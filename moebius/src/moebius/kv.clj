@@ -44,7 +44,10 @@
     "Return the current Transaction log")
 
   (restore [kvstore tx-log]
-    "restore the state of a KV store from a given txlog"))
+    "restore the state of a KV store from a given txlog")
+
+  (flush-tx-log [kvstore tx-log]
+    "Flushes out the given tx-log from the pending transactions."))
 
 
 
@@ -90,9 +93,16 @@
 
 
   (restore [kvstore tx-log]
-    (reduce (fn [kv [_ sourceId value]]
-         (update kv sourceId (constantly value)))
-       kvstore tx-log)))
+    (-> (reduce (fn [kv [_ sourceId value]]
+             (update kv sourceId (constantly value)))
+           kvstore tx-log)
+        (flush-tx-log tx-log)))
+
+
+  (flush-tx-log [kvstore tx-log]
+    (InMemoryKVstore.
+     (-> (:data kvstore)
+         (update-in [:tx-log] #(apply vector (drop (count tx-log) %)))))))
 
 
 (defn make-in-memory-kvstore []
