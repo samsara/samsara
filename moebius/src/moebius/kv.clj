@@ -107,27 +107,3 @@
 
 (defn make-in-memory-kvstore []
   (InMemoryKVstore. {:version 0 :snapshot {} :tx-log []}))
-
-
-(comment
-  ;; create empty kvstores
-  (def kv1 (make-in-memory-kvstore))
-  (def kv2 (make-in-memory-kvstore))
-
-  ;; both same
-  (= kv1 kv2)
-
-  ;; make some changes
-  (def kv1'
-    (-> kv1
-        (set "a" :test 1)
-        (set "a" :test 2)))
-
-  ;; restore state based on tx-log
-  (def kv2' (restore kv2 (tx-log kv1')))
-
-  ;; still the same
-  (= kv1' kv2')
-
-  (get kv1' "a" :test)
-)
