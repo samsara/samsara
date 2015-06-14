@@ -305,13 +305,6 @@ To use you simply use in a condition statement:
 ```
 
 
-## TODO
-
-  * state management
-  * docstring in macros
-  * perf-tests
-  * add metata into pipleline
-
 ## License
 
 Copyright © 2015 Samsara's authors
