@@ -3,7 +3,6 @@
 
 ;;
 ;; TODO: force keys to string?
-;; TODO: Do we need the version? (think repartitioning)
 ;;
 
 ;;
