@@ -95,9 +95,12 @@
   (restore [kvstore tx-log]
     (InMemoryKVstore.
      (reduce (fn [state [sourceId version value]]
-          (-> state
-              (assoc-in [:version  sourceId] version)
-              (assoc-in [:snapshot sourceId] value)))
+          ;; restore state only if the tx-log version is bigger
+          (if (< (get-in state [:version sourceId] 0) version)
+            (-> state
+                (assoc-in [:version  sourceId] version)
+                (assoc-in [:snapshot sourceId] value))
+            state))
         (:data kvstore)
         tx-log)))
 

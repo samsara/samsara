@@ -184,7 +184,6 @@
 
 
 
-
 (facts "about Tx-Log protocol: flush-tx-log must be able to flush the given transactions"
 
        ;; flushing a tx-log which hasn't changed should empty it
@@ -244,8 +243,6 @@
 
 
 
-
-
 (facts "about Tx-Log protocol: versions must be kept per sourceId to allow being recombined after resharding"
 
        ;; mix instructions restore
@@ -266,3 +263,36 @@
 
          (->> (:data kv2)
               :version) => {"s1" 3 "s2" 2}))
+
+
+
+(facts "about Tx-Log protocol: restore must not replay and event if the current version is greater then the version of the event"
+
+       ;; mix instructions restore
+       (let [kv0 (kv/make-in-memory-kvstore)
+             kv1 (-> kv0
+                     (kv/set "s1" "key1" "v1")
+                     (kv/set "s2" "key1" "vB")
+                     (kv/set "s1" "key1" "v2")
+                     (kv/set "s1" "key1" "v3")
+                     (kv/set "s2" "key2" "vC"))
+
+             txlog1 (conj (kv/tx-log kv1) ["s1" 1 {"key1" "DONT-PLAY-ME"}])
+             txlog2 (conj (kv/tx-log kv1) ["s1" 3 {"key1" "DONT-PLAY-ME"}])
+             txlog3 (conj (kv/tx-log kv1) ["s1" 4 {"key1" "PLAY-ME"}])
+             ]
+
+         (fact "shouldn't replay a tx log with a smaller version value for s1/key1"
+               (-> (kv/make-in-memory-kvstore)
+                   (kv/restore txlog1)
+                   (kv/get "s1" "key1")) => "v3")
+
+         (fact "shouldn't replay a tx log with the same version value for s1/key1"
+               (-> (kv/make-in-memory-kvstore)
+                   (kv/restore txlog2)
+                   (kv/get "s1" "key1")) => "v3")
+
+         (fact "should replay a tx log with a bigger version value for s1/key1"
+               (-> (kv/make-in-memory-kvstore)
+                   (kv/restore txlog3)
+                   (kv/get "s1" "key1")) => "PLAY-ME")))
