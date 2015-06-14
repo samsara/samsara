@@ -131,25 +131,27 @@
 
 
 
+       ;; this test isn't nice as expose inner structure
        (-> (kv/make-in-memory-kvstore)
            (kv/set "s1" "key1" "v1")
            (kv/set "s1" "key1" "v2")
            (kv/tx-log))
 
-       => [[1 "s1" {"key1" "v1"}]
-           [2 "s1" {"key1" "v2"}]]
+       => [["s1" 1 {"key1" "v1"}]
+           ["s1" 2 {"key1" "v2"}]]
 
 
 
+       ;; this test isn't nice as expose inner structure
        (-> (kv/make-in-memory-kvstore)
            (kv/set "s1" "key1" "v1")
            (kv/set "s1" "key1" "v2")
            (kv/set "s1" "key1" nil)
            (kv/tx-log))
 
-       => [[1 "s1" {"key1" "v1"}]
-           [2 "s1" {"key1" "v2"}]
-           [3 "s1" {}]]
+       => [["s1" 1 {"key1" "v1"}]
+           ["s1" 2 {"key1" "v2"}]
+           ["s1" 3 {}]]
 
 
        ;; mix instructions restore
@@ -201,8 +203,10 @@
          (kv/tx-log kvf) => [])
 
 
+
        ;; flushing a tx-log which has changed should remove
        ;; only the given tx
+       ;; this test isn't nice as expose inner structure
        (let [kv0 (kv/make-in-memory-kvstore)
              kv1 (-> kv0
                      (kv/set "s1" "key1" "v1")
@@ -214,15 +218,15 @@
              txlog (kv/tx-log kv1)
 
              kv2 (-> kv1
-                     (kv/set "s3" "key3" "v3"))
+                     (kv/set "s1" "key1" "v4"))
 
              kvf (kv/flush-tx-log kv2 txlog)]
 
-         (kv/tx-log kvf) => [[6 "s3" {"key3" "v3"}]]))
+         (kv/tx-log kvf) => [["s1" 4 {"key1" "v4"}]]))
 
 
 
-(facts "about Tx-Log protocol: restore must flush the tx-log after restore"
+(facts "about Tx-Log protocol: restore must flushed the tx-log after restore"
 
        ;; mix instructions restore
        (let [kv0 (kv/make-in-memory-kvstore)
@@ -237,3 +241,28 @@
                      (kv/restore (kv/tx-log kv1)))]
 
          (kv/tx-log kv2) => []))
+
+
+
+
+
+(facts "about Tx-Log protocol: versions must be kept per sourceId to allow being recombined after resharding"
+
+       ;; mix instructions restore
+       (let [kv0 (kv/make-in-memory-kvstore)
+             kv1 (-> kv0
+                     (kv/set "s1" "key1" "v1")
+                     (kv/set "s2" "key1" "vB")
+                     (kv/set "s1" "key1" "v2")
+                     (kv/del "s1" "key1")
+                     (kv/set "s2" "key2" "vC"))
+
+             kv2 (-> (kv/make-in-memory-kvstore)
+                     (kv/restore (kv/tx-log kv1)))]
+
+         (->> (kv/tx-log kv1)
+              (map (juxt first second))
+              (into {})) => {"s1" 3 "s2" 2}
+
+         (->> (:data kv2)
+              :version) => {"s1" 3 "s2" 2}))

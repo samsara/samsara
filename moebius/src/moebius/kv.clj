@@ -75,13 +75,13 @@
     (InMemoryKVstore.
      (-> (:data kvstore)
          ;; increment version number
-         (update-in [:version] inc)
+         (update-in [:version sourceId] #(inc (or % 0)))
          ;; update the given key
          (update-in [:snapshot sourceId] f)
          ;; add a tx-log record
          ((fn [{:keys [version tx-log snapshot] :as data}]
             (update-in data [:tx-log] conj
-                       [version sourceId (clojure.core/get snapshot sourceId)]))))))
+                       [sourceId (version sourceId) (snapshot sourceId)]))))))
 
 
   (tx-log [kvstore]
@@ -93,10 +93,13 @@
 
 
   (restore [kvstore tx-log]
-    (-> (reduce (fn [kv [_ sourceId value]]
-             (update kv sourceId (constantly value)))
-           kvstore tx-log)
-        (flush-tx-log tx-log)))
+    (InMemoryKVstore.
+     (reduce (fn [state [sourceId version value]]
+          (-> state
+              (assoc-in [:version  sourceId] version)
+              (assoc-in [:snapshot sourceId] value)))
+        (:data kvstore)
+        tx-log)))
 
 
   (flush-tx-log [kvstore tx-log]
@@ -106,4 +109,4 @@
 
 
 (defn make-in-memory-kvstore []
-  (InMemoryKVstore. {:version 0 :snapshot {} :tx-log []}))
+  (InMemoryKVstore. {:version {} :snapshot {} :tx-log []}))
