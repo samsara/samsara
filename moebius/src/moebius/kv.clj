@@ -1,8 +1,37 @@
 (ns moebius.kv
+  "This namespace provides the protocols for a Key/Value store
+  and the operations necessary to persist and restore its state.
+  There is also an implementation for of an in-memory store
+  which relies on Clojure immutable maps."
   (:refer-clojure :exclude [set get update]))
 
 ;;
 ;; TODO: force keys to string?
+;;
+
+;;
+;; The core of the state management is done via this KeyValue store.
+;; As a normal K/V store you can `set`/`get` or delete (`del`)
+;; an arbitrary key. The value will stored and persisted together
+;; with the output events in such way that if the process fail
+;; before persisting the values, the state will be restored
+;; to the value they had before processing the requests.
+;; Keeping K/V state aligned with the events to process,
+;; guarantee consistent values and high processing speed
+;; as the processing is done entirely in memory.
+;;
+;; The K/V store is distributed across all processing machines.
+;; The sharding strategy follow the same strategy of the events
+;; processing.
+;; Part of the key is the `sourceId` of the event you are processing
+;; it is required. It is really important to provide the same `sourceId`
+;; of the events in order to guarantee that the state is restored in
+;; the same place.
+;;
+;; In order worlds the Dirstibuted K/V Store will be distributed
+;; in the exact same way of the events, guaranteeing that a certain
+;; key will always be local to a the task which is processing a certain
+;; event with the same `sourceId`.
 ;;
 
 ;;
