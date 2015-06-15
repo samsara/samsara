@@ -28,7 +28,7 @@
 ;; of the events in order to guarantee that the state is restored in
 ;; the same place.
 ;;
-;; In order worlds the Dirstibuted K/V Store will be distributed
+;; In order worlds the Distributed K/V Store will be distributed
 ;; in the exact same way of the events, guaranteeing that a certain
 ;; key will always be local to a the task which is processing a certain
 ;; event with the same `sourceId`.
