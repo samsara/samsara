@@ -21,7 +21,7 @@
 ;; as the processing is done entirely in memory.
 ;;
 ;; The K/V store is distributed across all processing machines.
-;; The sharding strategy follow the same strategy of the events
+;; The sharding strategy follows the same strategy of the events
 ;; processing.
 ;; Part of the key is the `sourceId` of the event you are processing
 ;; it is required. It is really important to provide the same `sourceId`
