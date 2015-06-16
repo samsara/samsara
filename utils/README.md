@@ -1,6 +1,6 @@
-# samsara-utils
+# samsara-utils [![Dependencies Status](http://jarkeeper.com/samsara/samsara-utils/status.png)](http://jarkeeper.com/samsara/samsara-utils)
 
-A Clojure library designed to ... well, that part is up to you.
+A set of common utilities for the Samsara's project.
 
 ## Usage
 
@@ -8,7 +8,7 @@ FIXME
 
 ## License
 
-Copyright © 2015 FIXME
+Copyright © 2015 Samsara's Authors
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the Apache License v 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
