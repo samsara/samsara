@@ -23,7 +23,7 @@
                 (> timestamp publishedAt)  false
                 (> publishedAt receivedAt) false
                 ;; is received - published within
-                ;; a reasonable time (10s) otherwise is bogus
+                ;; a reasonable time (10s) otherwise we consider ti bogus
                 (not (>= 10000 (- receivedAt publishedAt) 0)) false
                 ;; is the event generated within a
                 ;; reasonable time? 10d otherwise is bogus
