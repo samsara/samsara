@@ -5,7 +5,10 @@
   (:require [samsara.utils :refer [to-json from-json invariant]])
   (:require [samsara.trackit :refer [track-time count-tracker distribution-tracker]])
   (:import [org.apache.samza.job JobRunner]
-           [org.apache.samza.config MapConfig]))
+           [org.apache.samza.config MapConfig]
+           [org.apache.samza.system OutgoingMessageEnvelope
+            IncomingMessageEnvelope SystemStream]
+           [org.apache.samza.task MessageCollector TaskCoordinator]))
 
 ;; runtime pipeline initialized by init-pipeline!
 (def ^:dynamic *pipeline*     nil)
@@ -142,7 +145,9 @@
 
 
 
-(defn- tx-log->messages [txlog]
+(defn- tx-log->messages
+  "Turns the tx-log into a a triplet of [topic partition-key json-data]"
+  [txlog]
   (let [kvstore-topic (kvstore-topic!)]
     (->> txlog
          (map (fn [[k ver v]]
@@ -150,32 +155,44 @@
 
 
 
-(defn uber-pipeline [events]
-  (let [rich-events (pipeline events)
-        ;;               this not really true when
-        ;;               multiple threads running in same vm
-        txlog     (kv/tx-log @*store*)
-        txlog-msg (tx-log->messages txlog)]
-    ;; flushing tx-log
-    (swap! *store* kv/flush-tx-log txlog)
-    (concat txlog-msg rich-events)))
+(def topic->stream
+  "Given a topic it return the equivalent Samza' SystemStream"
+  (memoize (fn [topic] (SystemStream. "kafka" topic))))
 
 
 
-(defn dispatch
+(defn samza-process
   "Takes an event as a JSON encoded String and depending on the stream
    name dispatches the function to the appropriate handler.
    One handler is the normal pipeline processing, the second handler
    is for the kv-store"
-  [^String stream ^String partition ^String event]
+  [^IncomingMessageEnvelope envelope,
+   ^MessageCollector collector,
+   ^TaskCoordinator coordinator
+   ^String stream
+   ^String partition
+   ^String message]
+
   (if (= stream (kvstore-topic!))
     ;; messages for the kvstore are dispatched directly to the restore function
     ;; and this function doesn't emit anything
-    (do (kv-restore! event) '())
+    (kv-restore! message)
     ;; other messages are processed by the normal pipeline, however here
     ;; we need to emit the state messages as well.
-    (uber-pipeline event)))
+    (let [rich-events (pipeline message)
+          ;;               this not really true when
+          ;;               multiple threads running in same vm
+          txlog     (kv/tx-log @*store*)
+          txlog-msg (tx-log->messages txlog)
+          all-output (concat txlog-msg rich-events)]
 
+      ;; emitting the output
+      (doseq [[oStream oKey oMessage] all-output]
+        (.send collector (OutgoingMessageEnvelope.
+                          (topic->stream oStream) oKey oMessage )))
+
+      ;; flushing tx-log
+      (swap! *store* kv/flush-tx-log txlog))))
 
 
 (defn init-pipeline! [config]
