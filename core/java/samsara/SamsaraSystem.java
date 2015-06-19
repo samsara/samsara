@@ -14,6 +14,15 @@ import org.apache.samza.task.TaskCoordinator;
 import clojure.java.api.Clojure;
 import clojure.lang.IFn;
 
+/**
+ * This class it used to bridge the Samza system back
+ * to the Clojure pipeline. It is instantiated by
+ * Samza runtime via reflection and it receive all
+ * messages to process through the process() method.
+ * This method just extract the relevant information
+ * from the parameters and delegates everything
+ * back to Clojure.
+ */
 public class SamsaraSystem implements StreamTask {
 
 
