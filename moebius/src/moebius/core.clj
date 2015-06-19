@@ -6,56 +6,115 @@
 
 
 
-(defn- stepper
-  "It returns a function which performs a single
-  step in the cycle. It process the first event
-  from the `to-process` and put the result in
-  `processed` if not `nil`. When the result is
-  expanded with multiple events then these are
-  added to head of `to-process`."
+(defn stateless
+  "Wraps a stateless function into a stateful one.
+  It returns a function which takes two parameters `state` and `event`
+  and applies `f` to the event and leave the state unchanged."
   [f]
-  (fn [{:keys [to-process processed] :as domain}]
+  (fn [state event]
+    [state (f event)]))
+
+
+
+(defn stateless-pred
+  "Wraps a stateless predicate function into a stateful one.
+  It returns a function which takes two parameters `state` and `event`
+  and applies `pred` to the event and ignore the state."
+  [pred]
+  (fn [state event]
+    (pred event)))
+
+
+
+(defn- stepper
+  "It returns a function which performs a single step in the cycle. It
+  process the first event from the `to-process` and put the result in
+  `processed` if not `nil`. When the result is expanded with multiple
+  events then these are added to head of `to-process`."
+  [f]
+  (fn [{:keys [to-process processed state] :as domain}]
     (if-not (seq to-process)
       domain
-      (let [[head & tail] (f (first to-process))]
+      (let [[new-state [head & tail]] (f state (first to-process))]
         {:to-process (seq (concat tail (next to-process)))
+         :state      new-state
          :processed  (if head (conj processed head) processed)}))))
 
 
 
 (defn cycler
-  "It takes a functiona and a list of events.
-  The function `f` must return a list of 0, 1 or more elements.
-  When the `f` returns an empty list, the event it has been
-  filtered out. When the function `f` returns only 1 element
-  it is commonly referred as enrichment process. When the `f`
-  returns more than one elements the first one is typically
-  the event which has been processed and any addional are
-  correlated events which will be put back in the cycle to
-  to follow the same process. If you whish to just `expand` and
-  event (given an event produce 2 or more events and discard
-  the original event) then all you need to do is return a
-  list of events in which the first element is `nil`.
-  This is called expansion.
+  "It takes a functional and a list of events.
+  The function `f` must return a list of 0, 1 or more elements.  When
+  the `f` returns an empty list, the event it has been filtered
+  out. When the function `f` returns only 1 element it is commonly
+  referred as enrichment process. When the `f` returns more than one
+  elements the first one is typically the event which has been
+  processed and any additional are correlated events which will be put
+  back in the cycle to to follow the same process. If you whish to
+  just `expand` and event (given an event produce 2 or more events and
+  discard the original event) then all you need to do is return a list
+  of events in which the first element is `nil`.  This is called
+  expansion.
   "
-  [f events]
+  [state f events]
   (->> (stepper f)
-       (#(iterate % {:to-process events :processed []}))
+       (#(iterate % {:to-process events :state state :processed []}))
        (drop-while :to-process)
        first
-       :processed))
+       ((juxt :state :processed))))
 
+
+
+(defmacro -def-moebius-function
+  "handy macro to define an moebius function"
+  [type name params & body]
+  (let [p# (count params)
+        wrapper (cond (= 2 p#) :stateful
+                      (= :filtering type) :stateless-pred
+                      :else :stateless)]
+    (if (not (<= 1 p# 2))
+      (throw (IllegalArgumentException.
+              (str "Invalid number of parameters for function: "
+                   name ". It can be either [event] or [state event]")))
+      `(def ~name
+         (with-meta
+           (fn ~params
+             ~@body)
+           {:moebius-wrapper ~wrapper
+            :moebius-type ~type})))))
+
+
+
+;; (defn enricher
+;;   "Takes a function which accepts an event and wraps the result
+;;   into an array as expected by the `cycler`"
+;;   [f]
+;;   (fn [event]
+;;     (let [result (f event)]
+;;       (if result
+;;         [result]
+;;         [event]))))
 
 
 (defn enricher
   "Takes a function which accepts an event and wraps the result
   into an array as expected by the `cycler`"
   [f]
-  (fn [event]
-    (let [result (f event)]
-      (if result
-        [result]
-        [event]))))
+  (fn [state event]
+    (let [[s' e'] (f state event)]
+      (if e'
+        [s' [e']]
+        [state [event]]))))
+
+
+;; (defn correlator
+;;   "Takes a function which accept an event and turns the output into
+;;   something expected by the cycler"
+;;   [f]
+;;   (fn [event]
+;;     (let [r  (f event)
+;;           rn (if (map? r) [r] r)]
+;;       (cons event rn))))
 
 
 
@@ -63,10 +122,19 @@
   "Takes a function which accept an event and turns the output into
   something expected by the cycler"
   [f]
-  (fn [event]
-    (let [r  (f event)
+  (fn [state event]
+    (let [[s' r]  (f state event)
           rn (if (map? r) [r] r)]
-      (cons event rn))))
+      [s' (cons event rn)])))
+
+
+
+;; (defn filterer
+;;   "Similar to `filter` it takes a predicate which applied to
+;;   an event return something truthy for the events to keep."
+;;   [pred]
+;;   (fn [event]
+;;     [(when (pred event) event)]))
 
 
 
@@ -74,13 +142,13 @@
   "Similar to `filter` it takes a predicate which applied to
   an event return something truthy for the events to keep."
   [pred]
-  (fn [event]
-    [(when (pred event) event)]))
+  (fn [state event]
+    [state [(when (pred state event) event)]]))
 
 
 
 (defn pipeline
-  "Pipeline composese stearming processing functions
+  "Pipeline composes stearming processing functions
   into a chain of processing which is then applied by
   `cycler`"
   [& fs]
@@ -96,33 +164,54 @@
 
 
 
+;; (defmacro defenrich
+;;   "handy macro to define an enrichment function"
+;;   [name params & body]
+;;   `(def ~name
+;;      (enricher
+;;       (fn ~params
+;;         ~@body))))
+
+
+
+;; (defmacro defcorrelate
+;;   "handy macro to define an correlation function"
+;;   [name params & body]
+;;   `(def ~name
+;;      (correlator
+;;       (fn ~params
+;;         ~@body))))
+
+
+
+;; (defmacro deffilter
+;;   "handy macro to define an filter function"
+;;   [name params & body]
+;;   `(def ~name
+;;      (filterer
+;;       (fn ~params
+;;         ~@body))))
+
+
+
 (defmacro defenrich
   "handy macro to define an enrichment function"
   [name params & body]
-  `(def ~name
-     (enricher
-      (fn ~params
-        ~@body))))
+  `(-def-moebius-function :enrichment ~name ~params ~@body))
 
 
 
 (defmacro defcorrelate
-  "handy macro to define an correlation function"
+  "handy macro to define an correlations function"
   [name params & body]
-  `(def ~name
-     (correlator
-      (fn ~params
-        ~@body))))
+  `(-def-moebius-function :correlation ~name ~params ~@body))
 
 
 
 (defmacro deffilter
-  "handy macro to define an filter function"
+  "handy macro to define an filtering function"
   [name params & body]
-  `(def ~name
-     (filterer
-      (fn ~params
-        ~@body))))
+  `(-def-moebius-function :filtering ~name ~params ~@body))
 
 
 
@@ -171,8 +260,9 @@
 
 
 (defmacro when-event-match
-  "If the event matches one of the patterns the related expression is evaluated and returned.
-   If none matches `nil` is returned.
+  "If the event matches one of the patterns the related expression is
+  evaluated and returned.
+  If none matches `nil` is returned.
 
    example:
 
@@ -244,5 +334,5 @@
 (defn moebius
   "It takes a list of functions transformation and produces a function
    which applied to a sequence of events will apply those transformations."
-  [& fs]
-  (partial cycler (apply pipeline fs)))
+  [& fs] ;; FIXME: this shouldn't stateless
+  (partial cycler nil (stateless-fn (apply pipeline fs))))
