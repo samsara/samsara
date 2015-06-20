@@ -17,6 +17,7 @@
        ((stateless #(assoc % :b 1)) nil {:a 1}) => [nil {:a 1 :b 1}]
 
        ((stateless (constantly nil)) 1 {:a 1}) => [1 nil]
+
        )
 
 

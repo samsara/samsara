@@ -335,4 +335,4 @@
   "It takes a list of functions transformation and produces a function
    which applied to a sequence of events will apply those transformations."
   [& fs] ;; FIXME: this shouldn't stateless
-  (partial cycler nil (stateless-fn (apply pipeline fs))))
+  (partial cycler nil (stateless (apply pipeline fs))))
