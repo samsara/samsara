@@ -58,6 +58,21 @@
 
 
 
+(facts "about stateful `enricher`: results are normalised for the `cycler`"
+
+       ;; enricher accepts a function which optionally perform
+       ;; a transformation to the given event, if state is changed
+       ;; then the new state must be returned
+       ((enricher (fn [s e] [(inc s) e])) 1 {:a 1}) => [2  [{:a 1}]]
+
+       ;; if the function changes the event, the new event must
+       ;; be returned
+       ((enricher (fn [s e] [(inc s) (assoc e :b 2)])) 1 {:a 1}) => [2  [{:a 1 :b 2}]]
+
+       )
+
+
+
 (facts "about stateless `correlator`: results are normalised for the `cycler`"
 
        ;; correlator accepts a function which optionally perform
