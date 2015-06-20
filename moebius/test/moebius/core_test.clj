@@ -3,6 +3,42 @@
   (:use midje.sweet))
 
 
+(facts "about `stateless`: stateless normalizes a function which
+        doesn't use state into a stateful one. In practice it
+        shouldn't alter the state in any way."
+
+       ;; stateless turns a function which takes only one param
+       ;; into one that takes two [state event] and applies the
+       ;; function to the event and return the state unchanged.
+       ((stateless identity) 1 {:a 1}) => [1 {:a 1}]
+
+       ((stateless #(assoc % :b 1)) 1 {:a 1}) => [1 {:a 1 :b 1}]
+
+       ((stateless #(assoc % :b 1)) nil {:a 1}) => [nil {:a 1 :b 1}]
+
+       ((stateless (constantly nil)) 1 {:a 1}) => [1 nil]
+       )
+
+
+
+(facts "about `stateless-pred`: stateless-pred normalizes a predicate
+        function which doesn't use state into a stateful one. In
+        practice it shouldn't alter the state in any way."
+
+       ;; stateless-pred turns a function which takes only one param
+       ;; into one that takes two [state event] and applies the
+       ;; function to the event
+       ((stateless-pred :a) 1 {:a 2}) => 2
+
+       ((stateless-pred :b) 1 {:a 1}) => nil
+
+       ((stateless-pred #(= 1 (:a %))) nil {:a 1}) => true
+
+       ((stateless-pred #(= 2 (:a %))) nil {:a 1}) => false
+
+       )
+
+
 (facts "about stateless `enricher`: results are normalised for the `cycler`"
 
        ;; enricher accepts a function which optionally perform
