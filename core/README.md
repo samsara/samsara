@@ -1,4 +1,4 @@
-# samsara-core
+# samsara-core [![Circle CI](https://circleci.com/gh/samsara/samsara-core/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara-core/tree/master) [![Dependencies Status](http://jarkeeper.com/samsara/samsara-core/status.png)](http://jarkeeper.com/samsara/samsara-core)
 
 Real-time event stream processing pipeline for Samsara Analytics
 
@@ -65,7 +65,7 @@ The configuration is a EDN file with the following format.
     ;; strategy can be either :single or :daily
     ;; if daily the base-index will be used as prefix
     ;; and date will appened eg: events-2015-05-27
-    :strategy :single 
+    :strategy :single
     :base-index "events"
     :event-type "events"}}
 ```
@@ -94,32 +94,35 @@ docker run -tdi -p 15000:15000 -v /tmp/samsara-core:/logs \
 
 The linked containers will then be used for configuration autodiscovery.
 
-This will expose port `15000` on your docker host. It will mount 
+This will expose port `15000` on your docker host. It will mount
 a volume to expose the container logs as `/tmp/samsara-core`.
 
-You should be able to point your browser to [http://127.0.0.1:15000] and log in with
-`admin` / `samsara` to access supervisord web console.
+You should be able to point your browser to [http://127.0.0.1:15000]
+and log in with `admin` / `samsara` to access supervisord web console.
 
-**NOTE: if you are running on OSX with `boot2docker` the host on wich will the ports be exposed
-won't be the local host but the `boot2docker` virtual machine which by default is on
-`192.168.59.103` (check your $DOCKER_HOST).** This means that instead of accessing 
-[http://127.0.0.1:15000] you will have to access [http://192.168.59.103:15000] and
-that the mounted volume (`/tmp/samsara-core`) will be on the `boot2docker` virtual machine.
-To access them you can log into `boot2docker` with the following command: `boot2docker ssh`.
+**NOTE: if you are running on OSX with `boot2docker` the host on wich
+will the ports be exposed won't be the local host but the
+`boot2docker` virtual machine which by default is on `192.168.59.103`
+(check your $DOCKER_HOST).** This means that instead of accessing
+[http://127.0.0.1:15000] you will have to access
+[http://192.168.59.103:15000] and that the mounted volume
+(`/tmp/samsara-core`) will be on the `boot2docker` virtual machine.
+To access them you can log into `boot2docker` with the following
+command: `boot2docker ssh`.
 
 
 ## Tracking of metrics
 
-To track metrics I use [TRACKit!](https://github.com/samsara/trackit) and we expose the
-following metrics:
+To track metrics I use [TRACKit!](https://github.com/samsara/trackit)
+and we expose the following metrics:
 
 The `<topic>` refers to the kafka topic which you are consuming, by default is `ingestion`.
 
 ```
 # counters to track the total size of
-# proceccesed data in bytes 
+# proceccesed data in bytes
 
-pipeline.<topic>.in.total-size.count             
+pipeline.<topic>.in.total-size.count
 pipeline.<topic>.out.total-size.count
 
 
