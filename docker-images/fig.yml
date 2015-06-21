@@ -41,8 +41,6 @@ ingestion:
     - "15003:15000"
   environment:
     OUTPUT_TOPIC: "ingestion"
-    # TRANSFORM_FN: ""
-    TRANSFORM_ENABLE: "false"
     TRACKING_ENABLED: "true"
   volumes:
     - /tmp/logs/ingestion-api:/logs
