@@ -20,10 +20,6 @@ desiredState:
               - name: supervisord
                 containerPort: 15000
             env:
-              - name: TRANSFORM_FN
-                value: "(fn [e] {:index \"events-test\" :type \"events\" :source (assoc e :ts (java.util.Date. (:timestamp e)))})"
-              - name: TRANSFORM_ENABLE
-                value: "true"
               - name: TRACKING_ENABLED
                 value: "false"
             volumeMounts:
