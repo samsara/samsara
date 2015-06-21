@@ -11,18 +11,6 @@
 ;;
 (def ^:dynamic *backend* (atom nil))
 
-;;
-;; if provided *transform-fn* is applied to every event
-;; before to be sent to the specified backend
-;;
-(def !transform-fn! nil)
-
-
-(defn apply-transformation [events]
-  (track-time "ingestion.events.transformation"
-   (let [trf (or !transform-fn! identity)]
-     (doall (map trf events)))))
-
 
 (defn send!
   "Sends the events to the configured backend queuing system"

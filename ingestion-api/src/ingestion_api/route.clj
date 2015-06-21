@@ -9,7 +9,7 @@
             [clojure.pprint :refer [pprint]])
   (:require [ingestion-api.status :refer [change-status! is-online?]]
             [ingestion-api.events :refer [send! is-invalid? inject-receivedAt
-                                          inject-publishedAt apply-transformation]]))
+                                          inject-publishedAt]]))
 
 
 (defn not-found []
@@ -44,7 +44,6 @@
                       (->> events
                            (inject-receivedAt (System/currentTimeMillis))
                            (inject-publishedAt (to-long postingTimestamp))
-                           apply-transformation
                            send!)
                       {:status 202
                        :body (warn-when-missing-header postingTimestamp)})))
