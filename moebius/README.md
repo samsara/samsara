@@ -70,11 +70,11 @@ This function will add the `:game-name` attribute with the value
             :sourceId "device1"
             :level 1})
 
- ;;=> [{:eventName "game.started"
- ;;     :timestamp 1430760258401
- ;;     :sourceId "device1"
- ;;     :level 1
- ;;     :game-name "Apocalypse Now"}]
+ ;;=> {:eventName "game.started"
+ ;;    :timestamp 1430760258401
+ ;;    :sourceId "device1"
+ ;;    :level 1
+ ;;    :game-name "Apocalypse Now"}
 ```
 
 Easy enough. Next thing we would like to do is to inject the current
@@ -101,27 +101,31 @@ Let's try it out.
                 :sourceId "device1"
                 :levelCompleted 1})
 
-;;=> [{:eventName "game.level.completed"
-;;     :timestamp 1430760258403
-;;     :sourceId "device1"
-;;     :levelCompleted 1
-;;     :level 2}]
+;;=> {:eventName "game.level.completed"
+;;    :timestamp 1430760258403
+;;    :sourceId "device1"
+;;    :levelCompleted 1
+;;    :level 2}
 
-
-;; when applied to a non matching event, the event is left unchanged
 
 (current-level {:eventName "game.ad.displayed"
                 :timestamp 1430760258402
                 :sourceId "device1"})
 
-;;=>[{:eventName "game.ad.displayed"
-;;    :timestamp 1430760258402
-;;    :sourceId "device1"}]
+;;=> nil
 ```
+
+When applied to a non matching event, the `when`-like clause will
+return `nil` and the pipeline processor will interpret this as if you
+don't want to change the event. This is just a little simplification
+to avoid having to return the original event when you do want to
+change it. In case you want to discard the event, then you can use
+the `deffilter` macro to define a filter.
+
 
 ### Filtering
 
-Somatimes you want to filter out some of the events you receive. Although
+Sometimes you want to filter out some of the events you receive. Although
 this is not very frequent it might still happen. Usually is better to store
 everything as you never know if in the future you will need these events.
 
@@ -134,23 +138,19 @@ Let's assume that we want to remove all events called "game.ad.displayed":
   (not= eventName "game.ad.displayed"))
 
 
-;; when the event doesn't match it is left unchanged
+;; no surprise here the predicates work like in filter function
 (no-ads {:eventName "game.level.completed"
          :timestamp 1430760258403
          :sourceId "device1"
          :levelCompleted 1})
 
-;;=>[{:eventName "game.level.completed"
-;;    :timestamp 1430760258403
-;;    :sourceId "device1"
-;;    :levelCompleted 1}]
+;;=> true
 
-
-;; when it matches it should return an array with a `nil` event
+;; when it doesn't match `false` or `nil` is returned
 (no-ads  {:eventName "game.ad.displayed"
           :timestamp 1430760258402
           :sourceId "device1"})
-;;=> [nil]
+;;=> false
 ```
 
 ### Correlation
@@ -158,7 +158,7 @@ Let's assume that we want to remove all events called "game.ad.displayed":
 Another interesting capability of a stream processing system is to
 generate/derive new events from a given event.  The capability to
 generate new events is very important in order to keep client small and
-send only a minimal number of significant events, and do the hard work
+send only a minimal number of significant events and do the hard work
 on the server side.
 
 In our example let's assume that every time a user starts from the
@@ -189,11 +189,7 @@ an new event is returned. Let's try it into the REPL.
              :sourceId "device1"
              :level 1})
 
-;;=>[{:eventName "game.started"
-;;    :timestamp 1430760258401
-;;    :sourceId "device1"
-;;    :level 1}
-;;   {:timestamp 1430760258401
+;;=>[{:timestamp 1430760258401
 ;;    :sourceId "device1"
 ;;    :eventName "game.new.player"}]
 
@@ -216,18 +212,22 @@ Now let's put all the things together into a single streaming function.
          new-player))
 ```
 
-`moebius` return a function which will apply all composed functions
-to **all given events**.
+`moebius` return a function which will apply all composed functions to
+**all given events**. It takes an initial state as well, however if
+all processing functions are stateless, the state will be returned
+unchanged. We will explore more about the stateful processing later.
+
 
 ```Clojure
-(mf events)
+(mf nil events)
 
-;;=>[{:eventName "game.started", :game-name "Apocalypse Now", :level 1, :sourceId "device1", :timestamp 1430760258401}
+;;=>[nil ;; <-- state
+;;  [{:eventName "game.started", :game-name "Apocalypse Now", :level 1, :sourceId "device1", :timestamp 1430760258401}
 ;;   {:game-name "Apocalypse Now", :timestamp 1430760258401, :sourceId "device1", :eventName "game.new.player"}
 ;;   {:levelCompleted 1, :eventName "game.level.completed", :game-name "Apocalypse Now", :level 2, :sourceId "device1", :timestamp 1430760258403}
 ;;   {:levelCompleted 2, :eventName "game.level.completed", :game-name "Apocalypse Now", :level 3, :sourceId "device1", :timestamp 1430760258404}
 ;;   {:levelCompleted 3, :eventName "game.level.completed", :game-name "Apocalypse Now", :level 4, :sourceId "device1", :timestamp 1430760258406}
-;;   {:eventName "game.stopped", :game-name "Apocalypse Now", :level 4, :sourceId "device1", :timestamp 1430760258407}]
+;;   {:eventName "game.stopped", :game-name "Apocalypse Now", :level 4, :sourceId "device1", :timestamp 1430760258407}]]
 ```
 
 A few things need to be noted here.
