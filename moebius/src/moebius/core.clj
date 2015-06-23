@@ -10,7 +10,7 @@
 ;;
 
 
-(defn stateless
+(defn- stateful
   "Wraps a stateless function into a stateful one.
   It returns a function which takes two parameters `state` and `event`
   and applies `f` to the event and leave the state unchanged."
@@ -20,7 +20,7 @@
 
 
 
-(defn stateless-pred
+(defn- stateful-pred
   "Wraps a stateless predicate function into a stateful one.
   It returns a function which takes two parameters `state` and `event`
   and applies `pred` to the event and ignore the state."
@@ -46,7 +46,7 @@
 
 
 
-(defn cycler
+(defn- cycler
   "It takes a functional and a list of events.
   The function `f` must return a list of 0, 1 or more elements.  When
   the `f` returns an empty list, the event it has been filtered
@@ -60,7 +60,7 @@
   of events in which the first element is `nil`.  This is called
   expansion.
   "
-  [state f events]
+  [f state events]
   (->> (stepper f)
        (#(iterate % {:to-process events :state state :processed []}))
        (drop-while :to-process)
@@ -73,9 +73,7 @@
   "handy macro to define an moebius function"
   [type name params & body]
   (let [p# (count params)
-        wrapper (cond (= 2 p#) :stateful
-                      (= :filtering type) :stateless-pred
-                      :else :stateless)]
+        wrapper (if (= 2 p#) :stateful :stateless)]
     (if (not (<= 1 p# 2))
       (throw (IllegalArgumentException.
               (str "Invalid number of parameters for function: "
@@ -100,7 +98,7 @@
 ;;         [event]))))
 
 ;; TODO: should return state or s' when returned state is nil?
-(defn enricher
+(defn- enricher
   "Takes a function which accepts an event and wraps the result
   into an array as expected by the `cycler`"
   [f]
@@ -114,11 +112,11 @@
 
 
 
-((stateless #(assoc % :b 3)) 1 {:a 1})
+((stateful #(assoc % :b 3)) 1 {:a 1})
 
 ((enricher #(vector (inc %) (assoc %2 :b 3))) [1 [{:a 1}]])
 
-((enricher (stateless #(assoc % :b 3))) [1 [{:a 1}]])
+((enricher (stateful #(assoc % :b 3))) [1 [{:a 1}]])
 
 
 
@@ -134,7 +132,7 @@
 
 
 
-(defn correlator
+(defn- correlator
   "Takes a function which accept an event and turns the output into
   something expected by the cycler"
   [f]
@@ -154,7 +152,7 @@
 
 
 
-(defn filterer
+(defn- filterer
   "Similar to `filter` it takes a predicate which applied to
   an event return something truthy for the events to keep."
   [pred]
@@ -180,8 +178,8 @@
 
 
 (defn- as-stateful [f {:keys [moebius-wrapper moebius-type] :as m}]
-  (let [stateless' (if (= :filtering moebius-type) stateless-pred stateless)
-        wrapped (case moebius-wrapper :stateful f :stateless (stateless' f))]
+  (let [stateful' (if (= :filtering moebius-type) stateful-pred stateful)
+        wrapped (case moebius-wrapper :stateful f :stateless (stateful' f))]
     wrapped))
 
 (defn- wrapped-fn [f {:keys [moebius-wrapper moebius-type] :as m}]
@@ -402,5 +400,5 @@
 (defn moebius
   "It takes a list of functions transformation and produces a function
    which applied to a sequence of events will apply those transformations."
-  [& fs] ;; FIXME: this shouldn't stateless
-  #_(partial cycler nil (stateless (apply pipeline fs))))
+  [& fs]
+  (partial cycler (apply pipeline fs)))

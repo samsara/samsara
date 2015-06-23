@@ -1,41 +1,46 @@
 (ns moebius.core-test
   (:require [moebius.core :refer :all])
-  (:use midje.sweet))
+  (:use midje.sweet)
+  (:use [midje.util :only [testable-privates]]))
 
+(testable-privates moebius.core
+                   stateful stateful-pred
+                   cycler enricher correlator
+                   filterer)
 
-(facts "about `stateless`: stateless normalizes a function which
+(facts "about `stateful`: stateful normalizes a function which
         doesn't use state into a stateful one. In practice it
         shouldn't alter the state in any way."
 
-       ;; stateless turns a function which takes only one param
+       ;; stateful turns a function which takes only one param
        ;; into one that takes two [state event] and applies the
        ;; function to the event and return the state unchanged.
-       ((stateless identity) 1 {:a 1}) => [1 {:a 1}]
+       ((stateful identity) 1 {:a 1}) => [1 {:a 1}]
 
-       ((stateless #(assoc % :b 1)) 1 {:a 1}) => [1 {:a 1 :b 1}]
+       ((stateful #(assoc % :b 1)) 1 {:a 1}) => [1 {:a 1 :b 1}]
 
-       ((stateless #(assoc % :b 1)) nil {:a 1}) => [nil {:a 1 :b 1}]
+       ((stateful #(assoc % :b 1)) nil {:a 1}) => [nil {:a 1 :b 1}]
 
-       ((stateless (constantly nil)) 1 {:a 1}) => [1 nil]
+       ((stateful (constantly nil)) 1 {:a 1}) => [1 nil]
 
        )
 
 
 
-(facts "about `stateless-pred`: stateless-pred normalizes a predicate
+(facts "about `stateful-pred`: stateful-pred normalizes a predicate
         function which doesn't use state into a stateful one. In
         practice it shouldn't alter the state in any way."
 
-       ;; stateless-pred turns a function which takes only one param
+       ;; stateful-pred turns a function which takes only one param
        ;; into one that takes two [state event] and applies the
        ;; function to the event
-       ((stateless-pred :a) 1 {:a 2}) => 2
+       ((stateful-pred :a) 1 {:a 2}) => 2
 
-       ((stateless-pred :b) 1 {:a 1}) => nil
+       ((stateful-pred :b) 1 {:a 1}) => nil
 
-       ((stateless-pred #(= 1 (:a %))) nil {:a 1}) => true
+       ((stateful-pred #(= 1 (:a %))) nil {:a 1}) => true
 
-       ((stateless-pred #(= 2 (:a %))) nil {:a 1}) => false
+       ((stateful-pred #(= 2 (:a %))) nil {:a 1}) => false
 
        )
 
@@ -44,15 +49,15 @@
 
        ;; enricher accepts a function which optionally perform
        ;; a transformation to the given event
-       ((enricher (stateless identity))         1 {:a 1})    =>    [1  [{:a 1}]]
+       ((enricher (stateful identity))         [1 [{:a 1}]])    =>    [1  [{:a 1}]]
 
        ;; if the function changes the event, the new event must
        ;; be returned
-       ((enricher (stateless #(assoc % :b 2)))  1 {:a 1})    =>    [1 [{:a 1 :b 2}]]
+       ((enricher (stateful #(assoc % :b 2)))  [1 [{:a 1}]])    =>    [1 [{:a 1 :b 2}]]
 
        ;; if the enrichment function return nil
        ;; then the event is left unchanged
-       ((enricher (stateless (fn [x] nil)))      1 {:a 1})    =>    [1 [{:a 1}]]
+       ((enricher (stateful (fn [x] nil)))      [1 [{:a 1}]])    =>    [1 [{:a 1}]]
 
        )
 
@@ -63,11 +68,11 @@
        ;; enricher accepts a function which optionally perform
        ;; a transformation to the given event, if state is changed
        ;; then the new state must be returned
-       ((enricher (fn [s e] [(inc s) e])) 1 {:a 1}) => [2  [{:a 1}]]
+       ((enricher (fn [s e] [(inc s) e]))  [1 [{:a 1}]]) => [2  [{:a 1}]]
 
        ;; if the function changes the event, the new event must
        ;; be returned
-       ((enricher (fn [s e] [(inc s) (assoc e :b 2)])) 1 {:a 1}) => [2  [{:a 1 :b 2}]]
+       ((enricher (fn [s e] [(inc s) (assoc e :b 2)])) [1 [{:a 1}]]) => [2  [{:a 1 :b 2}]]
 
        )
 
@@ -78,31 +83,31 @@
        ;; correlator accepts a function which optionally perform
        ;; a transformation to the given event and it can return
        ;; 0, 1 or more new events
-       ((correlator (stateless (fn [x] [x])))   1 {:a 1})    =>     [1 [{:a 1}{:a 1}]]
+       ((correlator (stateful (fn [x] [x])))   [1 [{:a 1}]])    =>     [1 [{:a 1}{:a 1}]]
 
 
        ;; if the correlation function return [nil], an array with
        ;; a nil element should be returned which will cause the
        ;; the moebius to filter the event out.
-       ((correlator (stateless (fn [x] [nil])))  1  {:a 1})    =>    [1 [{:a 1} nil]]
+       ((correlator (stateful (fn [x] [nil])))  [1 [{:a 1}]])    =>    [1 [{:a 1} nil]]
 
 
        ;; if the correlator function return more than one element
        ;; then the list the list is preserved and added to the
        ;; element to process
-       ((correlator (stateless (fn [x] [{:a 2} {:a 3}])))  1   {:a 1})  =>  [1 [{:a 1} {:a 2} {:a 3}]]
+       ((correlator (stateful (fn [x] [{:a 2} {:a 3}])))  [1 [{:a 1}]])  =>  [1 [{:a 1} {:a 2} {:a 3}]]
 
 
        ;; if the correlation function return nil, an array with
        ;; a nil element should be returned which will cause the
        ;; the moebius to filter the event out.
-       ((correlator (stateless (fn [x] nil)))  1   {:a 1})    =>    [1 [{:a 1}]]
+       ((correlator (stateful (fn [x] nil)))  [1 [{:a 1}]])    =>    [1 [{:a 1}]]
 
 
-       ;; if a correlator function retrurn an event (a map)
+       ;; if a correlator function return an event (a map)
        ;; rather than returning a list/vector and the result
        ;; is wrapped into an vector
-       ((correlator (stateless (fn [x] x)))  1 {:a 1})    =>     [1 [{:a 1} {:a 1}]]
+       ((correlator (stateful (fn [x] x)))  [1 [{:a 1}]])    =>     [1 [{:a 1} {:a 1}]]
        )
 
 
@@ -112,19 +117,19 @@
        ;; filterer accepts a filtering predicate just like core/filter
        ;; if the predicate applied to the event is truthy then
        ;; the event is kept, otherwise if filtered out.
-       ((filterer (stateless-pred :a)) 1 {:a 1})    =>     [1 [{:a 1}]]
-       ((filterer (stateless-pred :b)) 1 {:a 1})    =>     [1 [nil]]
+       ((filterer (stateful-pred :a)) [1 [{:a 1}]])    =>     [1 [{:a 1}]]
+       ((filterer (stateful-pred :b)) [1 [{:a 1}]])    =>     [1 [nil]]
 
        )
 
 
 
-(facts "about `cycler`: it applies the functions to all given events and expands the result"
+#_(facts "about `cycler`: it applies the functions to all given events and expands the result"
 
-       (cycler 1 (enricher (stateless identity)) [{:a 1}])
+       (cycler (pipeline (enricher (stateful identity))) 1 [{:a 1}])
        =>  [1  [{:a 1}]]
 
-       (cycler 1 (enricher (stateless #(assoc % :b 2))) [{:a 1} {:a 2}])
+       (cycler 1 (enricher (stateful #(assoc % :b 2))) [{:a 1} {:a 2}])
        =>  [1 [{:a 1 :b 2} {:a 2 :b 2} ]]
 
        ;; when :a is 2 then emits a.2, a.3, a.4
@@ -133,12 +138,12 @@
                    [(update-in e [:a] inc)
                     (update-in e [:a] (comp inc inc))]))]
 
-         (cycler 1 (correlator (stateless f))
+         (cycler 1 (correlator (stateful f))
           [{:a 1} {:a 2} {:a 5}])
          => [1 [{:a 1} {:a 2} {:a 3} {:a 4} {:a 5}]])
 
 
-       (cycler 1 (filterer (stateless-pred (comp even? :a)))
+       (cycler 1 (filterer (stateful-pred (comp even? :a)))
                [{:a 1} {:a 2} {:a 3} {:a 4} {:a 5}])
        => [1 [ {:a 2} {:a 4} ]]
 
