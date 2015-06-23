@@ -8,6 +8,28 @@
                    cycler enricher correlator
                    filterer)
 
+;; Utility function for creating a moebius-fn with
+;; the right metadata
+(defn as-enricher- [f]
+  (moebius-fn "enricher" :enrichment :stateless f ))
+
+(defn as-enricher+ [f]
+  (moebius-fn "enricher" :enrichment :stateful f ))
+
+(defn as-correlator- [f]
+  (moebius-fn "correlator" :correlation :stateless f ))
+
+(defn as-correlator+ [f]
+  (moebius-fn "correlator" :correlation :stateful f ))
+
+(defn as-filterer- [f]
+  (moebius-fn "filterer" :filtering :stateless f ))
+
+(defn as-filterer+ [f]
+  (moebius-fn "filterer" :filtering :stateful f ))
+
+
+
 (facts "about `stateful`: stateful normalizes a function which
         doesn't use state into a stateful one. In practice it
         shouldn't alter the state in any way."
@@ -124,12 +146,12 @@
 
 
 
-#_(facts "about `cycler`: it applies the functions to all given events and expands the result"
+(facts "about `cycler`: it applies the functions to all given events and expands the result"
 
-       (cycler (pipeline (enricher (stateful identity))) 1 [{:a 1}])
+       (cycler (pipeline (as-enricher- identity)) 1 [{:a 1}])
        =>  [1  [{:a 1}]]
 
-       (cycler 1 (enricher (stateful #(assoc % :b 2))) [{:a 1} {:a 2}])
+       (cycler  (pipeline (as-enricher- #(assoc % :b 2))) 1 [{:a 1} {:a 2}])
        =>  [1 [{:a 1 :b 2} {:a 2 :b 2} ]]
 
        ;; when :a is 2 then emits a.2, a.3, a.4
@@ -138,55 +160,54 @@
                    [(update-in e [:a] inc)
                     (update-in e [:a] (comp inc inc))]))]
 
-         (cycler 1 (correlator (stateful f))
-          [{:a 1} {:a 2} {:a 5}])
+         (cycler (pipeline (as-correlator- f))
+          1 [{:a 1} {:a 2} {:a 5}])
          => [1 [{:a 1} {:a 2} {:a 3} {:a 4} {:a 5}]])
 
 
-       (cycler 1 (filterer (stateful-pred (comp even? :a)))
-               [{:a 1} {:a 2} {:a 3} {:a 4} {:a 5}])
-       => [1 [ {:a 2} {:a 4} ]]
+       (cycler (pipeline (as-filterer- (comp even? :a)))
+               1 [{:a 1} {:a 2} {:a 3} {:a 4} {:a 5}])
+       => [1 [{:a 2} {:a 4} ]]
 
        )
 
 
+(facts "about stateless `pipeline`: it composes your streaming function and maintain the specified order"
 
-#_(facts "about `pipeline`: it composes your streaming function and maintain the specified order"
+         ((pipeline (as-enricher- identity)) 1 {:a 1}) => [1 [{:a 1}]]
 
-       ((pipeline (enricher identity)) {:a 1}) => [{:a 1}]
-
-       (let [ba2  (enricher (fn [{a :a :as e}] (assoc e :b (* a 2))))
-             wr1  (enricher (fn [e] (assoc e :w 1)))
-             wr2  (enricher (fn [e] (assoc e :w 2)))
-             nob4 (filterer (fn [{b :b :as e}] (not= 4 b)))
-             cor  (correlator (fn [{a :a :as e}]
-                                (when (= a 2)
-                                  [(update-in e [:a] inc)
-                                   (update-in e [:a] (comp inc inc))])))
-             cor2 (correlator (fn [{a :a :as e}]
-                                (when (= a 3)
-                                  [{:a 5}
-                                   {:a 6}])))
-             events [{:a 1} {:a 2} {:a 7}]]
-
+         (let [ba2  (as-enricher- (fn [{a :a :as e}] (assoc e :b (* a 2))))
+               wr1  (as-enricher- (fn [e] (assoc e :w 1)))
+               wr2  (as-enricher- (fn [e] (assoc e :w 2)))
+               nob4 (as-filterer- (fn [{b :b :as e}] (not= 4 b)))
+               cor  (as-correlator- (fn [{a :a :as e}]
+                                      (when (= a 2)
+                                        [(update-in e [:a] inc)
+                                         (update-in e [:a] (comp inc inc))])))
+               cor2 (as-correlator- (fn [{a :a :as e}]
+                                      (when (= a 3)
+                                        [{:a 5}
+                                         {:a 6}])))
+               events [{:a 1} {:a 2} {:a 7}]]
 
 
 
-         ;;
-         ;; Streaming functiona sre composable via `pipeline`
-         (cycler (pipeline wr1 ba2 cor cor2 wr2 nob4) [{:a 1} {:a 2} {:a 7}])
-         => [{:a 1 :b 2 :w 2} {:a 3 :b 6 :w 2} {:a 5 :b 10 :w 2} {:a 6 :b 12 :w 2}  {:a 4 :b 8 :w 2} {:a 7 :b 14 :w 2}]
+
+           ;;
+           ;; Streaming functiona sre composable via `pipeline`
+           (cycler (pipeline wr1 ba2 cor cor2 wr2 nob4) 1 [{:a 1} {:a 2} {:a 7}])
+           => [1 [{:a 1 :b 2 :w 2} {:a 3 :b 6 :w 2} {:a 5 :b 10 :w 2} {:a 6 :b 12 :w 2}  {:a 4 :b 8 :w 2} {:a 7 :b 14 :w 2}]]
 
 
-         ;; order matters (from left-right)
-         (cycler (pipeline wr1 wr2) [{:a 1} {:b 4} {:a 2}])
-         => [{:a 1 :w 2} {:b 4 :w 2} {:a 2 :w 2}]
+           ;; order matters (from left-right)
+           (cycler (pipeline wr1 wr2) 1 [{:a 1} {:b 4} {:a 2}])
+           => [1 [{:a 1 :w 2} {:b 4 :w 2} {:a 2 :w 2}]]
 
 
-         (cycler (pipeline wr2 wr1) [{:a 1} {:b 4} {:a 2}])
-         => [{:a 1 :w 1} {:b 4 :w 1} {:a 2 :w 1}]
+           (cycler (pipeline wr2 wr1) 1 [{:a 1} {:b 4} {:a 2}])
+           => [1 [{:a 1 :w 1} {:b 4 :w 1} {:a 2 :w 1}]]
 
-         ))
+           ))
 
 
 

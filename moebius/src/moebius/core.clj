@@ -69,22 +69,29 @@
 
 
 
+(defn moebius-fn
+  "Takes a normal clojure function and add the necessary metadata
+   to be used inside a pipeline"
+  [name type statefulness f]
+  (with-meta f
+    {:moebius-name name
+     :moebius-wrapper statefulness
+     :moebius-type type}))
+
+
 (defmacro -def-moebius-function
   "handy macro to define an moebius function"
-  [type name params & body]
+  [type fname params & body]
   (let [p# (count params)
         wrapper (if (= 2 p#) :stateful :stateless)]
     (if (not (<= 1 p# 2))
       (throw (IllegalArgumentException.
               (str "Invalid number of parameters for function: "
                    name ". It can be either [event] or [state event]")))
-      `(def ~name
-         (with-meta
+      `(def ~fname
+         (moebius-fn (str '~fname) ~type ~wrapper
            (fn ~params
-             ~@body)
-           {:moebius-wrapper ~wrapper
-            :moebius-type ~type})))))
-
+             ~@body))))))
 
 
 ;; (defn enricher
