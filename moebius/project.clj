@@ -10,7 +10,9 @@
                  [prismatic/schema "0.4.3"]
                  [com.taoensso/timbre "4.0.1"]
                  ;;[samsara/trackit "0.2.0"]
-                 [org.clojure/core.match "0.3.0-alpha4"]]
+                 [org.clojure/core.match "0.3.0-alpha4"]
+                 [potemkin "0.3.13"]
+                 [com.brunobonacci/where "0.1.0"]]
 
   :profiles {:dev {:dependencies [[midje "1.6.3"]]
                    :plugins [[lein-midje "3.1.3"]]}}

@@ -2,7 +2,9 @@
   (:require [clojure.string :as s])
   (:require [clojure.java.io :as io])
   (:require [taoensso.timbre :as log])
-  (:require [clojure.core.match :refer [match]]))
+  (:require [clojure.core.match :refer [match]])
+  (:require [potemkin :refer [import-vars]])
+  (:require [where.core]))
 
 
 
@@ -356,6 +358,10 @@
   "
   [glob name]
   (re-matches (glob-pattern glob) name))
+
+
+;; import where
+(import-vars [where.core where])
 
 
 
