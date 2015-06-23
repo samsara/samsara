@@ -5,10 +5,6 @@
   (:require [clojure.core.match :refer [match]]))
 
 
-;; TODO:
-;; filter followed by enrichment seems to enrich a nil
-;;
-
 
 ;;
 ;; #              Internal processing core functions
@@ -105,13 +101,32 @@
 
 
 
+(defn- generic-wrapper
+  "Generic wrapper to transform the output of processing functions
+  into the format accepted by the `cycler`.  The internal cycle expect
+  a function which takes one parameter composed of
+  `[state [event & tail]]` and return the new state and a new list
+  of events."
+  [wrapper]
+  (fn [f]
+    (fn [[state [event & tail] :as input]]
+      (if-not event
+        ;; if the event is nil (filtered out)
+        ;; then skip process
+        input
+        (let [result (f state event)
+              [s' e'] (wrapper state event result)]
+          [s' (concat e' tail)])))))
+
+
+
 (defn- pipeline-wrapper
   "Takes a pipeline which accepts state and event and wraps the result
   into an array as expected by the `cycler`"
   [f]
-  (fn [[state [event & tail]]]
-    (let [[s' e'] (f state event)]
-      [s' (concat e' tail)])))
+  ((generic-wrapper
+    (fn [_ _ result]
+      result)) f))
 
 
 
@@ -120,11 +135,11 @@
   "Takes a function which accepts an event and wraps the result
   into an array as expected by the `cycler`"
   [f]
-  (fn [[state [event & tail]]]
-    (let [[s' e'] (f state event)]
-      (if e'
-        [s' (concat [e'] tail)]
-        [s' [event]]))))
+  ((generic-wrapper
+     (fn [s0 e0 [s1 e1]]
+       (if e1
+         [s1 [e1]]
+         [s0 [e0]]))) f))
 
 
 
@@ -132,10 +147,10 @@
   "Takes a function which accept an event and turns the output into
   something expected by the cycler"
   [f]
-  (fn [[state [event & tail]]]
-    (let [[s' r]  (f state event)
-          rn (if (map? r) [r] r)]
-      [s' (concat [event] rn tail)])))
+  ((generic-wrapper
+    (fn [s0 e0 [s1 r]]
+      (let [correlated (if (map? r) [r] r)]
+        [s1 (concat [e0] correlated)]))) f))
 
 
 
@@ -143,8 +158,9 @@
   "Similar to `filter` it takes a predicate which applied to
   an event return something truthy for the events to keep."
   [pred]
-  (fn [[state [event & tail]]]
-    [state (concat [(when (pred state event) event)] tail)]))
+  ((generic-wrapper
+    (fn [s0 e0 result]
+      [s0 [(when result e0)]])) pred))
 
 
 

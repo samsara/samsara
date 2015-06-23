@@ -188,6 +188,8 @@
                                       (when (= a 3)
                                         [{:a 5}
                                          {:a 6}])))
+
+               nonil (as-enricher- (fn [e] (when-not e (throw (IllegalArgumentException. "event cannot be nil")))))
                events [{:a 1} {:a 2} {:a 7}]]
 
 
@@ -207,6 +209,14 @@
            (cycler (pipeline wr2 wr1) 1 [{:a 1} {:b 4} {:a 2}])
            => [1 [{:a 1 :w 1} {:b 4 :w 1} {:a 2 :w 1}]]
 
+
+           ;; make sure that filters actually kill the element
+           ;; without causing problems to following process
+           (cycler (pipeline nob4 wr1) 1 [{:b 4}])
+           => [1 []]
+
+           (cycler (pipeline nob4 nonil) 1 [{:b 4 :a 2}])
+           => [1 []]
            ))
 
 
