@@ -274,10 +274,17 @@
 
        (let [event {:eventName \"game.started\" :level 8}]
           (when-event-match event
-            [{:eventName \"game.started\" :level 0}]               (assoc event :new-player true)
-            [{:eventName _ :level (_ :guard even?)}]             (assoc event :start :even-level)
-            [{:eventName _ :level (_ :guard #(= 0 (mod % 11)))}] (assoc event :level-type :extra-challenge)
-            [{:eventName \"game.new.level\" :level _}]             (assoc event :level-type :normal)))
+            [{:eventName \"game.started\" :level 0}]
+            (assoc event :new-player true)
+
+            [{:eventName _ :level (_ :guard even?)}]
+            (assoc event :start :even-level)
+
+            [{:eventName _ :level (_ :guard #(= 0 (mod % 11)))}]
+            (assoc event :level-type :extra-challenge)
+
+            [{:eventName \"game.new.level\" :level _}]
+            (assoc event :level-type :normal)))
 
   It implies a `:else` statement so you can't use one in yours.
 
@@ -338,6 +345,7 @@
 
 (defn moebius
   "It takes a list of functions transformation and produces a function
-   which applied to a sequence of events will apply those transformations."
+  which applied to a state and sequence of events will apply those
+  transformations in the given order."
   [& fs]
   (partial cycler (apply pipeline fs)))
