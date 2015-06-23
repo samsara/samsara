@@ -72,11 +72,14 @@
 (defn moebius-fn
   "Takes a normal clojure function and add the necessary metadata
    to be used inside a pipeline"
-  [name type statefulness f]
+  [name type statefulness f & {:as opts}]
   (with-meta f
-    {:moebius-name name
-     :moebius-wrapper statefulness
-     :moebius-type type}))
+    (merge
+     opts
+     {:moebius-name name
+      :moebius-wrapper statefulness
+      :moebius-type type})))
+
 
 
 (defmacro -def-moebius-function
@@ -94,15 +97,15 @@
              ~@body))))))
 
 
-;; (defn enricher
-;;   "Takes a function which accepts an event and wraps the result
-;;   into an array as expected by the `cycler`"
-;;   [f]
-;;   (fn [event]
-;;     (let [result (f event)]
-;;       (if result
-;;         [result]
-;;         [event]))))
+(defn- pipeline-wrapper
+  "Takes a pipeline which accepts state and event and wraps the result
+  into an array as expected by the `cycler`"
+  [f]
+  (fn [[state [event & tail]]]
+    (let [[s' e'] (f state event)]
+      [s' (concat e' tail)])))
+
+
 
 ;; TODO: should return state or s' when returned state is nil?
 (defn- enricher
@@ -117,28 +120,6 @@
 
 
 
-
-
-((stateful #(assoc % :b 3)) 1 {:a 1})
-
-((enricher #(vector (inc %) (assoc %2 :b 3))) [1 [{:a 1}]])
-
-((enricher (stateful #(assoc % :b 3))) [1 [{:a 1}]])
-
-
-
-
-;; (defn correlator
-;;   "Takes a function which accept an event and turns the output into
-;;   something expected by the cycler"
-;;   [f]
-;;   (fn [event]
-;;     (let [r  (f event)
-;;           rn (if (map? r) [r] r)]
-;;       (cons event rn))))
-
-
-
 (defn- correlator
   "Takes a function which accept an event and turns the output into
   something expected by the cycler"
@@ -150,15 +131,6 @@
 
 
 
-;; (defn filterer
-;;   "Similar to `filter` it takes a predicate which applied to
-;;   an event return something truthy for the events to keep."
-;;   [pred]
-;;   (fn [event]
-;;     [(when (pred event) event)]))
-
-
-
 (defn- filterer
   "Similar to `filter` it takes a predicate which applied to
   an event return something truthy for the events to keep."
@@ -166,38 +138,41 @@
   (fn [[state [event & tail]]]
     [state (concat [(when (pred state event) event)] tail)]))
 
-((filterer (fn [s e] (when-not (:z e)))) [1 [{:a 1}]])
-
-;; (defn pipeline
-;;   "Pipeline composes stearming processing functions
-;;   into a chain of processing which is then applied by
-;;   `cycler`"
-;;   [& fs]
-;;   (->> fs
-;;        (map (fn [f]
-;;               (fn [[head & tail :as evs]]
-;;                 (if head
-;;                   (concat (f head) tail)
-;;                   evs))))
-;;        reverse
-;;        (apply comp)
-;;        (#(comp % (fn [e] [e])))))
 
 
-(defn- as-stateful [f {:keys [moebius-wrapper moebius-type] :as m}]
+(defn- as-stateful
+  "Returns a stateful version of the function wrapped with the
+  appropriate wrapper. If the function is already stateful it is
+  returned without wrapping"
+  [f {:keys [moebius-wrapper moebius-type] :as m}]
   (let [stateful' (if (= :filtering moebius-type) stateful-pred stateful)
         wrapped (case moebius-wrapper :stateful f :stateless (stateful' f))]
     wrapped))
 
-(defn- wrapped-fn [f {:keys [moebius-wrapper moebius-type] :as m}]
+(defn- wrapped-fn
+  "It takes a stateful function and wraps it according to its semantic
+  behaviour. It add `:moebius-normalized true` to the metadata."
+  [f {:keys [moebius-wrapper moebius-type] :as m}]
   (let [wrapper (case moebius-type
                   :enrichment enricher
                   :correlation correlator
-                  :filtering filterer)]
+                  :filtering filterer
+                  :pipeline pipeline-wrapper)]
     (with-meta (wrapper f) (assoc m :moebius-normalized true))))
 
 
-;; TODO: collect and join all meta
+
+(defn- compose-pipeline
+  "Composes the given moebius function into a single function
+   which is the logical equivalent of (-> [state event] f1 f2 f3 f4)"
+  [& fs]
+  (let [metas   (apply vector (map meta fs))
+        compose (apply comp (reverse fs))
+        wrap    (comp compose (fn [state e] [state [e]]))]
+    (moebius-fn "pipeline" :pipeline :stateful wrap :moebius-fns metas)))
+
+
+
 (defn pipeline
   "Pipeline composes stearming processing functions
   into a chain of processing which is then applied by
@@ -207,63 +182,7 @@
        (map (fn [f]
               (let [m (meta f)]
                 (wrapped-fn (as-stateful f m) m))))
-       reverse
-       (apply comp)
-       (#(comp % (fn [state e] [state [e]])))
-       ))
-
-;((stateless #(assoc % :b 3)) 1 {:a 1})
-
-;((enricher #(vector (inc %) (assoc %2 :b 3))) [1 [{:a 1}]])
-
-;((enricher (stateless #(assoc % :b 3))) [1 {:a 1}])
-
-
-(def x (pipeline (with-meta #(assoc % :b 2) {:moebius-wrapper :stateless
-                                             :moebius-type    :enrichment})
-                 (with-meta #(assoc % :c 3) {:moebius-wrapper :stateless
-                                             :moebius-type    :enrichment})
-                 (with-meta (fn [s e] [(inc s) (when-not (:x e) [(assoc e :x 2) (assoc e :x 3)])]) {:moebius-wrapper :stateful
-                                                                                                   :moebius-type    :correlation})
-                 (with-meta #(vector (inc %) (assoc %2 :z 3))
-                   {:moebius-wrapper :stateful
-                    :moebius-type    :enrichment})
-                 (with-meta (fn [s e] (when-not (:z e)))
-                   {:moebius-wrapper :stateful
-                    :moebius-type    :filtering})
-                 (with-meta #(vector (inc %) (assoc %2 :y 5))
-                   {:moebius-wrapper :stateful
-                    :moebius-type    :enrichment})))
-
-(x 1 {:a 1})
-
-;; (defmacro defenrich
-;;   "handy macro to define an enrichment function"
-;;   [name params & body]
-;;   `(def ~name
-;;      (enricher
-;;       (fn ~params
-;;         ~@body))))
-
-
-
-;; (defmacro defcorrelate
-;;   "handy macro to define an correlation function"
-;;   [name params & body]
-;;   `(def ~name
-;;      (correlator
-;;       (fn ~params
-;;         ~@body))))
-
-
-
-;; (defmacro deffilter
-;;   "handy macro to define an filter function"
-;;   [name params & body]
-;;   `(def ~name
-;;      (filterer
-;;       (fn ~params
-;;         ~@body))))
+       (apply compose-pipeline)))
 
 
 

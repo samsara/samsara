@@ -211,53 +211,54 @@
 
 
 
-#_(facts "about `pipeline` you should be able to compose pipeline as well"
+
+(facts "about `pipeline`: you should be able to compose pipeline as well"
 
 
        ;; testing composition of pipelines with enrichers
-       (let [e1 (enricher #(assoc % :e1 true))
-             e2 (enricher #(assoc % :e2 true))]
+       (let [e1 (as-enricher- #(assoc % :e1 true))
+             e2 (as-enricher- #(assoc % :e2 true))]
          (cycler (pipeline
                   (pipeline e1)
                   (pipeline e2))
-                 [{:a 1}]))
-       => [{:a 1 :e1 true :e2 true}]
+                 1 [{:a 1}]))
+       => [1 [{:a 1 :e1 true :e2 true}]]
 
 
        ;; testing composition of pipelines with correlation
-       (let [e1 (enricher #(assoc % :e1 true))
-             e2 (enricher #(assoc % :e2 true))
-             c1 (correlator #(when (:a %) {:c1 true}))
-             c2 (correlator #(when (:a %) {:c2 true}))]
+       (let [e1 (as-enricher- #(assoc % :e1 true))
+             e2 (as-enricher- #(assoc % :e2 true))
+             c1 (as-correlator- #(when (:a %) {:c1 true}))
+             c2 (as-correlator- #(when (:a %) {:c2 true}))]
          (cycler (pipeline
                   (pipeline e1 c1)
                   (pipeline e2 c2))
-                 [{:a 1}]))
-       => [{:e2 true, :e1 true, :a 1}
-           {:e2 true, :e1 true, :c2 true}
-           {:e2 true, :e1 true, :c1 true}]
+                 1 [{:a 1}]))
+       => [1 [{:e2 true, :e1 true, :a 1}
+              {:e2 true, :e1 true, :c2 true}
+              {:e2 true, :e1 true, :c1 true}]]
 
 
        ;; testing composition of pipelines with filters
-       (let [e1 (enricher #(assoc % :e1 true))
-             e2 (enricher #(assoc % :e2 true))
-             c1 (correlator #(when (:a %) {:c1 true}))
-             c2 (correlator #(when (:a %) {:c2 true}))
-             f1 (filterer #(not= 1 (:a %)))]
+       (let [e1 (as-enricher- #(assoc % :e1 true))
+             e2 (as-enricher- #(assoc % :e2 true))
+             c1 (as-correlator- #(when (:a %) {:c1 true}))
+             c2 (as-correlator- #(when (:a %) {:c2 true}))
+             f1 (as-filterer- #(not= 1 (:a %)))]
          (cycler (pipeline
                   (pipeline e1 c1)
                   (pipeline e2 c2 f1))
-                 [{:a 1}]))
-       => [{:e2 true, :e1 true, :c2 true}
-           {:e2 true, :e1 true, :c1 true}]
+                 1 [{:a 1}]))
+       => [1 [{:e2 true, :e1 true, :c2 true}
+              {:e2 true, :e1 true, :c1 true}]]
 
 
        ;; testing composition of deep pipelines
-       (let [e1 (enricher #(assoc % :e1 true))
-             e2 (enricher #(assoc % :e2 true))
-             c1 (correlator #(when (:a %) {:c1 true}))
-             c2 (correlator #(when (:a %) {:c2 true}))
-             f1 (filterer #(not= 1 (:a %)))]
+       (let [e1 (as-enricher- #(assoc % :e1 true))
+             e2 (as-enricher- #(assoc % :e2 true))
+             c1 (as-correlator- #(when (:a %) {:c1 true}))
+             c2 (as-correlator- #(when (:a %) {:c2 true}))
+             f1 (as-filterer- #(not= 1 (:a %)))]
          (cycler (pipeline
                   e1
                   (pipeline
@@ -267,17 +268,17 @@
                     (pipeline
                      c2
                      (pipeline f1)))))
-                 [{:a 1}]))
-       => [{:e2 true, :e1 true, :c2 true}
-           {:e2 true, :e1 true, :c1 true}]
+                 1 [{:a 1}]))
+       => [1 [{:e2 true, :e1 true, :c2 true}
+              {:e2 true, :e1 true, :c1 true}]]
 
 
        ;; testing composition of pipelines of pipelines
-       (let [e1 (enricher #(assoc % :e1 true))
-             e2 (enricher #(assoc % :e2 true))
-             c1 (correlator #(when (:a %) {:c1 true}))
-             c2 (correlator #(when (:a %) {:c2 true}))
-             f1 (filterer #(not= 1 (:a %)))]
+       (let [e1 (as-enricher- #(assoc % :e1 true))
+             e2 (as-enricher- #(assoc % :e2 true))
+             c1 (as-correlator- #(when (:a %) {:c1 true}))
+             c2 (as-correlator- #(when (:a %) {:c2 true}))
+             f1 (as-filterer- #(not= 1 (:a %)))]
          (cycler (pipeline
                   (pipeline
                    (pipeline e1)
@@ -286,9 +287,9 @@
                    (pipeline c1)
                    (pipeline c2))
                   (pipeline f1))
-                 [{:a 1}]))
-       => [{:e2 true, :e1 true, :c2 true}
-           {:e2 true, :e1 true, :c1 true}]
+                 1 [{:a 1}]))
+       => [1 [{:e2 true, :e1 true, :c2 true}
+              {:e2 true, :e1 true, :c1 true}]]
 
        )
 
@@ -363,20 +364,20 @@
 
 
 
-#_(facts "about `moebius`: it composes your streaming functions and produce a function which applied
+(facts "about `moebius`: it composes your streaming functions and produce a function which applied
                 to the events will process all events with the given pipeline"
 
-       ((moebius (enricher identity)) [{:a 1}]) => [{:a 1}]
+       ((moebius (as-enricher- identity)) 1 [{:a 1}]) => [1 [{:a 1}]]
 
-       (let [ba2  (enricher (fn [{a :a :as e}] (assoc e :b (* a 2))))
-             wr1  (enricher (fn [e] (assoc e :w 1)))
-             wr2  (enricher (fn [e] (assoc e :w 2)))
-             nob4 (filterer (fn [{b :b :as e}] (not= 4 b)))
-             cor  (correlator (fn [{a :a :as e}]
+       (let [ba2  (as-enricher- (fn [{a :a :as e}] (assoc e :b (* a 2))))
+             wr1  (as-enricher- (fn [e] (assoc e :w 1)))
+             wr2  (as-enricher- (fn [e] (assoc e :w 2)))
+             nob4 (as-filterer- (fn [{b :b :as e}] (not= 4 b)))
+             cor  (as-correlator- (fn [{a :a :as e}]
                                 (when (= a 2)
                                   [(update-in e [:a] inc)
                                    (update-in e [:a] (comp inc inc))])))
-             cor2 (correlator (fn [{a :a :as e}]
+             cor2 (as-correlator- (fn [{a :a :as e}]
                                 (when (= a 3)
                                   [{:a 5}
                                    {:a 6}])))
@@ -387,16 +388,16 @@
 
          ;;
          ;; Streaming functiona sre composable via `pipeline`
-         ((moebius wr1 ba2 cor cor2 wr2 nob4) [{:a 1} {:a 2} {:a 7}])
-         => [{:a 1 :b 2 :w 2} {:a 3 :b 6 :w 2} {:a 5 :b 10 :w 2} {:a 6 :b 12 :w 2}  {:a 4 :b 8 :w 2} {:a 7 :b 14 :w 2}]
+         ((moebius wr1 ba2 cor cor2 wr2 nob4) 1 [{:a 1} {:a 2} {:a 7}])
+         => [1 [{:a 1 :b 2 :w 2} {:a 3 :b 6 :w 2} {:a 5 :b 10 :w 2} {:a 6 :b 12 :w 2}  {:a 4 :b 8 :w 2} {:a 7 :b 14 :w 2}]]
 
 
          ;; order matters (from left-right)
-         ((moebius wr1 wr2) [{:a 1} {:b 4} {:a 2}])
-         => [{:a 1 :w 2} {:b 4 :w 2} {:a 2 :w 2}]
+         ((moebius wr1 wr2) 1 [{:a 1} {:b 4} {:a 2}])
+         => [1 [{:a 1 :w 2} {:b 4 :w 2} {:a 2 :w 2}]]
 
-         ((moebius wr2 wr1) [{:a 1} {:b 4} {:a 2}])
-         => [{:a 1 :w 1} {:b 4 :w 1} {:a 2 :w 1}]
+         ((moebius wr2 wr1) 1 [{:a 1} {:b 4} {:a 2}])
+         => [1 [{:a 1 :w 1} {:b 4 :w 1} {:a 2 :w 1}]]
 
          ))
 
