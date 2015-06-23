@@ -10,25 +10,9 @@
 ;;
 
 
-(defn- stateful
-  "Wraps a stateless function into a stateful one.
-  It returns a function which takes two parameters `state` and `event`
-  and applies `f` to the event and leave the state unchanged."
-  [f]
-  (fn [state event]
-    [state (f event)]))
-
-
-
-(defn- stateful-pred
-  "Wraps a stateless predicate function into a stateful one.
-  It returns a function which takes two parameters `state` and `event`
-  and applies `pred` to the event and ignore the state."
-  [pred]
-  (fn [state event]
-    (pred event)))
-
-
+;;
+;; #              Internal processing core functions
+;;
 
 (defn- stepper
   "It returns a function which performs a single step in the cycle. It
@@ -97,6 +81,30 @@
              ~@body))))))
 
 
+;;
+;; #              Functional composition helpers
+;;
+
+(defn- stateful
+  "Wraps a stateless function into a stateful one.
+  It returns a function which takes two parameters `state` and `event`
+  and applies `f` to the event and leave the state unchanged."
+  [f]
+  (fn [state event]
+    [state (f event)]))
+
+
+
+(defn- stateful-pred
+  "Wraps a stateless predicate function into a stateful one.
+  It returns a function which takes two parameters `state` and `event`
+  and applies `pred` to the event and ignore the state."
+  [pred]
+  (fn [state event]
+    (pred event)))
+
+
+
 (defn- pipeline-wrapper
   "Takes a pipeline which accepts state and event and wraps the result
   into an array as expected by the `cycler`"
@@ -108,7 +116,7 @@
 
 
 ;; TODO: should return state or s' when returned state is nil?
-(defn- enricher
+(defn- enricher-wrapper
   "Takes a function which accepts an event and wraps the result
   into an array as expected by the `cycler`"
   [f]
@@ -120,7 +128,7 @@
 
 
 
-(defn- correlator
+(defn- correlator-wrapper
   "Takes a function which accept an event and turns the output into
   something expected by the cycler"
   [f]
@@ -131,7 +139,7 @@
 
 
 
-(defn- filterer
+(defn- filterer-wrapper
   "Similar to `filter` it takes a predicate which applied to
   an event return something truthy for the events to keep."
   [pred]
@@ -149,14 +157,16 @@
         wrapped (case moebius-wrapper :stateful f :stateless (stateful' f))]
     wrapped))
 
+
+
 (defn- wrapped-fn
   "It takes a stateful function and wraps it according to its semantic
-  behaviour. It add `:moebius-normalized true` to the metadata."
+  behavior. It add `:moebius-normalized true` to the metadata."
   [f {:keys [moebius-wrapper moebius-type] :as m}]
   (let [wrapper (case moebius-type
-                  :enrichment enricher
-                  :correlation correlator
-                  :filtering filterer
+                  :enrichment enricher-wrapper
+                  :correlation correlator-wrapper
+                  :filtering filterer-wrapper
                   :pipeline pipeline-wrapper)]
     (with-meta (wrapper f) (assoc m :moebius-normalized true))))
 
@@ -172,6 +182,9 @@
     (moebius-fn "pipeline" :pipeline :stateful wrap :moebius-fns metas)))
 
 
+;;
+;; #              Public use functions
+;;
 
 (defn pipeline
   "Pipeline composes stearming processing functions

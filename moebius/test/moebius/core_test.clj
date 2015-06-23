@@ -5,8 +5,8 @@
 
 (testable-privates moebius.core
                    stateful stateful-pred
-                   cycler enricher correlator
-                   filterer)
+                   cycler enricher-wrapper correlator-wrapper
+                   filterer-wrapper)
 
 ;; Utility function for creating a moebius-fn with
 ;; the right metadata
@@ -71,15 +71,15 @@
 
        ;; enricher accepts a function which optionally perform
        ;; a transformation to the given event
-       ((enricher (stateful identity))         [1 [{:a 1}]])    =>    [1  [{:a 1}]]
+       ((enricher-wrapper (stateful identity))         [1 [{:a 1}]])    =>    [1  [{:a 1}]]
 
        ;; if the function changes the event, the new event must
        ;; be returned
-       ((enricher (stateful #(assoc % :b 2)))  [1 [{:a 1}]])    =>    [1 [{:a 1 :b 2}]]
+       ((enricher-wrapper (stateful #(assoc % :b 2)))  [1 [{:a 1}]])    =>    [1 [{:a 1 :b 2}]]
 
        ;; if the enrichment function return nil
        ;; then the event is left unchanged
-       ((enricher (stateful (fn [x] nil)))      [1 [{:a 1}]])    =>    [1 [{:a 1}]]
+       ((enricher-wrapper (stateful (fn [x] nil)))      [1 [{:a 1}]])    =>    [1 [{:a 1}]]
 
        )
 
@@ -90,11 +90,11 @@
        ;; enricher accepts a function which optionally perform
        ;; a transformation to the given event, if state is changed
        ;; then the new state must be returned
-       ((enricher (fn [s e] [(inc s) e]))  [1 [{:a 1}]]) => [2  [{:a 1}]]
+       ((enricher-wrapper (fn [s e] [(inc s) e]))  [1 [{:a 1}]]) => [2  [{:a 1}]]
 
        ;; if the function changes the event, the new event must
        ;; be returned
-       ((enricher (fn [s e] [(inc s) (assoc e :b 2)])) [1 [{:a 1}]]) => [2  [{:a 1 :b 2}]]
+       ((enricher-wrapper (fn [s e] [(inc s) (assoc e :b 2)])) [1 [{:a 1}]]) => [2  [{:a 1 :b 2}]]
 
        )
 
@@ -105,31 +105,31 @@
        ;; correlator accepts a function which optionally perform
        ;; a transformation to the given event and it can return
        ;; 0, 1 or more new events
-       ((correlator (stateful (fn [x] [x])))   [1 [{:a 1}]])    =>     [1 [{:a 1}{:a 1}]]
+       ((correlator-wrapper (stateful (fn [x] [x])))   [1 [{:a 1}]])    =>     [1 [{:a 1}{:a 1}]]
 
 
        ;; if the correlation function return [nil], an array with
        ;; a nil element should be returned which will cause the
        ;; the moebius to filter the event out.
-       ((correlator (stateful (fn [x] [nil])))  [1 [{:a 1}]])    =>    [1 [{:a 1} nil]]
+       ((correlator-wrapper (stateful (fn [x] [nil])))  [1 [{:a 1}]])    =>    [1 [{:a 1} nil]]
 
 
        ;; if the correlator function return more than one element
        ;; then the list the list is preserved and added to the
        ;; element to process
-       ((correlator (stateful (fn [x] [{:a 2} {:a 3}])))  [1 [{:a 1}]])  =>  [1 [{:a 1} {:a 2} {:a 3}]]
+       ((correlator-wrapper (stateful (fn [x] [{:a 2} {:a 3}])))  [1 [{:a 1}]])  =>  [1 [{:a 1} {:a 2} {:a 3}]]
 
 
        ;; if the correlation function return nil, an array with
        ;; a nil element should be returned which will cause the
        ;; the moebius to filter the event out.
-       ((correlator (stateful (fn [x] nil)))  [1 [{:a 1}]])    =>    [1 [{:a 1}]]
+       ((correlator-wrapper (stateful (fn [x] nil)))  [1 [{:a 1}]])    =>    [1 [{:a 1}]]
 
 
        ;; if a correlator function return an event (a map)
        ;; rather than returning a list/vector and the result
        ;; is wrapped into an vector
-       ((correlator (stateful (fn [x] x)))  [1 [{:a 1}]])    =>     [1 [{:a 1} {:a 1}]]
+       ((correlator-wrapper (stateful (fn [x] x)))  [1 [{:a 1}]])    =>     [1 [{:a 1} {:a 1}]]
        )
 
 
@@ -139,8 +139,8 @@
        ;; filterer accepts a filtering predicate just like core/filter
        ;; if the predicate applied to the event is truthy then
        ;; the event is kept, otherwise if filtered out.
-       ((filterer (stateful-pred :a)) [1 [{:a 1}]])    =>     [1 [{:a 1}]]
-       ((filterer (stateful-pred :b)) [1 [{:a 1}]])    =>     [1 [nil]]
+       ((filterer-wrapper (stateful-pred :a)) [1 [{:a 1}]])    =>     [1 [{:a 1}]]
+       ((filterer-wrapper (stateful-pred :b)) [1 [{:a 1}]])    =>     [1 [nil]]
 
        )
 
