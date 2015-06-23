@@ -5,6 +5,10 @@
   (:require [clojure.core.match :refer [match]]))
 
 
+;; TODO:
+;; filter followed by enrichment seems to enrich a nil
+;;
+
 
 (defn stateless
   "Wraps a stateless function into a stateful one.
@@ -95,16 +99,28 @@
 ;;         [result]
 ;;         [event]))))
 
-
+;; TODO: should return state or s' when returned state is nil?
 (defn enricher
   "Takes a function which accepts an event and wraps the result
   into an array as expected by the `cycler`"
   [f]
-  (fn [state event]
+  (fn [[state [event & tail]]]
     (let [[s' e'] (f state event)]
       (if e'
-        [s' [e']]
-        [state [event]]))))
+        [s' (concat [e'] tail)]
+        [s' [event]]))))
+
+
+
+
+
+((stateless #(assoc % :b 3)) 1 {:a 1})
+
+((enricher #(vector (inc %) (assoc %2 :b 3))) [1 [{:a 1}]])
+
+((enricher (stateless #(assoc % :b 3))) [1 [{:a 1}]])
+
+
 
 
 ;; (defn correlator
@@ -122,10 +138,10 @@
   "Takes a function which accept an event and turns the output into
   something expected by the cycler"
   [f]
-  (fn [state event]
+  (fn [[state [event & tail]]]
     (let [[s' r]  (f state event)
           rn (if (map? r) [r] r)]
-      [s' (cons event rn)])))
+      [s' (concat [event] rn tail)])))
 
 
 
@@ -142,11 +158,41 @@
   "Similar to `filter` it takes a predicate which applied to
   an event return something truthy for the events to keep."
   [pred]
-  (fn [state event]
-    [state [(when (pred state event) event)]]))
+  (fn [[state [event & tail]]]
+    [state (concat [(when (pred state event) event)] tail)]))
+
+((filterer (fn [s e] (when-not (:z e)))) [1 [{:a 1}]])
+
+;; (defn pipeline
+;;   "Pipeline composes stearming processing functions
+;;   into a chain of processing which is then applied by
+;;   `cycler`"
+;;   [& fs]
+;;   (->> fs
+;;        (map (fn [f]
+;;               (fn [[head & tail :as evs]]
+;;                 (if head
+;;                   (concat (f head) tail)
+;;                   evs))))
+;;        reverse
+;;        (apply comp)
+;;        (#(comp % (fn [e] [e])))))
 
 
+(defn- as-stateful [f {:keys [moebius-wrapper moebius-type] :as m}]
+  (let [stateless' (if (= :filtering moebius-type) stateless-pred stateless)
+        wrapped (case moebius-wrapper :stateful f :stateless (stateless' f))]
+    wrapped))
 
+(defn- wrapped-fn [f {:keys [moebius-wrapper moebius-type] :as m}]
+  (let [wrapper (case moebius-type
+                  :enrichment enricher
+                  :correlation correlator
+                  :filtering filterer)]
+    (with-meta (wrapper f) (assoc m :moebius-normalized true))))
+
+
+;; TODO: collect and join all meta
 (defn pipeline
   "Pipeline composes stearming processing functions
   into a chain of processing which is then applied by
@@ -154,15 +200,37 @@
   [& fs]
   (->> fs
        (map (fn [f]
-              (fn [[head & tail :as evs]]
-                (if head
-                  (concat (f head) tail)
-                  evs))))
+              (let [m (meta f)]
+                (wrapped-fn (as-stateful f m) m))))
        reverse
        (apply comp)
-       (#(comp % (fn [e] [e])))))
+       (#(comp % (fn [state e] [state [e]])))
+       ))
+
+;((stateless #(assoc % :b 3)) 1 {:a 1})
+
+;((enricher #(vector (inc %) (assoc %2 :b 3))) [1 [{:a 1}]])
+
+;((enricher (stateless #(assoc % :b 3))) [1 {:a 1}])
 
 
+(def x (pipeline (with-meta #(assoc % :b 2) {:moebius-wrapper :stateless
+                                             :moebius-type    :enrichment})
+                 (with-meta #(assoc % :c 3) {:moebius-wrapper :stateless
+                                             :moebius-type    :enrichment})
+                 (with-meta (fn [s e] [(inc s) (when-not (:x e) [(assoc e :x 2) (assoc e :x 3)])]) {:moebius-wrapper :stateful
+                                                                                                   :moebius-type    :correlation})
+                 (with-meta #(vector (inc %) (assoc %2 :z 3))
+                   {:moebius-wrapper :stateful
+                    :moebius-type    :enrichment})
+                 (with-meta (fn [s e] (when-not (:z e)))
+                   {:moebius-wrapper :stateful
+                    :moebius-type    :filtering})
+                 (with-meta #(vector (inc %) (assoc %2 :y 5))
+                   {:moebius-wrapper :stateful
+                    :moebius-type    :enrichment})))
+
+(x 1 {:a 1})
 
 ;; (defmacro defenrich
 ;;   "handy macro to define an enrichment function"
@@ -335,4 +403,4 @@
   "It takes a list of functions transformation and produces a function
    which applied to a sequence of events will apply those transformations."
   [& fs] ;; FIXME: this shouldn't stateless
-  (partial cycler nil (stateless (apply pipeline fs))))
+  #_(partial cycler nil (stateless (apply pipeline fs))))
