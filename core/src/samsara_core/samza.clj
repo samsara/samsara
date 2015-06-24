@@ -14,7 +14,7 @@
 (def ^:dynamic *pipeline*     nil)
 (def ^:dynamic *raw-pipeline* nil)
 (def ^:dynamic *config*       nil)
-(def ^:dynamic *store*        nil)
+(def           *store*        nil) ;; thread local only
 
 
 
@@ -51,6 +51,32 @@
     (println "\t" k " = " v ))
   (println "\t--------------------------------------------------------------------------"))
 
+
+;;
+;; Utility classes to handle per thread local state
+;;
+
+
+
+(defn thread-local
+  "Create a thread-local var"
+  [init]
+  (proxy [ThreadLocal] []
+    (initialValue [] init)))
+
+
+
+(defprotocol ILocalVar
+  (var-set [this new-val] "set the new value of a local var")
+  (var-get [this] "return the value of local var"))
+
+
+
+(extend-type ThreadLocal
+
+  ILocalVar
+  (var-set [this new-val] (.set this new-val))
+  (var-get [this] (.get this)))
 
 
 
@@ -127,12 +153,12 @@
   "Takes an event in json format which contain an Tx-Log entry and
    it pushes the change to the running *kv-store*"
   [^String event]
-  (swap! *store*
-         (fn [store]
-           (->> event
-                from-json
-                vector
-                (kv/restore store)))))
+  ;; this ugly stuff works because *store* is thread-local
+  (var-set *store*
+         (->> event
+              from-json
+              vector
+              (kv/restore *store*))))
 
 
 
@@ -187,9 +213,8 @@
     ;; other messages are processed by the normal pipeline, however here
     ;; we need to emit the state messages as well.
 
-    ;;          |     this not really true when
-    ;;          V     multiple threads running in same vm
-    (let [state @*store*
+    ;; this ugly stuff works because *store* is thread-local
+    (let [state (var-get *store*)
           [new-state rich-events] (pipeline state message)
           txlog     (kv/tx-log new-state)
           txlog-msg (tx-log->messages txlog)
@@ -204,10 +229,7 @@
 
       ;; flushing tx-log
       (let [new-state' (kv/flush-tx-log new-state txlog)]
-        (when-not (compare-and-set! *store* state new-state')
-          (throw (ex-info "Illegal state modification"
-                          {:new-state new-state ;; with tx-log
-                           :event     message})))))))
+        (var-set *store* new-state')))))
 
 
 
@@ -215,7 +237,7 @@
   (alter-var-root #'*pipeline*     (constantly (core/make-samsara-processor config)))
   (alter-var-root #'*raw-pipeline* (constantly (make-raw-pipeline config)))
   (alter-var-root #'*config*       (constantly config))
-  (alter-var-root #'*store*        (constantly (atom (kv/make-in-memory-kvstore))))
+  (alter-var-root #'*store*        (constantly (thread-local (kv/make-in-memory-kvstore))))
   (display-samza-config (:topics config)))
 
 
