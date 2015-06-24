@@ -12,6 +12,7 @@
   {:topics
    {:job-name "Samsara"
     :input-topic "ingestion"
+    ;; :kvstore-topic "ingestion-kv"
     :output-topic "events"
     :output-topic-partition-fn (comp :sourceId :source)
     ;; a CSV list of hosts and ports (and optional path)
@@ -150,8 +151,6 @@ DESCRIPTION
 
 
 
-
-
 (defn- init-tracking!
   "Initialises the metrics tracking system"
   [{enabled :enabled :as cfg}]
@@ -190,3 +189,18 @@ DESCRIPTION
        ;; starting server
        (samza/start! config)
        (log/info "Samsara CORE processing started: " input-topic "->" output-topic)))))
+
+
+
+(comment
+
+  ;; for REPL testing run this
+  (def config (read-config "./config/config.edn"))
+  (init-log!      (-> config :log))
+  (init-tracking! (-> config :tracking))
+  (samza/init-pipeline! config)
+
+  ;; start samza consumer threads
+  (samza/start! config)
+
+  )

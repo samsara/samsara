@@ -24,6 +24,7 @@
         inputs (->> [input-topic (or kvstore-topic default-kvstore)]
                     (map (partial str "kafka."))
                     (s/join ","))]
+
     {"job.factory.class" "org.apache.samza.job.local.ThreadJobFactory"
      "job.name"          job-name
      "task.class"        "samsara.SamsaraSystem"
@@ -66,7 +67,10 @@
         track-time-name (str prefix ".overall-processing.time")
         track-time-name2 (str prefix ".pipeline-processing.time")
 
-        track-pipeline-time (fn [pipeline] (fn [x] (track-time track-time-name2 (pipeline x))))
+        track-pipeline-time (fn [pipeline]
+                              (fn [state event]
+                                (track-time track-time-name2
+                                            (pipeline state event))))
 
         total-size-in (count-tracker (str prefix ".in.total-size"))
         dist-size-in (distribution-tracker (str prefix ".in.size"))
@@ -95,24 +99,27 @@
         {:keys [track-time-name track-pipeline-time size-in-tracker
                 size-out-tracker]} (make-trackers config)
         pipeline (track-pipeline-time *pipeline*)]
-    (fn [event]
+    (fn [state event]
       (track-time track-time-name
                   (->> event
                        size-in-tracker
                        from-json
                        vector
-                       pipeline
-                       (map (juxt output-topic part-key-fn to-json))
-                       (map size-out-tracker))))))
+                       (pipeline state) ;; -> [state [events]]
+                       ((fn [[s events]]
+                           [s
+                            (->> events
+                                (map (juxt output-topic part-key-fn to-json))
+                                (map size-out-tracker))])))))))
 
 
 
 (defn pipeline
   "Takes an event in json format and returns a list of tuples
   with the partition key and the event in json format
-  f(x) -> List<[part-key, json-event]>"
-  [^String event]
-  (*raw-pipeline* event))
+  f(state,event) -> [new-state, List<[part-key, json-event]>]"
+  [state event]
+  (*raw-pipeline* state event))
 
 
 
@@ -179,20 +186,29 @@
     (kv-restore! message)
     ;; other messages are processed by the normal pipeline, however here
     ;; we need to emit the state messages as well.
-    (let [rich-events (pipeline message)
-          ;;               this not really true when
-          ;;               multiple threads running in same vm
-          txlog     (kv/tx-log @*store*)
+
+    ;;          |     this not really true when
+    ;;          V     multiple threads running in same vm
+    (let [state @*store*
+          [new-state rich-events] (pipeline state message)
+          txlog     (kv/tx-log new-state)
           txlog-msg (tx-log->messages txlog)
           all-output (concat txlog-msg rich-events)]
 
       ;; emitting the output
       (doseq [[oStream oKey oMessage] all-output]
+        ;; TODO: remove this and remove the INPUT: one as well
+        (println "OUTPUT[" oStream "/" oKey "]:" oMessage)
         (.send collector (OutgoingMessageEnvelope.
                           (topic->stream oStream) oKey oMessage )))
 
       ;; flushing tx-log
-      (swap! *store* kv/flush-tx-log txlog))))
+      (let [new-state' (kv/flush-tx-log new-state txlog)]
+        (when-not (compare-and-set! *store* state new-state')
+          (throw (ex-info "Illegal state modification"
+                          {:new-state new-state ;; with tx-log
+                           :event     message})))))))
+
 
 
 (defn init-pipeline! [config]
@@ -201,6 +217,7 @@
   (alter-var-root #'*config*       (constantly config))
   (alter-var-root #'*store*        (constantly (atom (kv/make-in-memory-kvstore))))
   (display-samza-config (:topics config)))
+
 
 
 (defn start! [{:keys [topics] :as config}]

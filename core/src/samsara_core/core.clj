@@ -52,7 +52,7 @@
 (defn format-to-qanal
   "It formats the event into the qanal format"
   [{:keys [strategy base-index event-type] :as indexing-strategy}]
-  (enricher
+  (moebius-fn "format-to-qanal" :enrichment :stateless
    (fn [{:keys [receivedAt id] :as event}]
      {:index (index-name indexing-strategy event)
       :type event-type
