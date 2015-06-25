@@ -158,7 +158,7 @@
          (->> event
               from-json
               vector
-              (kv/restore *store*))))
+              (kv/restore (var-get *store*)))))
 
 
 
@@ -184,7 +184,7 @@
   (let [kvstore-topic (kvstore-topic!)]
     (->> txlog
          (map (fn [[k ver v]]
-                [kvstore-topic k (to-json v)])))))
+                [kvstore-topic k (to-json [k ver v])])))))
 
 
 
