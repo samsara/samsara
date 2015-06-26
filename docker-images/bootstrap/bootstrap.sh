@@ -13,31 +13,29 @@ function wait_for {
    done
 }
 
+
+function create_topic {
+    # if the topic doesn't exist create one
+    echo "checking if topic $1 is created"
+    /opt/kafka/bin/kafka-topics.sh \
+        --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
+        --describe \
+        | grep -q "Topic: $1\s" \
+        ||  /opt/kafka/bin/kafka-topics.sh \
+                --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
+                --create --topic $1 \
+                --replication-factor 1 --partitions 5
+
+}
+
+
 wait_for zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR 2181
 wait_for kafka     $KAFKA_PORT_9092_TCP_ADDR       9092
 
 
-# if the topic doesn't exist create one
-echo "checking if topic ingestion is created"
-/opt/kafka/bin/kafka-topics.sh \
-    --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
-    --describe \
-    | grep -q "Topic: ingestion" \
-    ||  /opt/kafka/bin/kafka-topics.sh \
-            --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
-            --create --topic ingestion \
-            --replication-factor 1 --partitions 5
-
-echo "checking if topic events is created"
-/opt/kafka/bin/kafka-topics.sh \
-    --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
-    --describe \
-    | grep -q "Topic: events" \
-    ||  /opt/kafka/bin/kafka-topics.sh \
-            --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
-            --create --topic events \
-            --replication-factor 1 --partitions 5
-
+create_topic ingestion
+create_topic ingestion-kv
+create_topic events
 
 # list topic
 /opt/kafka/bin/kafka-topics.sh \

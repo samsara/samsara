@@ -15,47 +15,29 @@ A local environment is ideal for development and testing purposes.
 It setup a fully running cluster with all components but without
 fault tolerance.
 
-Before starting make sure that the **data** volume and the **logs** volumes
-will be pointing to directories which exists.
+Please make sure you have latest [`docker`](https://docs.docker.com/)
+and [`docker-composed`](https://docs.docker.com/compose/install/)
+installed.
 
-To create the default one.
-```bash
-mkdir -p `grep /tmp fig.yml | cut -d' ' -f6 | cut -d':' -f1 | sort`
-```
-
-Additionally if you are running this for the first time, you won't have any
+If you are running this for the first time, you won't have any
 of the docker images. If you want to build them from scratch, then proceed
 with the [How To build and push docker images](#how-to-build-and-push-docker-images)
 A good suggestion is to start with pulling them all.
 
 ```bash
-docker pull samsara/ingestion-api
-docker pull samsara/qanal
-
-docker pull samsara/zookeeper
-docker pull samsara/kafka
-docker pull samsara/elasticsearch
-docker pull samsara/kibana
-docker pull samsara/riemann
-
-docker pull tutum/influxdb
-docker pull tutum/grafana
+cd samsara-docker-images
+docker-compose pull
 ```
-
-Images on the first block are built using their own github project.
-Images from the second group are built with this project
-Images on the third group are third-party images which should be available
-in the Docker Registry.
 
 Now to start the services:
 
 ```
-fig up -d
+docker-compose up -d
 
 # wait for all components to come up
 
 # check the status with
-fig ps
+docker-compose ps
 
 ```
 
@@ -99,7 +81,7 @@ samsaradockerimages_zookeeper_1       /bin/sh -c /configure-and- ...   Up      0
 To stop all services.
 
 ```
-fig kill
+docker-compose kill
 ```
 
 ### How to do manual bootstrap
@@ -108,7 +90,9 @@ An automatic bootstrap process should be triggered via the **bootstrap** contain
 In case it fails of you want to set up the topics manually run the following commands.
 
 ```bash
-fig run kafka bash
+docker-compose run kafka bash
+% /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --create --topic ingestion --replication-factor 1 --partitions 5
+% /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --create --topic ingestion-kv --replication-factor 1 --partitions 5
 % /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --create --topic events --replication-factor 1 --partitions 5
 
 % /opt/kafka/bin/kafka-topics.sh --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR --describe
@@ -159,7 +143,7 @@ docker login
 ./push.sh
 ```
 
-**Please note:** that `qanal` and `ingestion-api` images are built
+**Please note:** that `qanal`, `ingestion-api` and `samsara-core` images are built
 within their source projects.
 Check [https://github.com/samsara](https://github.com/samsara) for
 more info.
@@ -169,4 +153,3 @@ more info.
 Copyright © 2015 Samsara's authors.
 
 Distributed under the Apache License v 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
-
