@@ -1,4 +1,5 @@
 (ns samsara-core.samza
+  (:refer-clojure :exclude [var-get var-set])
   (:require [clojure.string :as s])
   (:require [samsara-core.core :as core])
   (:require [moebius.kv :as kv])

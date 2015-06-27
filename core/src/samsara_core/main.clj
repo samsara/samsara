@@ -5,6 +5,8 @@
   (:require [taoensso.timbre :as log])
   (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!]])
   (:require [clojure.tools.cli :refer [parse-opts]])
+  (:require [clojure.tools.nrepl.server :as nrepl]
+            [cider.nrepl :as cider])
   (:gen-class))
 
 
@@ -37,7 +39,14 @@
 
    ;; logging
    :log
-   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}})
+   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}
+
+   ;; nREPL
+   :nrepl
+   {;; REPL server is enabled by default
+    :enabled true
+    :port 4555}
+   })
 
 
 
@@ -174,6 +183,15 @@ DESCRIPTION
 
 
 
+(defn- start-nrepl!
+  "Start nREPL server."
+  [{:keys [enabled port] :as cfg}]
+  (if enabled
+    (let [repl (nrepl/start-server :port port :handler cider/cider-nrepl-handler)]
+      (log/info "Started nREPL on port:" port "..."))
+    (log/info "nREPL disabled...!")))
+
+
 (defn -main
  [& args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
@@ -186,6 +204,8 @@ DESCRIPTION
      (let [_ (println (headline))
            {config-file :config} options
            {{:keys [input-topic output-topic]} :topics :as config} (init! config-file)]
+       ;; starting nrepl
+       (start-nrepl! (:nrepl config))
        ;; starting server
        (samza/start! config)
        (log/info "Samsara CORE processing started: " input-topic "->" output-topic)))))
