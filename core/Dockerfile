@@ -10,7 +10,8 @@ ADD ./docker/samsara-core-supervisor.conf /etc/supervisor/conf.d/
 
 # Available ports
 # 15000 - supervisor admin interface
-EXPOSE 15000
+# 4500  - nREPL
+EXPOSE 15000, 4555
 
 # ingestion-api logs
 VOLUME ["/logs"]
