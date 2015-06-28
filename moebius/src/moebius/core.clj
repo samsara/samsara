@@ -53,7 +53,20 @@
 
 (defn moebius-fn
   "Takes a normal clojure function and add the necessary metadata
-   to be used inside a pipeline"
+   to be used inside a pipeline.
+
+     - `name`: is the function name as in `defn`
+     - `type`: is one of: :enrichment, `:correlation`, `:filtering`
+          or `:pipeline`
+     - `statefulness`: whether the function is handling the state
+          as well or it is stateless. Should be one of the following
+          options: `:stateful` or `:stateless`
+     - `f`: is the function which either process a single event
+          or it process `state` and `event`
+     - `opts`: optional parameters are used to add more details
+          such as `moebius-fns` in the pipeline which contains
+          the list of function which have been packed together.
+  "
   [name type statefulness f & {:as opts}]
   (with-meta f
     (merge
