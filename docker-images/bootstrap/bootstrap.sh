@@ -15,9 +15,10 @@ function wait_for {
 
 
 function create_topic {
+    CONFIG=""
     # $1 - name of the topic
     # $2 - "compact" for compaction (OPTIONAL)
-    [ "$2" = "compact" ] && CONFIG="--config cleanup.policy=compact" || COMPACT=""
+    [ "$2" = "compact" ] && CONFIG="--config cleanup.policy=compact"
     # if the topic doesn't exist create one
     echo "checking if topic $1 is created ($CONFIG)"
     /opt/kafka/bin/kafka-topics.sh \
