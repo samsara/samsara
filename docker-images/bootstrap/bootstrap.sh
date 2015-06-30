@@ -15,8 +15,11 @@ function wait_for {
 
 
 function create_topic {
+    # $1 - name of the topic
+    # $2 - "compact" for compaction (OPTIONAL)
+    [ "$2" = "compact" ] && CONFIG="--config cleanup.policy=compact" || COMPACT=""
     # if the topic doesn't exist create one
-    echo "checking if topic $1 is created"
+    echo "checking if topic $1 is created ($CONFIG)"
     /opt/kafka/bin/kafka-topics.sh \
         --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
         --describe \
@@ -24,7 +27,9 @@ function create_topic {
         ||  /opt/kafka/bin/kafka-topics.sh \
                 --zookeeper $ZOOKEEPER_1_PORT_2181_TCP_ADDR \
                 --create --topic $1 \
-                --replication-factor 1 --partitions 5
+                $CONFIG \
+                --replication-factor 1 \
+                --partitions 5
 
 }
 
@@ -34,7 +39,7 @@ wait_for kafka     $KAFKA_PORT_9092_TCP_ADDR       9092
 
 
 create_topic ingestion
-create_topic ingestion-kv
+create_topic ingestion-kv compact
 create_topic events
 
 # list topic
