@@ -1,45 +1,17 @@
-# samsara-kubernetes
+# samsara-deployments
 
-Kubernetes setup for Samsara Analytics
+This project contains deployment descriptors example for the various platforms
+we support.
 
 ## Description
 
-This project contains the setup of Samsara on Kubernetes.
+The following deployment are described in this project:
 
-### Kebernetes on Vagrant
-
-Install Kubernetes as described here: [here](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/docs/getting-started-guides/vagrant.md)
-
-Then run:
-
-```bash
-export KUBE_HOME=/your/kubernetes/home
-export PATH=$KUBE_HOME/cluster:$PATH
-
-export KUBERNETES_PROVIDER=vagrant
-export NUM_MINIONS=4
-
-# start cluster
-kube-up.sh
-
-# Then to start samsara run
-./start-all.sh
-
-# here some other general kubenrnetes commands
-
-# list of minions
-kubectl.sh get minions
-
-# list of pods
-kubectl.sh get pods
-
-# list of services
-kubectl.sh get services
-
-# list of replication controllers
-kubectl.sh get rc
-
-```
+  * Deployment on bare metal with Docker
+  * Deployment on Amazon EC2
+  * Deployment on Amazon ECS
+  * Deployment on Kubernetes
+  * Deployment on ...
 
 ## License
 
