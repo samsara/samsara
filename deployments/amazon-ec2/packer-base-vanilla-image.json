@@ -1,0 +1,84 @@
+{
+    "variables": {
+        "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+        "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+        "data_disk_size": "200"
+    },
+    "builders": [{
+        "type": "amazon-ebs",
+        "access_key": "{{user `aws_access_key`}}",
+        "secret_key": "{{user `aws_secret_key`}}",
+        "region": "eu-west-1",
+        "source_ami": "ami-47a23a30",
+        "instance_type": "t2.micro",
+        "ssh_username": "ubuntu",
+        "ami_name": "packer-example {{timestamp}}",
+        "launch_block_device_mappings": [
+            {
+                "device_name": "/dev/sdd",
+                "volume_type": "gp2",
+                "volume_size": "{{user `data_disk_size`}}",
+                "delete_on_termination": true
+            }
+        ]
+
+    }],
+    "provisioners": [{
+        "type": "shell",
+        "inline": [
+            "sleep 30",
+
+            "echo '------------------------------------------------------------------'",
+            "echo '                    OS update and tools installation'",
+            "echo '------------------------------------------------------------------'",
+            "sudo apt-get update",
+            "sudo apt-get upgrade -y",
+            "sudo apt-get install -y wget curl nc byobu htop bmon iftop sysstat",
+
+
+            "echo '------------------------------------------------------------------'",
+            "echo '                    Docker installation'",
+            "echo '------------------------------------------------------------------'",
+            "apt-get install -y linux-image-extra-`uname -r` linux-image-extra-virtual",
+            "wget -qO- https://get.docker.com/ | sh",
+            "sudo usermod -aG docker ubuntu",
+            "sudo wget https://github.com/docker/compose/releases/download/1.3.1/docker-compose-`uname -s`-`uname -m` -O /usr/local/bin/docker-compose",
+            "sudo chmod +x /usr/local/bin/docker-compose",
+
+
+            "echo '------------------------------------------------------------------'",
+            "echo '                    max open files configuration'",
+            "echo '------------------------------------------------------------------'",
+            "sudo sysctl -w fs.file-max=200000",
+            "echo 'fs.file-max = 200000' | sudo tee -a /etc/sysctl.conf",
+            "sudo sysctl -p",
+            "sudo sysctl fs.file-max",
+            "cat <<EOF | sudo tee -a /etc/security/limits.conf\n* soft nofile 200000\n* hard nofile 200000\nEOF",
+
+
+            "echo '------------------------------------------------------------------'",
+            "echo '                  /data and /logs volumes installation'",
+            "echo '------------------------------------------------------------------'",
+            "sudo apt-get install -y lvm2",
+            "sudo pvcreate /dev/xvdd",
+            "sudo vgcreate vg0 /dev/xvdd",
+            "sudo lvcreate -l 90%vg -n data vg0",
+            "sudo lvcreate -l 10%vg -n logs vg0",
+            "sudo mkfs.ext4 /dev/vg0/data",
+            "sudo mkfs.ext4 /dev/vg0/logs",
+            "sudo mkdir -m 000 /data",
+            "sudo mkdir -m 000 /logs",
+            "echo '/dev/vg0/data /data ext4 defaults 0 0' | sudo tee -a /etc/fstab",
+            "echo '/dev/vg0/logs /logs ext4 defaults 0 0' | sudo tee -a /etc/fstab",
+            "sudo mount /data",
+            "sudo mount /logs",
+
+
+            "",
+            "echo '------------------------------------------------------------------'",
+            "echo '                     INSTALLATION COMPLETED'",
+            "echo '------------------------------------------------------------------'"
+
+        ]
+    }]
+}
