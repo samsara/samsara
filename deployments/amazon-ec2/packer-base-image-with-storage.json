@@ -1,0 +1,33 @@
+{
+    "variables": {
+        "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+        "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+        "data_disk_size": "200"
+    },
+    "builders": [{
+        "type": "amazon-ebs",
+        "access_key": "{{user `aws_access_key`}}",
+        "secret_key": "{{user `aws_secret_key`}}",
+        "region": "eu-west-1",
+        "source_ami": "ami-47a23a30",
+        "instance_type": "t2.micro",
+        "ssh_username": "ubuntu",
+        "ami_name": "packer-example {{timestamp}}",
+        "launch_block_device_mappings": [
+            {
+                "device_name": "/dev/sdd",
+                "volume_type": "gp2",
+                "volume_size": "{{user `data_disk_size`}}",
+                "delete_on_termination": true
+            }
+        ]
+
+    }],
+    "provisioners": [{
+        "type": "shell",
+        "scripts": [
+            "scripts/base-os-and-docker.sh",
+            "scripts/data-volumes.sh"
+        ]
+    }]
+}
