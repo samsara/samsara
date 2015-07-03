@@ -20,5 +20,5 @@ variable "zookeeper_type" {
     default = "t2.micro"
 }
 variable "kafka_type" {
-    default = "t2.micro"
+    default = "t2.small"
 }

@@ -82,6 +82,12 @@ resource "aws_security_group" "sg_ssh" {
 		cidr_blocks = ["0.0.0.0/0"]
 	}
 
+	ingress {
+		from_port = 0
+		to_port = 0
+		protocol = "-1"
+		self = true
+	}
 
         egress {
                 from_port = 0
@@ -94,15 +100,16 @@ resource "aws_security_group" "sg_ssh" {
 }
 
 
-resource "aws_security_group_rule" "allow_this_group" {
-        type = "ingress"
-        from_port = 0
-        to_port = 0
-        protocol = "-1"
-     
-        security_group_id = "${aws_security_group.sg_ssh.id}"
-        source_security_group_id = "${aws_security_group.sg_ssh.id}"
-}
+#resource "aws_security_group_rule" "allow_this_group" {
+#        type = "ingress"
+#        from_port = 0
+#        to_port = 0
+#        protocol = "-1"
+#     
+#        security_group_id = "${aws_security_group.sg_ssh.id}"
+#        source_security_group_id = "${aws_security_group.sg_ssh.id}"
+#        self = true
+#}
 
 resource "aws_instance" "zookeeper" {
     ami		    = "ami-cc5d1dbb"

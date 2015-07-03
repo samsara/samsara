@@ -1,12 +1,5 @@
 #!/bin/bash -e
 
-if [ "$(id -u)" != "0" ] ; then
-    echo "Running the script with root privilege's"
-    sudo "$0"
-    exit $?
-fi
-
-
 echo '------------------------------------------------------------------'
 echo '                    Samsara Zookeeper'
 echo '------------------------------------------------------------------'
