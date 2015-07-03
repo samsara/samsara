@@ -4,6 +4,12 @@
 exec > >( tee -a /logs/configure-and-start.out )
 exec 2>&1
 
+# REQUIRED:
+#   KAFKA_BROKER_ID
+#   ZOOKEEPER*_PORT_2181_TCP_ADDR
+export HOSTNAME=${HOSTNAME-kafka$KAFKA_BROKER_ID}
+export IP=${ADV_IP:-`ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)"`}
+
 #
 # it uses Kubernetes API to find the list of all zookeepers
 #
@@ -55,9 +61,9 @@ function get-server-list(){
         curl -s "http://${KUBERNETES_RO_SERVICE_HOST}:${KUBERNETES_RO_SERVICE_PORT}/api/v1beta1/pods" | jq -r ".items | map( select( .labels.name == \"${1}\") ) | map(  [.labels.server, \":\", .currentState.podIP] | add )[]" | sed 's/^/server./g;s/$/:2888:3888/g'
     else
         # this server
-        echo "server.${ZK_SERVER_ID}="$(ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)")":2888:3888"
+        echo "server.${ZK_SERVER_ID}=$IP:2888:3888"
         # and all others
-        env | grep 'ZOOKEEPER_.*_PORT_2181_TCP=' | sed -r 's/ZOOKEEPER.*([0-9]+)_PORT_2181_TCP=tcp:\/\/(.*):[0-9]+/server.\1=\2:2888:3888/g' | grep -v "server.${ZK_SERVER_ID}"
+        env | grep 'ZOOKEEPER.*_PORT_2181_TCP=' | sed -r 's/ZOOKEEPER.*([0-9]+)_PORT_2181_TCP=tcp:\/\/(.*):[0-9]+/server.\1=\2:2888:3888/g' | grep -v "server.${ZK_SERVER_ID}"
     fi
 }
 

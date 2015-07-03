@@ -1,10 +1,14 @@
 #!/bin/bash
 
+# log output of this script
+exec > >( tee -a /logs/configure-and-start.out )
+exec 2>&1
+
 # REQUIRED:
 #   KAFKA_BROKER_ID
 #   ZOOKEEPER_PORT_2181_TCP_ADDR
 export HOSTNAME=${HOSTNAME-kafka$KAFKA_BROKER_ID}
-export IP=`ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)"`
+export IP=${ADV_IP:-`ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)"`}
 export KAFKA_ENABLE_REPORTING_STATSD=${KAFKA_ENABLE_REPORTING_STATSD-false}
 export STATSD_PORT_8125_TCP_ADDR=${STATSD_PORT_8125_TCP_ADDR}
 
