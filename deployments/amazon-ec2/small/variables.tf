@@ -6,19 +6,10 @@ variable "region" {
 variable "zone1" {
     default = "eu-west-1a"
 }
-variable "zone2" {
-    default = "eu-west-1b"
-}
-variable "zone3" {
-    default = "eu-west-1c"
-}
-
 variable "key_name" {
     default = ""
 }
-variable "zookeeper_type" {
-    default = "t2.micro"
+variable "instance_type" {
+    default = "m4.large"
 }
-variable "kafka_type" {
-    default = "t2.small"
-}
+variable "data_ami" {}

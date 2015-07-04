@@ -88,15 +88,28 @@ name depend on the base name provided.
     required tools and config
   - `${BASE_NAME}-data`: is the base ami plus a data disk.
 
-these will be need to be provided on the next step.
+these will be need to be provided on the next step so please
+note their IDs.
 
 
 #### Deploying the stack
 
 Once the base images are built then we can deploy the stack.
 
+First create a file called `terraform.tfvars` with your credentials
+in the `small/` folder.
+
+```
+access_key = "..."
+secret_key = "..."
+key_name = "..."
+region = "eu-west-1"
+data_ami = "<ami_id_from_previous_step>"
+```
+
+Then run:
+
 ```bash
-cd small
 terraform apply
 ```
 
