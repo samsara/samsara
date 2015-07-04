@@ -23,7 +23,8 @@
     "provisioners": [{
         "type": "shell",
         "scripts": [
-            "scripts/base-os-and-docker.sh"
+            "scripts/base-os-and-docker.sh",
+            "scripts/pull-images.sh"
         ]
     }]
 }
