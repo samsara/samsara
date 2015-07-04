@@ -74,3 +74,10 @@ mkdir $LOGDIR
 #
 build-image      packer-base-image.json $*
 build-image-with $(get-image-ami packer-base-image.json) packer-base-image-with-storage.json $*
+
+
+#
+# OUTPUT AMI
+#
+echo "BASE ami id:" $(get-image-ami packer-base-image.json)
+echo "DATA ami id:" $(get-image-ami packer-base-image-with-storage.json)

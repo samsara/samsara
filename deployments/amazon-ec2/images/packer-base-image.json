@@ -18,10 +18,7 @@
         "tags": {
             "project": "samsara",
             "build": "{{user `build_id`}}"
-        },
-
-        "vpc_id": "vpc-1364e476",
-        "subnet_id": "subnet-44fa8721"
+        }
     }],
     "provisioners": [{
         "type": "shell",
