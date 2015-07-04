@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 export LOGDIR=/tmp/samsara-builds
 
@@ -9,9 +9,12 @@ function banner-msg(){
     echo '-----------------------------------------------------------------'
 }
 
+
 function build-image(){
     banner-msg "Building: $1"
-    packer build -color=false $1 2>&1 | tee $LOGDIR/$(basename $1).log
+    IMG=$1
+    shift
+    packer build -color=false $* -var "build_id=${BASE_NAME}" $IMG 2>&1 | tee $LOGDIR/$(basename $IMG).log
 }
 
 
@@ -20,13 +23,25 @@ function get-image-ami() {
 }
 
 function build-image-with(){
-    echo "Using previous image from: $1"
-    AMI=$(get-image-ami $1)
-    echo "      AMI: $AMI"
-    SPEC=/tmp/$(basename $2)
-    cat $2 | sed "s/\"source_ami\": \"[^\"]*\",/\"source_ami\": \"$AMI\",/g" > $SPEC
-    build-image $SPEC
+    AMI=$1
+    IMG=$2
+    echo "Using AMI: $AMI"
+    shift 2
+    build-image $IMG -var "source_ami=$AMI" $*
 }
+
+
+#
+# Getting BASE_NAME
+#
+
+if [ "$1" == "" ] ; then
+    echo "Please provide base name:"
+    echo "     $0 samsara-v01"
+    exit 1
+fi
+export BASE_NAME=$1
+shift
 
 
 #
@@ -53,8 +68,9 @@ find . -name packer-\*.json -type f | xargs -I {} packer validate {}
 rm -fr $LOGDIR
 mkdir $LOGDIR
 
+
 #
 # Building images
 #
-build-image      packer-base-image.json
-build-image-with packer-base-image.json packer-base-image-with-storage.json
+build-image      packer-base-image.json $*
+build-image-with $(get-image-ami packer-base-image.json) packer-base-image-with-storage.json $*

@@ -1,0 +1,32 @@
+{
+    "variables": {
+        "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+        "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+        "region": "eu-west-1",
+        "source_ami": "ami-47a23a30",
+        "build_id": ""
+    },
+    "builders": [{
+        "type": "amazon-ebs",
+        "access_key": "{{user `aws_access_key`}}",
+        "secret_key": "{{user `aws_secret_key`}}",
+        "region": "{{user `region`}}",
+        "instance_type": "t2.micro",
+        "ssh_username": "ubuntu",
+        "source_ami": "{{user `source_ami`}}",
+        "ami_name": "{{user `build_id`}}-base",
+        "tags": {
+            "project": "samsara",
+            "build": "{{user `build_id`}}"
+        },
+
+        "vpc_id": "vpc-1364e476",
+        "subnet_id": "subnet-44fa8721"
+    }],
+    "provisioners": [{
+        "type": "shell",
+        "scripts": [
+            "scripts/base-os-and-docker.sh"
+        ]
+    }]
+}

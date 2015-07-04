@@ -2,17 +2,20 @@
     "variables": {
         "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
         "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
-        "data_disk_size": "200"
+        "region": "eu-west-1",
+        "data_disk_size": "200",
+        "source_ami": "-base-ami-",
+        "build_id": ""
     },
     "builders": [{
         "type": "amazon-ebs",
         "access_key": "{{user `aws_access_key`}}",
         "secret_key": "{{user `aws_secret_key`}}",
-        "region": "eu-west-1",
-        "source_ami": "ami-47a23a30",
+        "region": "{{user `region`}}",
         "instance_type": "t2.micro",
         "ssh_username": "ubuntu",
-        "ami_name": "packer-example {{timestamp}}",
+        "source_ami": "{{user `source_ami`}}",
+        "ami_name": "{{user `build_id`}}-data",
         "launch_block_device_mappings": [
             {
                 "device_name": "/dev/sdd",
@@ -20,13 +23,19 @@
                 "volume_size": "{{user `data_disk_size`}}",
                 "delete_on_termination": true
             }
-        ]
+        ],
+        "tags": {
+            "project": "samsara",
+            "build": "{{user `build_id`}}"
+        },
+
+        "vpc_id": "vpc-1364e476",
+        "subnet_id": "subnet-44fa8721"
 
     }],
     "provisioners": [{
         "type": "shell",
         "scripts": [
-            "scripts/base-os-and-docker.sh",
             "scripts/data-volumes.sh"
         ]
     }]
