@@ -128,6 +128,13 @@ resource "aws_security_group" "sg_web_monitor" {
         vpc_id = "${aws_vpc.samsara_vpc.id}"
 }
 
+
+resource "aws_eip" "samsara_ip" {
+	instance = "${aws_instance.samsara.id}"
+	vpc = true
+}
+
+
 ##########################################################################
 #
 #                            Instance setup
@@ -170,5 +177,15 @@ resource "aws_instance" "samsara" {
         ]
     }
 }
- 
- 
+
+
+##########################################################################
+#
+#                            Output variables
+#
+##########################################################################
+
+# instance public IP
+output "ip" {
+    value = "${aws_eip.samsara_ip.public_ip}"
+}

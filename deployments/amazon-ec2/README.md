@@ -114,3 +114,16 @@ terraform apply
 ```
 
 This will build all necessary to have a fully running system.
+Once the full stack has been built the public IPs will be listed.
+These ports will be available:
+
+|  Port | Protocol  | Description          |
+|-------|-----------|----------------------|
+|  8000 | HTTP      | Kibana interface     |
+|  9000 | HTTP      | Ingestion API        |
+| 15000 | HTTP      | Monitoring dashboard |
+
+The default credentials for the monitoring dashboard are **admin / samsara**
+
+**Please note that these ports are open to the world so we recommend to
+update the security groups to limit the access to your egress IP**
