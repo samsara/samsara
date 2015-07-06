@@ -317,6 +317,7 @@ resource "aws_instance" "zookeeper1" {
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/zookeeper.conf /etc/init/",
+            "sudo docker pull samsara/zookeeper",
 	    "sudo service zookeeper start"
 	]
     }
@@ -351,6 +352,7 @@ resource "aws_instance" "zookeeper2" {
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/zookeeper.conf /etc/init/",
+            "sudo docker pull samsara/zookeeper",
 	    "sudo service zookeeper start"
 	]
     }
@@ -386,6 +388,7 @@ resource "aws_instance" "zookeeper3" {
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/zookeeper.conf /etc/init/",
+            "sudo docker pull samsara/zookeeper",
 	    "sudo service zookeeper start"
 	]
     }
