@@ -30,3 +30,6 @@ variable "kafka_type" {
 variable "ingestion_type" {
     default = "t2.small"
 }
+variable "core_type" {
+    default = "t2.small"
+}

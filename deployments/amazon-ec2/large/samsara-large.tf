@@ -278,6 +278,34 @@ resource "aws_security_group" "sg_kafka" {
         }
 }
 
+
+resource "aws_security_group" "sg_core" {
+	name = "sg_core"
+	description = "Samsara-CORE boxes connections"
+
+	ingress {
+		from_port = 4555
+		to_port = 4555
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 15000
+		to_port = 15000
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        vpc_id = "${aws_vpc.samsara_vpc.id}"
+
+        tags {
+          Name    = "Samsara-CORE"
+          project = "${var.project}"
+          build   = "${var.build}"
+        }
+}
+
 #
 # Elastic LoadBalancers
 #
@@ -677,6 +705,52 @@ resource "aws_instance" "ingestion3" {
         build   = "${var.build}"
     }
 }
+
+
+#
+# Samsara-CORE
+#
+
+resource "aws_instance" "core1" {
+    ami		    = "${var.base_ami}"
+    instance_type   = "${var.core_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_core.id}"]
+    subnet_id = "${aws_subnet.zone1.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/core.conf"
+	destination = "/tmp/core.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/core.conf /etc/init/",
+            "sudo docker pull samsara/samsara-core",
+	    "sudo service core start"
+	]
+    }
+
+    # TODO: accept more than 1 kafka and more than 1 zk
+    #user_data = "-e KAFKA1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
+    user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181"
+
+    tags {
+        Name    = "core1"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
 
 
 ##########################################################################
