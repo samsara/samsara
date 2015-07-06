@@ -298,7 +298,9 @@ resource "aws_instance" "zookeeper1" {
     ami		    = "${var.data_ami}"
     instance_type   = "${var.zookeeper_type}"
     key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}", "${aws_security_group.sg_general.id}", "${aws_security_group.sg_zookeeper.id}"]
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_zookeeper.id}"]
     subnet_id = "${aws_subnet.zone1.id}"
     associate_public_ip_address = "true"
 
@@ -323,17 +325,20 @@ resource "aws_instance" "zookeeper1" {
     }
 
     tags {
-        Name    = "Zookeeper1"
+        Name    = "zookeeper1"
         project = "${var.project}"
         build   = "${var.build}"
     }
 }
 
+
 resource "aws_instance" "zookeeper2" {
     ami		    = "${var.data_ami}"
     instance_type   = "${var.zookeeper_type}"
     key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}", "${aws_security_group.sg_general.id}", "${aws_security_group.sg_zookeeper.id}"]
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_zookeeper.id}"]
     subnet_id = "${aws_subnet.zone2.id}"
     associate_public_ip_address = "true"
  
@@ -358,7 +363,7 @@ resource "aws_instance" "zookeeper2" {
     }
 
     tags {
-        Name    = "Zookeeper2"
+        Name    = "zookeeper2"
         project = "${var.project}"
         build   = "${var.build}"
     }
@@ -369,7 +374,9 @@ resource "aws_instance" "zookeeper3" {
     ami		    = "${var.data_ami}"
     instance_type   = "${var.zookeeper_type}"
     key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}", "${aws_security_group.sg_general.id}", "${aws_security_group.sg_zookeeper.id}"]
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_zookeeper.id}"]
     subnet_id = "${aws_subnet.zone3.id}"
     associate_public_ip_address = "true"
 
@@ -394,7 +401,119 @@ resource "aws_instance" "zookeeper3" {
     }
 
     tags {
-        Name    = "Zookeeper3"
+        Name    = "zookeeper3"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+#
+# Kafka
+#
+
+resource "aws_instance" "kafka1" {
+    ami		    = "${var.data_ami}"
+    instance_type   = "${var.kafka_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_kafka.id}"]
+    subnet_id = "${aws_subnet.zone1.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/kafka1.conf"
+	destination = "/tmp/kafka.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/kafka.conf /etc/init/",
+            "sudo docker pull samsara/kafka",
+	    "sudo service kafka start"
+	]
+    }
+
+    tags {
+        Name    = "kafka1"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+resource "aws_instance" "kafka2" {
+    ami		    = "${var.data_ami}"
+    instance_type   = "${var.kafka_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_kafka.id}"]
+    subnet_id = "${aws_subnet.zone2.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/kafka2.conf"
+	destination = "/tmp/kafka.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/kafka.conf /etc/init/",
+            "sudo docker pull samsara/kafka",
+	    "sudo service kafka start"
+	]
+    }
+
+    tags {
+        Name    = "kafka2"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+resource "aws_instance" "kafka3" {
+    ami		    = "${var.data_ami}"
+    instance_type   = "${var.kafka_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_kafka.id}"]
+    subnet_id = "${aws_subnet.zone3.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/kafka3.conf"
+	destination = "/tmp/kafka.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/kafka.conf /etc/init/",
+            "sudo docker pull samsara/kafka",
+	    "sudo service kafka start"
+	]
+    }
+
+    tags {
+        Name    = "kafka3"
         project = "${var.project}"
         build   = "${var.build}"
     }
