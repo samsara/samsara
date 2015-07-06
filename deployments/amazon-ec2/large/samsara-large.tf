@@ -278,6 +278,47 @@ resource "aws_security_group" "sg_kafka" {
         }
 }
 
+#
+# Elastic LoadBalancers
+#
+
+resource "aws_elb" "ingestion_api" {
+    name = "ingestion-api-elb"
+   
+    # The same availability zone as our instance
+    #availability_zones = ["${var.zone1}", "${var.zone2}", "${var.zone3}"]
+    subnets = ["${aws_subnet.zone1.id}",
+               "${aws_subnet.zone2.id}",
+               "${aws_subnet.zone3.id}"]
+   
+    listener {
+      instance_port = 9000
+      instance_protocol = "http"
+      lb_port = 9000
+      lb_protocol = "http"
+    }
+
+    health_check {
+      healthy_threshold = 3
+      unhealthy_threshold = 2
+      timeout = 10
+      target = "HTTP:9000/v1/api-status"
+      interval = 30
+    }
+
+   
+    # The instance is registered automatically
+    instances = ["${aws_instance.ingestion1.id}",
+                 "${aws_instance.ingestion2.id}",
+                 "${aws_instance.ingestion3.id}"]
+
+    tags {
+        Name    = "Samsara Ingestion-API"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
 #resource "aws_eip" "samsara_ip" {
 #        instance = "${aws_instance.samsara.id}"
 #        vpc = true
@@ -514,6 +555,124 @@ resource "aws_instance" "kafka3" {
 
     tags {
         Name    = "kafka3"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+#
+# Ingestion-API
+#
+
+resource "aws_instance" "ingestion1" {
+    ami		    = "${var.data_ami}"
+    instance_type   = "${var.ingestion_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_ingestion_api.id}"]
+    subnet_id = "${aws_subnet.zone1.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/ingestion.conf"
+	destination = "/tmp/ingestion.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/ingestion.conf /etc/init/",
+            "sudo docker pull samsara/ingestion-api",
+	    "sudo service ingestion start"
+	]
+    }
+
+    user_data = "-e KAFKA_1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA_3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
+
+    tags {
+        Name    = "ingestion1"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+resource "aws_instance" "ingestion2" {
+    ami		    = "${var.data_ami}"
+    instance_type   = "${var.ingestion_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_ingestion_api.id}"]
+    subnet_id = "${aws_subnet.zone2.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/ingestion.conf"
+	destination = "/tmp/ingestion.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/ingestion.conf /etc/init/",
+            "sudo docker pull samsara/ingestion-api",
+	    "sudo service ingestion start"
+	]
+    }
+
+    user_data = "-e KAFKA_1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA_3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
+
+    tags {
+        Name    = "ingestion2"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+resource "aws_instance" "ingestion3" {
+    ami		    = "${var.data_ami}"
+    instance_type   = "${var.ingestion_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_ingestion_api.id}"]
+    subnet_id = "${aws_subnet.zone3.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/ingestion.conf"
+	destination = "/tmp/ingestion.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/ingestion.conf /etc/init/",
+            "sudo docker pull samsara/ingestion-api",
+	    "sudo service ingestion start"
+	]
+    }
+
+    user_data = "-e KAFKA_1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA_3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
+
+    tags {
+        Name    = "ingestion3"
         project = "${var.project}"
         build   = "${var.build}"
     }

@@ -27,3 +27,6 @@ variable "zookeeper_type" {
 variable "kafka_type" {
     default = "t2.small"
 }
+variable "ingestion_type" {
+    default = "t2.small"
+}
