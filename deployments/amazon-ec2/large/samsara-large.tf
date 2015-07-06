@@ -566,7 +566,7 @@ resource "aws_instance" "kafka3" {
 #
 
 resource "aws_instance" "ingestion1" {
-    ami		    = "${var.data_ami}"
+    ami		    = "${var.base_ami}"
     instance_type   = "${var.ingestion_type}"
     key_name	    = "${var.key_name}"
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
@@ -604,7 +604,7 @@ resource "aws_instance" "ingestion1" {
 
 
 resource "aws_instance" "ingestion2" {
-    ami		    = "${var.data_ami}"
+    ami		    = "${var.base_ami}"
     instance_type   = "${var.ingestion_type}"
     key_name	    = "${var.key_name}"
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
@@ -642,7 +642,7 @@ resource "aws_instance" "ingestion2" {
 
 
 resource "aws_instance" "ingestion3" {
-    ami		    = "${var.data_ami}"
+    ami		    = "${var.base_ami}"
     instance_type   = "${var.ingestion_type}"
     key_name	    = "${var.key_name}"
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
