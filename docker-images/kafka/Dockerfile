@@ -14,7 +14,7 @@ RUN curl -sSL "http://apache.mirrors.pair.com/kafka/${KAFKA_VERSION}/kafka_${SCA
 
 ENV KAFKA_HOME /opt/kafka
 VOLUME ["/data", "/logs"]
-EXPOSE 9092 15000
+EXPOSE 15000
 
 ADD ./server.properties.tmpl  /opt/kafka/config/server.properties.tmpl
 ADD ./kafka-statsd-metrics2-0.4.0-SNP.jar /opt/kafka/libs/kafka-statsd-metrics2-0.4.0-SNP.jar
