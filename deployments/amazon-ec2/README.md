@@ -127,3 +127,45 @@ The default credentials for the monitoring dashboard are **admin / samsara**
 
 **Please note that these ports are open to the world so we recommend to
 update the security groups to limit the access to your egress IP**
+
+## Large deployment
+
+After the image creation is complete and environment is configured you have to run
+`terraform apply` and it will build and configure the entire stack.
+
+```
+$ terrafrom apply
+...
+
+Apply complete! Resources: 45 added, 0 changed, 0 destroyed.
+
+The state of your infrastructure has been saved to the path
+below. This state is required to modify and destroy your
+infrastructure, so keep it safe. To inspect the complete state
+use the `terraform show` command.
+
+State path: terraform.tfstate
+
+Outputs:
+
+  dashboard_lb     = kibana-elb-376051862.eu-west-1.elb.amazonaws.com
+  ingestion_api_lb = ingestion-api-elb-256221127.eu-west-1.elb.amazonaws.com
+  monitoring_ip    = 52.18.37.185
+
+```
+
+At the end of the processing you should see an output which looks similar to
+the above. The first two are respectively the load balancer for the Samsara's
+event dashboard and the second one is the load balancer for the ingestion endpoint.
+You can create a DNS `A` record for each LB and give the a appropriate `cname`.
+The last one is the public IP address of the monitoring dashboard.
+
+You can access these services at the above endpoint with the following ports number.
+
+|  Port | Protocol  | Description          |
+|-------|-----------|----------------------|
+|  8000 | HTTP      | Kibana interface     |
+|  9000 | HTTP      | Ingestion API        |
+| 15000 | HTTP      | Monitoring dashboard |
+
+The default credentials for the monitoring dashboard are **admin / samsara**

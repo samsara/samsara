@@ -150,7 +150,7 @@ resource "aws_security_group" "sg_ingestion_api" {
 	name = "sg_ingestion_api"
 	description = "Allow HTTP traffic to the ingestion api from the internet"
 
-	ingress {
+        ingress {
 		from_port = 9000
 		to_port = 9000
 		protocol = "tcp"
@@ -178,10 +178,17 @@ resource "aws_security_group" "sg_ingestion_api_lb" {
 		cidr_blocks = ["0.0.0.0/0"]
 	}
 
+        egress {
+                from_port = 0
+                to_port = 0
+                protocol = "-1"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+        }
+
         vpc_id = "${aws_vpc.samsara_vpc.id}"
 
         tags {
-          Name    = "Samsara Ingestion-API"
+          Name    = "Samsara Ingestion-API LB"
           project = "${var.project}"
           build   = "${var.build}"
         }
@@ -374,6 +381,13 @@ resource "aws_security_group" "sg_els_lb" {
 		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
 	}
 
+        egress {
+                from_port = 0
+                to_port = 0
+                protocol = "-1"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+        }
+
         vpc_id = "${aws_vpc.samsara_vpc.id}"
 
         tags {
@@ -422,6 +436,13 @@ resource "aws_security_group" "sg_kibana_lb" {
 		protocol = "tcp"
 		cidr_blocks = ["0.0.0.0/0"]
 	}
+
+        egress {
+                from_port = 0
+                to_port = 0
+                protocol = "-1"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+        }
 
         vpc_id = "${aws_vpc.samsara_vpc.id}"
 
