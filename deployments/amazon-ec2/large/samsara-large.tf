@@ -1145,7 +1145,7 @@ resource "aws_instance" "kibana1" {
 	]
     }
 
-    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name}"
+    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELASTICSEARCH_PORT_9200_TCP_PORT=9200"
 
     tags {
         Name    = "kibana1"
@@ -1184,7 +1184,7 @@ resource "aws_instance" "kibana2" {
 	]
     }
 
-    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name}"
+    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELASTICSEARCH_PORT_9200_TCP_PORT=9200"
 
     tags {
         Name    = "kibana2"
@@ -1223,7 +1223,7 @@ resource "aws_instance" "kibana3" {
 	]
     }
 
-    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name}"
+    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELASTICSEARCH_PORT_9200_TCP_PORT=9200"
 
     tags {
         Name    = "kibana3"
