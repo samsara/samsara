@@ -33,3 +33,12 @@ variable "ingestion_type" {
 variable "core_type" {
     default = "t2.small"
 }
+variable "qanal_type" {
+    default = "t2.small"
+}
+variable "els_type" {
+    default = "t2.small"
+}
+variable "kibana_type" {
+    default = "t2.small"
+}

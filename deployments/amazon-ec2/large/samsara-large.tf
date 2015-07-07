@@ -146,30 +146,30 @@ resource "aws_security_group" "sg_ssh" {
 }
 
 
-resource "aws_security_group" "sg_kibana" {
-	name = "sg_kibana"
-	description = "Allow HTTP traffic to the kibana dashboard from the internet"
+resource "aws_security_group" "sg_ingestion_api" {
+	name = "sg_ingestion_api"
+	description = "Allow HTTP traffic to the ingestion api from the internet"
 
 	ingress {
-		from_port = 8000
-		to_port = 8000
+		from_port = 9000
+		to_port = 9000
 		protocol = "tcp"
-		cidr_blocks = ["0.0.0.0/0"]
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
 	}
 
         vpc_id = "${aws_vpc.samsara_vpc.id}"
 
         tags {
-          Name    = "Samsara Kibana"
+          Name    = "Samsara Ingestion-API"
           project = "${var.project}"
           build   = "${var.build}"
         }
 }
 
 
-resource "aws_security_group" "sg_ingestion_api" {
-	name = "sg_ingestion_api"
-	description = "Allow HTTP traffic to the ingestion api from the internet"
+resource "aws_security_group" "sg_ingestion_api_lb" {
+	name = "sg_ingestion_api_lb"
+	description = "Allow HTTP traffic to the ingestion api LB from the internet"
 
 	ingress {
 		from_port = 9000
@@ -306,6 +306,133 @@ resource "aws_security_group" "sg_core" {
         }
 }
 
+
+resource "aws_security_group" "sg_qanal" {
+	name = "sg_qanal"
+	description = "Qanal boxes connections"
+
+	ingress {
+		from_port = 15000
+		to_port = 15000
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        vpc_id = "${aws_vpc.samsara_vpc.id}"
+
+        tags {
+          Name    = "Samsara Qanal"
+          project = "${var.project}"
+          build   = "${var.build}"
+        }
+}
+
+
+resource "aws_security_group" "sg_els" {
+	name = "sg_els"
+	description = "ElasticSearch boxes connections"
+
+	ingress {
+		from_port = 9200
+		to_port = 9200
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 9300
+		to_port = 9300
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 15000
+		to_port = 15000
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        vpc_id = "${aws_vpc.samsara_vpc.id}"
+
+        tags {
+          Name    = "Samsara ElasticSearch"
+          project = "${var.project}"
+          build   = "${var.build}"
+        }
+}
+
+
+resource "aws_security_group" "sg_els_lb" {
+	name = "sg_els_lb"
+	description = "ElasticSearch LB connections"
+
+	ingress {
+		from_port = 9200
+		to_port = 9200
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        vpc_id = "${aws_vpc.samsara_vpc.id}"
+
+        tags {
+          Name    = "Samsara ElasticSearch LB"
+          project = "${var.project}"
+          build   = "${var.build}"
+        }
+}
+
+
+resource "aws_security_group" "sg_kibana" {
+	name = "sg_kibana"
+	description = "Samsara Kibana boxes connections"
+
+	ingress {
+		from_port = 8000
+		to_port = 8000
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 15000
+		to_port = 15000
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        vpc_id = "${aws_vpc.samsara_vpc.id}"
+
+        tags {
+          Name    = "Samsara Kibana"
+          project = "${var.project}"
+          build   = "${var.build}"
+        }
+}
+
+
+resource "aws_security_group" "sg_kibana_lb" {
+	name = "sg_kibana_lb"
+	description = "Samsara Kibana LB connections"
+
+	ingress {
+		from_port = 8000
+		to_port = 8000
+		protocol = "tcp"
+		cidr_blocks = ["0.0.0.0/0"]
+	}
+
+        vpc_id = "${aws_vpc.samsara_vpc.id}"
+
+        tags {
+          Name    = "Samsara Kibana LB"
+          project = "${var.project}"
+          build   = "${var.build}"
+        }
+}
+
+
 #
 # Elastic LoadBalancers
 #
@@ -313,8 +440,6 @@ resource "aws_security_group" "sg_core" {
 resource "aws_elb" "ingestion_api" {
     name = "ingestion-api-elb"
    
-    # The same availability zone as our instance
-    #availability_zones = ["${var.zone1}", "${var.zone2}", "${var.zone3}"]
     subnets = ["${aws_subnet.zone1.id}",
                "${aws_subnet.zone2.id}",
                "${aws_subnet.zone3.id}"]
@@ -334,6 +459,7 @@ resource "aws_elb" "ingestion_api" {
       interval = 30
     }
 
+    security_groups = ["${aws_security_group.sg_ingestion_api_lb.id}"]
    
     # The instance is registered automatically
     instances = ["${aws_instance.ingestion1.id}",
@@ -342,6 +468,82 @@ resource "aws_elb" "ingestion_api" {
 
     tags {
         Name    = "Samsara Ingestion-API"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+resource "aws_elb" "kibana" {
+    name = "kibana-elb"
+   
+    subnets = ["${aws_subnet.zone1.id}",
+               "${aws_subnet.zone2.id}",
+               "${aws_subnet.zone3.id}"]
+   
+    listener {
+      instance_port = 8000
+      instance_protocol = "http"
+      lb_port = 8000
+      lb_protocol = "http"
+    }
+
+    health_check {
+      healthy_threshold = 3
+      unhealthy_threshold = 2
+      timeout = 10
+      target = "HTTP:8000/"
+      interval = 30
+    }
+
+    security_groups = ["${aws_security_group.sg_kibana_lb.id}"]
+   
+    # The instance is registered automatically
+    instances = ["${aws_instance.kibana1.id}",
+                 "${aws_instance.kibana2.id}",
+                 "${aws_instance.kibana3.id}"]
+
+    tags {
+        Name    = "Samsara Kibana ELB"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+resource "aws_elb" "els" {
+    name = "els-elb"
+   
+    subnets = ["${aws_subnet.zone1.id}",
+               "${aws_subnet.zone2.id}",
+               "${aws_subnet.zone3.id}"]
+
+    internal = true
+   
+    listener {
+      instance_port = 9200
+      instance_protocol = "http"
+      lb_port = 9200
+      lb_protocol = "http"
+    }
+
+    health_check {
+      healthy_threshold = 3
+      unhealthy_threshold = 2
+      timeout = 10
+      target = "HTTP:9200/"
+      interval = 30
+    }
+
+    security_groups = ["${aws_security_group.sg_els_lb.id}"]
+   
+    # The instance is registered automatically
+    instances = ["${aws_instance.els1.id}",
+                 "${aws_instance.els2.id}",
+                 "${aws_instance.els3.id}"]
+
+    tags {
+        Name    = "Samsara ELS ILB"
         project = "${var.project}"
         build   = "${var.build}"
     }
@@ -752,12 +954,291 @@ resource "aws_instance" "core1" {
 
 
 
+#
+# Samsara-Qanal
+#
+
+#resource "aws_instance" "qanal1" {
+#    ami		    = "${var.base_ami}"
+#    instance_type   = "${var.qanal_type}"
+#    key_name	    = "${var.key_name}"
+#    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+#                              "${aws_security_group.sg_general.id}",
+#                              "${aws_security_group.sg_qanal.id}"]
+#    subnet_id = "${aws_subnet.zone1.id}"
+#    associate_public_ip_address = "true"
+# 
+#    connection {
+#        user = "ubuntu"
+#        agent = true	
+#    }
+# 
+#    provisioner "file" {
+#        source = "scripts/qanal.conf"
+#        destination = "/tmp/qanal.conf"
+#    }
+# 
+#    provisioner "remote-exec" {
+#        inline = [
+#            "sudo mv /tmp/qanal.conf /etc/init/",
+#            "sudo docker pull samsara/qanal",
+#            "sudo service qanal start"
+#        ]
+#    }
+# 
+#    # TODO: accept more than 1 kafka and more than 1 zk
+#    #user_data = "-e KAFKA1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
+#    user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181"
+# 
+#    tags {
+#        Name    = "qanal1"
+#        project = "${var.project}"
+#        build   = "${var.build}"
+#    }
+#}
+
+
+
+#
+# ElasticSearch
+#
+
+resource "aws_instance" "els1" {
+    ami		    = "${var.data_ami}"
+    instance_type   = "${var.els_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_els.id}"]
+    subnet_id = "${aws_subnet.zone1.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/elasticsearch.conf"
+	destination = "/tmp/elasticsearch.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/elasticsearch.conf /etc/init/",
+            "sudo docker pull samsara/elasticsearch",
+	    "sudo service elasticsearch start"
+	]
+    }
+
+    tags {
+        Name    = "els1"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+
+resource "aws_instance" "els2" {
+    ami		    = "${var.data_ami}"
+    instance_type   = "${var.els_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_els.id}"]
+    subnet_id = "${aws_subnet.zone2.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/elasticsearch.conf"
+	destination = "/tmp/elasticsearch.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/elasticsearch.conf /etc/init/",
+            "sudo docker pull samsara/elasticsearch",
+	    "sudo service elasticsearch start"
+	]
+    }
+
+    tags {
+        Name    = "els2"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+
+resource "aws_instance" "els3" {
+    ami		    = "${var.data_ami}"
+    instance_type   = "${var.els_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_els.id}"]
+    subnet_id = "${aws_subnet.zone3.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/elasticsearch.conf"
+	destination = "/tmp/elasticsearch.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/elasticsearch.conf /etc/init/",
+            "sudo docker pull samsara/elasticsearch",
+	    "sudo service elasticsearch start"
+	]
+    }
+
+    tags {
+        Name    = "els3"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+#
+# Kibana
+#
+
+resource "aws_instance" "kibana1" {
+    ami		    = "${var.base_ami}"
+    instance_type   = "${var.kibana_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_kibana.id}"]
+    subnet_id = "${aws_subnet.zone1.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/kibana.conf"
+	destination = "/tmp/kibana.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/kibana.conf /etc/init/",
+            "sudo docker pull samsara/kibana",
+	    "sudo service kibana start"
+	]
+    }
+
+    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name}"
+
+    tags {
+        Name    = "kibana1"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+
+resource "aws_instance" "kibana2" {
+    ami		    = "${var.base_ami}"
+    instance_type   = "${var.kibana_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_kibana.id}"]
+    subnet_id = "${aws_subnet.zone2.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/kibana.conf"
+	destination = "/tmp/kibana.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/kibana.conf /etc/init/",
+            "sudo docker pull samsara/kibana",
+	    "sudo service kibana start"
+	]
+    }
+
+    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name}"
+
+    tags {
+        Name    = "kibana2"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
+
+resource "aws_instance" "kibana3" {
+    ami		    = "${var.base_ami}"
+    instance_type   = "${var.kibana_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_kibana.id}"]
+    subnet_id = "${aws_subnet.zone3.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/kibana.conf"
+	destination = "/tmp/kibana.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/kibana.conf /etc/init/",
+            "sudo docker pull samsara/kibana",
+	    "sudo service kibana start"
+	]
+    }
+
+    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name}"
+
+    tags {
+        Name    = "kibana3"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
 
 ##########################################################################
 #
 #                            Output variables
 #
 ##########################################################################
+
 
 # instance public IP
 #output "ip" {

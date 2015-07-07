@@ -76,7 +76,7 @@ and any other variable you might want to change.
 
 ```bash
 cd images
-./build-all-images.sh sam-v01 \
+./build-all-images.sh samsara-v01 \
     -var 'region=eu-west-1'      \
     -var 'data_disk_size=200'
 ```
