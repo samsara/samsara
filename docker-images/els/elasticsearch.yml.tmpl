@@ -9,7 +9,9 @@ transport.tcp.compress: true
 # discovery.zen.minimum_master_nodes: 2 / quorum
 discovery.zen.minimum_master_nodes: 1
 http.port: 9200
+http.publish_host: %%IP%%
 transport.tcp.port: 9300
+transport.publish_host: %%IP%%
 # TODO: maybe need to get boxtype from labels??
 node.box_type : standard
 

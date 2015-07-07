@@ -2,6 +2,8 @@
 
 # REQUIRED:
 #   ZOOKEEPER_PORT_2181_TCP_ADDR
+export HOSTNAME=${HOSTNAME-els}
+export IP=${ADV_IP:-`ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)"`}
 
 export CONFIG_FILE=/etc/elasticsearch/elasticsearch.yml
 # replace variables in template with environment values
