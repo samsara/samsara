@@ -42,3 +42,6 @@ variable "els_type" {
 variable "kibana_type" {
     default = "t2.small"
 }
+variable "monitoring_type" {
+    default = "t2.small"
+}

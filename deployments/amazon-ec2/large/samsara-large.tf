@@ -433,6 +433,50 @@ resource "aws_security_group" "sg_kibana_lb" {
 }
 
 
+
+resource "aws_security_group" "sg_monitoring" {
+	name = "sg_monitoring"
+	description = "Allow traffic towards the monitoring machines"
+
+	ingress {
+		from_port = 5555
+		to_port = 5556
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8083
+		to_port = 8083
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        ingress {
+		from_port = 8086
+		to_port = 8086
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+
+        ingress {
+		from_port = 15000
+		to_port = 15000
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        vpc_id = "${aws_vpc.samsara_vpc.id}"
+
+        tags {
+          Name    = "Samsara Monitoring"
+          project = "${var.project}"
+          build   = "${var.build}"
+        }
+}
+
+
 #
 # Elastic LoadBalancers
 #
@@ -549,10 +593,10 @@ resource "aws_elb" "els" {
     }
 }
 
-#resource "aws_eip" "samsara_ip" {
-#        instance = "${aws_instance.samsara.id}"
-#        vpc = true
-#}
+resource "aws_eip" "samsara_monitor_ip" {
+        instance = "${aws_instance.monitor1.id}"
+        vpc = true
+}
 
 
 ##########################################################################
@@ -958,44 +1002,44 @@ resource "aws_instance" "core1" {
 # Samsara-Qanal
 #
 
-#resource "aws_instance" "qanal1" {
-#    ami		    = "${var.base_ami}"
-#    instance_type   = "${var.qanal_type}"
-#    key_name	    = "${var.key_name}"
-#    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
-#                              "${aws_security_group.sg_general.id}",
-#                              "${aws_security_group.sg_qanal.id}"]
-#    subnet_id = "${aws_subnet.zone1.id}"
-#    associate_public_ip_address = "true"
-# 
-#    connection {
-#        user = "ubuntu"
-#        agent = true	
-#    }
-# 
-#    provisioner "file" {
-#        source = "scripts/qanal.conf"
-#        destination = "/tmp/qanal.conf"
-#    }
-# 
-#    provisioner "remote-exec" {
-#        inline = [
-#            "sudo mv /tmp/qanal.conf /etc/init/",
-#            "sudo docker pull samsara/qanal",
-#            "sudo service qanal start"
-#        ]
-#    }
-# 
-#    # TODO: accept more than 1 kafka and more than 1 zk
-#    #user_data = "-e KAFKA1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
-#    user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181"
-# 
-#    tags {
-#        Name    = "qanal1"
-#        project = "${var.project}"
-#        build   = "${var.build}"
-#    }
-#}
+resource "aws_instance" "qanal1" {
+    ami		    = "${var.base_ami}"
+    instance_type   = "${var.qanal_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+			      "${aws_security_group.sg_general.id}",
+			      "${aws_security_group.sg_qanal.id}"]
+    subnet_id = "${aws_subnet.zone1.id}"
+    associate_public_ip_address = "true"
+ 
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/qanal.conf"
+	destination = "/tmp/qanal.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/qanal.conf /etc/init/",
+	    "sudo docker pull samsara/qanal",
+	    "sudo service qanal start"
+	]
+    }
+ 
+    # TODO: accept more than 1 kafka and more than 1 zk
+    #user_data = "-e KAFKA1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
+    user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181 -e ELS_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELS_PORT_9200_TCP_PORT=9200"
+ 
+    tags {
+	Name	= "qanal1"
+	project = "${var.project}"
+	build	= "${var.build}"
+    }
+}
 
 
 
@@ -1233,6 +1277,47 @@ resource "aws_instance" "kibana3" {
 }
 
 
+
+#
+# Monitoring
+#
+
+resource "aws_instance" "monitor1" {
+    ami		    = "${var.data_ami}"
+    instance_type   = "${var.monitoring_type}"
+    key_name	    = "${var.key_name}"
+    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
+                              "${aws_security_group.sg_general.id}",
+                              "${aws_security_group.sg_monitoring.id}"]
+    subnet_id = "${aws_subnet.zone1.id}"
+    associate_public_ip_address = "true"
+
+    connection {
+	user = "ubuntu"
+	agent = true	
+    }
+ 
+    provisioner "file" {
+	source = "scripts/monitoring.conf"
+	destination = "/tmp/monitoring.conf"
+    }
+ 
+    provisioner "remote-exec" {
+	inline = [
+	    "sudo mv /tmp/monitoring.conf /etc/init/",
+            "sudo docker pull samsara/elasticsearch",
+	    "sudo service monitoring start"
+	]
+    }
+
+    tags {
+        Name    = "monitor1"
+        project = "${var.project}"
+        build   = "${var.build}"
+    }
+}
+
+
 ##########################################################################
 #
 #                            Output variables
@@ -1240,7 +1325,15 @@ resource "aws_instance" "kibana3" {
 ##########################################################################
 
 
-# instance public IP
-#output "ip" {
-#    value = "${aws_eip.samsara_ip.public_ip}"
-#}
+# Monitoring public IP
+output "monitoring_ip" {
+    value = "${aws_eip.samsara_monitor_ip.public_ip}"
+}
+
+output "ingestion_api_lb" {
+    value = "${aws_elb.ingestion_api.dns_name}"
+}
+
+output "dashboard_lb" {
+    value = "${aws_elb.kibana.dns_name}"
+}
