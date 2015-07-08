@@ -5,11 +5,11 @@ is the best suited for your case depends on your specific workload.
 
 Here we are going to see the following options:
 
-  * Small deployment - single machine, no redundancy
+  * [Small deployment](#small-deployment) - single machine, no redundancy
   * Small redundant deployment - 3 hosts, 3 AZs, triple replication
   * Compact deployment - 7 hosts, 3 AZs, triple replicaiton, scalable
     workload
-  * Large deployment - 17 hosts, 3 AZs, triple replication,
+  * [Large deployment](#large-deployment) - 18 hosts, 3 AZs, triple replication,
     indepentely scalable workload.
 
 
@@ -130,6 +130,32 @@ update the security groups to limit the access to your egress IP**
 
 ## Large deployment
 
+The large deployment is suitable for deployment with several billions
+of records.  There is a good focus on scalability and in particular on
+being able to scale different layers a different time. For example if
+you need to ingest several thousands of requests per second you can
+increase the number of ingestion API and the number of Kafka
+brokers. If wish to have more concurrent users accessing the
+dashboards then it is best to scale the elastic search and kibana layers.
+Finally if your processing is quite complex then you might need to scale the
+samsara-core and qanal.
+
+Here is a diagram of how the installation looks like:
+
+
+The first step is to create images as described in
+[To build the images](#to-build-the-images). Then create a file called
+`terraform.tfvars` with your credentials in the `large/` folder.
+
+```
+access_key = "..."
+secret_key = "..."
+key_name = "..."
+region = "eu-west-1"
+base_ami = "<ami_id_from_previous_step>"
+data_ami = "<ami_id_from_previous_step>"
+```
+
 After the image creation is complete and environment is configured you have to run
 `terraform apply` and it will build and configure the entire stack.
 
@@ -148,24 +174,21 @@ State path: terraform.tfstate
 
 Outputs:
 
-  dashboard_lb     = kibana-elb-376051862.eu-west-1.elb.amazonaws.com
-  ingestion_api_lb = ingestion-api-elb-256221127.eu-west-1.elb.amazonaws.com
-  monitoring_ip    = 52.18.37.185
-
+  cidr_allowed_access   = 83.98.24.231/32
+  dashboard_lb          = kibana-elb-1874436396.eu-west-1.elb.amazonaws.com
+  dashboard_lb_port     = 80
+  ingestion_api_lb      = ingestion-api-elb-1894097573.eu-west-1.elb.amazonaws.com
+  ingestion_api_lb_port = 80
+  monitoring_ip         = 52.18.40.61
 ```
 
-At the end of the processing you should see an output which looks similar to
-the above. The first two are respectively the load balancer for the Samsara's
-event dashboard and the second one is the load balancer for the ingestion endpoint.
-You can create a DNS `A` record for each LB and give the a appropriate `cname`.
-The last one is the public IP address of the monitoring dashboard.
+At the end of the processing you should see an output which looks
+similar to the above. The first two are respectively the load balancer
+for the Samsara's event dashboard and the second one is the load
+balancer for the ingestion endpoint.  You can create a DNS `A` record
+for each LB and give the a appropriate `cname`.  The last one is the
+public IP address of the monitoring dashboard.
 
-You can access these services at the above endpoint with the following ports number.
-
-|  Port | Protocol  | Description          |
-|-------|-----------|----------------------|
-|  8000 | HTTP      | Kibana interface     |
-|  9000 | HTTP      | Ingestion API        |
-| 15000 | HTTP      | Monitoring dashboard |
-
-The default credentials for the monitoring dashboard are **admin / samsara**
+The default credentials for the monitoring dashboard are **admin /
+samsara** and the default port is *15000*, tunneling is required to access
+the monitoring interface.
