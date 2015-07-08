@@ -144,8 +144,9 @@ Here is a diagram of how the installation looks like:
 
 
 The first step is to create images as described in
-[To build the images](#to-build-the-images). Then create a file called
-`terraform.tfvars` with your credentials in the `large/` folder.
+"[how too build the images](#to-build-the-images)" section. Then
+create a file called `terraform.tfvars` with your credentials in the
+`large/` folder.
 
 ```
 access_key = "..."
@@ -156,8 +157,9 @@ base_ami = "<ami_id_from_previous_step>"
 data_ami = "<ami_id_from_previous_step>"
 ```
 
-After the image creation is complete and environment is configured you have to run
-`terraform apply` and it will build and configure the entire stack.
+After the image creation is complete and environment is configured you
+have to run `terraform apply` and it will build and configure the
+entire stack.
 
 ```
 $ terrafrom apply
