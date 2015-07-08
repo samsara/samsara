@@ -126,7 +126,7 @@ resource "aws_security_group" "sg_ssh" {
 		from_port = 22
 		to_port = 22
 		protocol = "tcp"
-		cidr_blocks = ["0.0.0.0/0"]
+		cidr_blocks = ["${var.cidr_allowed_access}"]
 	}
 
         egress {
@@ -172,10 +172,10 @@ resource "aws_security_group" "sg_ingestion_api_lb" {
 	description = "Allow HTTP traffic to the ingestion api LB from the internet"
 
 	ingress {
-		from_port = 9000
-		to_port = 9000
+		from_port = "${var.public_ingestion_port}"
+		to_port = "${var.public_ingestion_port}"
 		protocol = "tcp"
-		cidr_blocks = ["0.0.0.0/0"]
+		cidr_blocks = ["${var.cidr_allowed_access}"]
 	}
 
         egress {
@@ -203,7 +203,7 @@ resource "aws_security_group" "sg_web_monitor" {
 		from_port = 15000
 		to_port = 15000
 		protocol = "tcp"
-		cidr_blocks = ["0.0.0.0/0"]
+		cidr_blocks = ["${var.cidr_allowed_access}"]
 	}
         
         vpc_id = "${aws_vpc.samsara_vpc.id}"
@@ -431,10 +431,10 @@ resource "aws_security_group" "sg_kibana_lb" {
 	description = "Samsara Kibana LB connections"
 
 	ingress {
-		from_port = 8000
-		to_port = 8000
+		from_port = "${var.public_kibana_port}"
+		to_port = "${var.public_kibana_port}"
 		protocol = "tcp"
-		cidr_blocks = ["0.0.0.0/0"]
+		cidr_blocks = ["${var.cidr_allowed_access}"]
 	}
 
         egress {
@@ -512,7 +512,7 @@ resource "aws_elb" "ingestion_api" {
     listener {
       instance_port = 9000
       instance_protocol = "http"
-      lb_port = 9000
+      lb_port = "${var.public_ingestion_port}"
       lb_protocol = "http"
     }
 
@@ -549,7 +549,7 @@ resource "aws_elb" "kibana" {
     listener {
       instance_port = 8000
       instance_protocol = "http"
-      lb_port = 8000
+      lb_port = "${var.public_kibana_port}"
       lb_protocol = "http"
     }
 
@@ -1354,7 +1354,17 @@ output "monitoring_ip" {
 output "ingestion_api_lb" {
     value = "${aws_elb.ingestion_api.dns_name}"
 }
+output "ingestion_api_lb_port" {
+    value = "${var.public_ingestion_port}"
+}
 
 output "dashboard_lb" {
     value = "${aws_elb.kibana.dns_name}"
+}
+output "dashboard_lb_port" {
+    value = "${var.public_kibana_port}"
+}
+
+output "cidr_allowed_access" {
+    value = "${var.cidr_allowed_access}"
 }

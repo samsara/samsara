@@ -45,3 +45,12 @@ variable "kibana_type" {
 variable "monitoring_type" {
     default = "t2.small"
 }
+variable "public_ingestion_port" {
+    default = 9000
+}
+variable "public_kibana_port" {
+    default = 8000
+}
+variable "cidr_allowed_access" {
+    default = "0.0.0.0/0"
+}
