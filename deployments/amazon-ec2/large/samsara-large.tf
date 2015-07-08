@@ -888,7 +888,7 @@ resource "aws_instance" "ingestion1" {
 	]
     }
 
-    user_data = "-e KAFKA_1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA_3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
+    user_data = "-e KAFKA_1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA_3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip} -e RIEMANN_PORT_5555_TCP_ADDR=${aws_instance.monitor1.private_ip}"
 
     tags {
         Name    = "ingestion1"
@@ -1008,7 +1008,7 @@ resource "aws_instance" "core1" {
 
     # TODO: accept more than 1 kafka and more than 1 zk
     #user_data = "-e KAFKA1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
-    user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181"
+    user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181 -e RIEMANN_PORT_5555_TCP_ADDR=${aws_instance.monitor1.private_ip}"
 
     tags {
         Name    = "core1"
@@ -1053,7 +1053,7 @@ resource "aws_instance" "qanal1" {
  
     # TODO: accept more than 1 kafka and more than 1 zk
     #user_data = "-e KAFKA1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
-    user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181 -e ZOOKEEPER_PORT_2181_TCP=tcp://${aws_instance.zookeeper1.private_ip}:2181 -e ELS_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELS_PORT_9200_TCP_PORT=9200"
+    user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181 -e ZOOKEEPER_PORT_2181_TCP=tcp://${aws_instance.zookeeper1.private_ip}:2181 -e ELS_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELS_PORT_9200_TCP_PORT=9200 -e RIEMANN_PORT_5555_TCP_ADDR=${aws_instance.monitor1.private_ip}"
  
     tags {
 	Name	= "qanal1"
