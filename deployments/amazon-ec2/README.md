@@ -142,7 +142,7 @@ samsara-core and qanal.
 
 Here is a diagram of how the installation looks like:
 
-![/amazon-ec2/pictures/amazon_ec2_large_deployment_model.png](Amazon ec2 Large deployment)
+![Amazon ec2 Large deployment](./pictures/amazon_ec2_large_deployment_model.png)
 
 The first step is to create images as described in
 "[how too build the images](#to-build-the-images)" section. Then
