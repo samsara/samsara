@@ -11,6 +11,7 @@ export HOSTNAME=${HOSTNAME-kafka$KAFKA_BROKER_ID}
 export IP=${ADV_IP:-`ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)"`}
 export KAFKA_ENABLE_REPORTING_STATSD=${KAFKA_ENABLE_REPORTING_STATSD-false}
 export STATSD_PORT_8125_TCP_ADDR=${STATSD_PORT_8125_TCP_ADDR}
+export KAFKA_BROKER_PORT=${KAFKA_BROKER_PORT-9092}
 
 
 export CONFIG_FILE=/opt/kafka/config/server.properties
