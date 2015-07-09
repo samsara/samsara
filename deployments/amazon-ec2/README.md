@@ -144,6 +144,27 @@ Here is a diagram of how the installation looks like:
 
 ![Amazon ec2 Large deployment](./pictures/amazon_ec2_large_deployment_model.png)
 
+
+The following resources will be created:
+
+  * In a region of your choice we make use of 3 availability zones
+  * 1 VPC `10.10.0.0/16` contains the entire deployment
+  * 2 subnets, one on each AZ.
+  * security group for every layer
+  * a public facing ingestion load balancer
+  * 3 ingestion API on every AZ with autoscale
+  * 3 zookeeper with fixed IP, one on each AZ
+  * 3 Kafka brokers, on on each AZ
+  * 1 bifrost in any of the AZ with autoscale
+  * 1 core in any AZ with autoscale
+  * 1 monitor in any AZ with autoscale
+  * 1 qanal indexer in any AZ with autoscale
+  * 3 ElasticSearch nodes, one on each AZ with autoscale
+  * 1 internal load balancer to balance ELS cluster
+  * 3 Kibana nodes one on each AZ with autoscale
+  * 1 Public facing elastic load balancer for kibana interface.
+  * 1 internet gateway and related routing.
+
 The first step is to create images as described in
 "[how too build the images](#to-build-the-images)" section. Then
 create a file called `terraform.tfvars` with your credentials in the
