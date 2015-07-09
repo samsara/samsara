@@ -14,6 +14,7 @@ RUN curl -sSL "http://apache.mirrors.pair.com/kafka/${KAFKA_VERSION}/kafka_${SCA
 
 ENV KAFKA_HOME /opt/kafka
 VOLUME ["/data", "/logs"]
+# DEFAULT KAFKA_BROKER_PORT is 9092
 EXPOSE 15000
 
 ADD ./server.properties.tmpl  /opt/kafka/config/server.properties.tmpl
