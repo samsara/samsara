@@ -8,9 +8,9 @@ we support.
 The following deployment are described in this project:
 
   * Deployment on bare metal with Docker
-  * Deployment on Amazon EC2
-  * Deployment on Amazon ECS
-  * Deployment on Kubernetes
+  * [Deployment on Amazon EC2](/amazon-ec2)
+  * [Deployment on Amazon ECS](/amazon-ecs)
+  * [Deployment on Kubernetes](/kubernetes)
   * Deployment on ...
 
 ## License
