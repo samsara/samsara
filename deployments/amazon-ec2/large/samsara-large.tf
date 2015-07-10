@@ -985,7 +985,7 @@ resource "aws_instance" "core1" {
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
                               "${aws_security_group.sg_general.id}",
                               "${aws_security_group.sg_core.id}"]
-    subnet_id = "${aws_subnet.zone1.id}"
+    subnet_id = "${aws_subnet.zone2.id}"
     associate_public_ip_address = "true"
 
     connection {
@@ -1030,7 +1030,7 @@ resource "aws_instance" "qanal1" {
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
 			      "${aws_security_group.sg_general.id}",
 			      "${aws_security_group.sg_qanal.id}"]
-    subnet_id = "${aws_subnet.zone1.id}"
+    subnet_id = "${aws_subnet.zone3.id}"
     associate_public_ip_address = "true"
  
     connection {
@@ -1310,7 +1310,7 @@ resource "aws_instance" "monitor1" {
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
                               "${aws_security_group.sg_general.id}",
                               "${aws_security_group.sg_monitoring.id}"]
-    subnet_id = "${aws_subnet.zone1.id}"
+    subnet_id = "${aws_subnet.zone2.id}"
     associate_public_ip_address = "true"
 
     connection {

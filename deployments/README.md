@@ -1,17 +1,16 @@
 # samsara-deployments
 
-This project contains deployment descriptors example for the various platforms
-we support.
+This project contains deployment descriptors example for the various platforms.
 
 ## Description
 
-The following deployment are described in this project:
+The following deployments options are described in this project:
 
   * Deployment on bare metal with Docker
   * [Deployment on Amazon EC2](/amazon-ec2)
   * [Deployment on Amazon ECS](/amazon-ecs)
   * [Deployment on Kubernetes](/kubernetes)
-  * Deployment on ...
+  * ... more to come ...
 
 ## License
 

@@ -166,7 +166,7 @@ The following resources will be created:
   * 1 internet gateway and related routing.
 
 The first step is to create images as described in
-"[how too build the images](#to-build-the-images)" section. Then
+"[how to build the images](#to-build-the-images)" section. Then
 create a file called `terraform.tfvars` with your credentials in the
 `large/` folder.
 
