@@ -96,5 +96,4 @@
   (def processor (moebius session-boundaries-correlation))
   (def state (kv/make-in-memory-kvstore))
   (processor state [ev1 ev2])
-
   )
