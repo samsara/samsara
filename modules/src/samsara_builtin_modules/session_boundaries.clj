@@ -11,7 +11,7 @@
   [{:start-gate (partial match-glob "**.started")
     :stop-gate  (partial match-glob "**.stopped")
     :start-gate-name #(s/replace % #"\.stopped$" ".started")
-    :merge-with merge
+    :merge-with merge-session-events
     :name-fn    #(s/replace % #"\.started$" ".done")}])
 
 
@@ -59,13 +59,13 @@
 (defn- maybe-emit-session-event
   [state
    {:keys [sourceId eventName] :as event}
-   {:keys [start-gate-name name-fn] :as spec}]
+   {:keys [start-gate-name name-fn merge-with] :as spec}]
 
   (when-let [event1 (kv/get state sourceId [:session-boundaries (start-gate-name eventName)])]
     [;; closing gate
      (kv/del state sourceId [:session-boundaries (start-gate-name eventName)])
      ;; return the session event
-     [(merge-session-events
+     [(merge-with ;; merging function in spec
         (name-fn (start-gate-name eventName))
         event1
         event)]]))
