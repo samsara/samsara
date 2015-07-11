@@ -146,6 +146,27 @@
 
 
 
+(facts "about stateful `correlator`: results are normalised for the `cycler`"
+
+       ;; correlator accepts a function which optionally perform
+       ;; a transformation to the given event and it can return
+       ;; 0, 1 or more new events
+
+       ;; a stateful correlator should be able to change the state
+       ((correlator-wrapper (fn [s x] [(inc s) [x]]))   [1 [{:a 1}]])    =>     [2 [{:a 1}{:a 1}]]
+
+       ;; a stateful correlator should be able to change the state even if
+       ;; it returns nil as events
+       ((correlator-wrapper (fn [s x] [(inc s) nil]))   [1 [{:a 1}]])    =>     [2 [{:a 1}]]
+
+       ;; if the correlation function returns nil state should
+       ;; be unchanged
+       ((correlator-wrapper (fn [s x] nil))   [1 [{:a 1}]])              =>     [1 [{:a 1}]]
+
+       )
+
+
+
 (facts "about `cycler`: it applies the functions to all given events and expands the result"
 
        (cycler (pipeline (as-enricher- identity)) 1 [{:a 1}])

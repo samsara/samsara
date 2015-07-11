@@ -160,12 +160,21 @@
 
 (defn- correlator-wrapper
   "Takes a function which accept an event and turns the output into
-  something expected by the cycler"
+  something expected by the cycler.
+  If the correlation function return nil, the state in left
+  unchanged and no event is generated.
+  If the state is changed, it need to be propagated even if no
+  events are generated. If the state is changed and 1 or more
+  events are generated then the new state must be returned
+  and all events must be added to the processing queue.
+  In any case the given event must NOT be changed."
   [f]
   ((generic-wrapper
-    (fn [s0 e0 [s1 r]]
-      (let [correlated (if (map? r) [r] r)]
-        [s1 (concat [e0] correlated)]))) f))
+    (fn [s0 e0 [s1 r :as result]]
+      (if result
+        (let [correlated (if (map? r) [r] r)]
+          [s1 (concat [e0] correlated)])
+        [s0 [e0]]))) f))
 
 
 
