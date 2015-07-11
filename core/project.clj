@@ -7,7 +7,7 @@
 
   :java-source-paths ["java"]
 
-  :dependencies [[org.clojure/clojure "1.6.0"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.apache.samza/samza-api        "0.9.0"]
                  [org.apache.samza/samza-kafka_2.10 "0.9.0"]
                  [samsara/moebius "0.2.0"]
@@ -23,7 +23,7 @@
   :main samsara-core.main
 
   :profiles {:uberjar {:aot :all}
-             :dev {:dependencies [[midje "1.6.3"]]
+             :dev {:dependencies [[midje "1.7.0"]]
                    :plugins [[lein-midje "3.1.3"]
                              [lein-bin "0.3.5"]]}}
 

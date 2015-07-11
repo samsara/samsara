@@ -1,4 +1,4 @@
-# samsara-core [![Circle CI](https://circleci.com/gh/samsara/samsara-core/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara-core/tree/master) [![Dependencies Status](http://jarkeeper.com/samsara/samsara-core/status.png)](http://jarkeeper.com/samsara/samsara-core)
+# samsara-core [![Circle CI](https://circleci.com/gh/samsara/samsara-core/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara-core/tree/master) [![Dependencies Status](http://jarkeeper.com/samsara/samsara-core/status.png)](http://jarkeeper.com/samsara/samsara-core) [![Dependencies Status](http://jarkeeper.com/samsara/samsara-core/status.png)](http://jarkeeper.com/samsara/samsara-core)
 
 Real-time event stream processing pipeline for Samsara Analytics
 
