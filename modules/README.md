@@ -6,6 +6,11 @@ This projects contains Samsara's built-in modules.
 
   * [Session management](#session-management)
     * [Auto detect session duration from start/stop events](#session-boundaries-correlation).
+    * TODO: Sessionize web requests
+  * Miscellaneous
+    * TODO: IP geo-location
+  * Twitter
+    * TODO: Sentiment analysis
 
 ## Session management
 
