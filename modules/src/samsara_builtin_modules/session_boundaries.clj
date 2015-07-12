@@ -37,10 +37,11 @@
    {ts1 :timestamp id1 :id :as event-start}
    {ts2 :timestamp id2 :id :as event-stop}]
   (-> (merge event-start event-stop)
+      (dissoc :id)
       (inject-as :startTs ts1)            ;; add start & stop timestamps
       (inject-as :stopTs ts2)
-      (inject-as :startId id1)           ;; add start & stop ids
-      (inject-as :stopId  id2)
+      (inject-as :startEventId id1)      ;; add start & stop ids
+      (inject-as :stopEventId  id2)
       (inject-as :timestamp ts1)         ;; use start timestamp
       (inject-as :duration (- ts2 ts1))  ;; add duration
       (inject-as :eventName proposed-name) ;; give it a name
