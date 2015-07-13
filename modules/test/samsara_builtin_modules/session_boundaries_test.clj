@@ -1,6 +1,6 @@
-(ns samsara-builtin-modules.session_boundaries-test
+(ns samsara-builtin-modules.session-boundaries-test
   (:require [clojure.test :refer :all]
-            [samsara-builtin-modules.session_boundaries :refer :all])
+            [samsara-builtin-modules.session-boundaries :refer :all])
   (:use midje.sweet)
   (:require [clojure.string :as s])
   (:require [moebius.core :refer :all]

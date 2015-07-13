@@ -1,7 +1,24 @@
-(ns samsara-builtin-modules.session_boundaries
+(ns samsara-builtin-modules.session-boundaries
   (:require [clojure.string :as s])
   (:require [moebius.core :refer :all]
             [moebius.kv :as kv]))
+
+
+(defn merge-session-events
+  "Merges the session events and injects the duration in milliseconds"
+  [proposed-name
+   {ts1 :timestamp id1 :id :as event-start}
+   {ts2 :timestamp id2 :id :as event-stop}]
+  (-> (merge event-start event-stop)
+      (dissoc :id)
+      (inject-as :startTs ts1)            ;; add start & stop timestamps
+      (inject-as :stopTs ts2)
+      (inject-as :startEventId id1)      ;; add start & stop ids
+      (inject-as :stopEventId  id2)
+      (inject-as :timestamp ts1)         ;; use start timestamp
+      (inject-as :duration (- ts2 ts1))  ;; add duration
+      (inject-as :eventName proposed-name) ;; give it a name
+      (inject-as :inferred true)))       ;; add the inferred flag
 
 
 
@@ -28,24 +45,6 @@
 (defn- is-boundary-event? [{:keys [eventName]}]
   (some #(when ((:boundary-check %) eventName) %)
         (-which-boundary *session-boundaries*)))
-
-
-
-(defn merge-session-events
-  "Merges the session events and injects the duration in milliseconds"
-  [proposed-name
-   {ts1 :timestamp id1 :id :as event-start}
-   {ts2 :timestamp id2 :id :as event-stop}]
-  (-> (merge event-start event-stop)
-      (dissoc :id)
-      (inject-as :startTs ts1)            ;; add start & stop timestamps
-      (inject-as :stopTs ts2)
-      (inject-as :startEventId id1)      ;; add start & stop ids
-      (inject-as :stopEventId  id2)
-      (inject-as :timestamp ts1)         ;; use start timestamp
-      (inject-as :duration (- ts2 ts1))  ;; add duration
-      (inject-as :eventName proposed-name) ;; give it a name
-      (inject-as :inferred true)))       ;; add the inferred flag
 
 
 
