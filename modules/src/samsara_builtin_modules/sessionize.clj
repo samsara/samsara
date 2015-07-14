@@ -62,15 +62,25 @@
     (let [stop
           (when prev-event
             (-> (cleanup-prev-event prev-event)
-                (inject-as :eventName (str *session-event-basename* ".stopped"))))
+                (inject-as :eventName (str *session-event-basename* ".stopped"))
+                (inject-as :inferred true)
+                (dissoc :isSessionStart)))
           start
           (-> (cleanup-prev-event event)
-              (inject-as :eventName (str *session-event-basename* ".started")))]
-      (println "stop:" stop)
-      (println "start:" start)
+              (inject-as :eventName (str *session-event-basename* ".started"))
+              (inject-as :inferred true)
+              (dissoc :isSessionStart))]
       (if stop
         [stop start]
         [start]))))
+
+
+
+(defenrich calculate-dwell-time
+  [{:keys [isSessionStart ::prev-event timestamp] :as event}]
+  (inject-as event :dwellTime
+             (when (and prev-event (not isSessionStart))
+               (- timestamp (:timestamp prev-event)))))
 
 
 
@@ -79,6 +89,7 @@
    add-sessionId
    identify-session-start
    emit-session-start-and-stop
+   calculate-dwell-time
    cleanup-prev-event
    session-boundaries-correlation))
 
@@ -90,4 +101,7 @@
 
   (def proc (moebius sessionize-web-requests))
 
-  (proc (kv/make-in-memory-kvstore) events))
+  (second
+   (proc (kv/make-in-memory-kvstore) events) )
+
+  )
