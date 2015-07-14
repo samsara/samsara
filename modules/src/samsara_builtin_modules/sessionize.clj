@@ -9,6 +9,7 @@
 ;; TODO: add sessionId on every requests
 ;; TODO: add dwell time
 ;; TODO: generate session.started/stopped
+;; TODO: cutoff line for unfinished sessions (start without a stop)
 
 
 (def *max-idle-time* 20)
@@ -76,12 +77,12 @@
 
 
 
-(defenrich calculate-dwell-time
-  [{:keys [isSessionStart ::prev-event timestamp] :as event}]
-  (inject-as event :dwellTime
-             (when (and prev-event (not isSessionStart))
-               (- timestamp (:timestamp prev-event)))))
-
+(defcorrelate calculate-dwell-time
+  [{:keys [sessionId dwellTime ::prev-event timestamp] :as event}]
+  (when (and prev-event (not dwellTime)
+           (= sessionId (:sessionId prev-event)))
+    [(inject-as prev-event :dwellTime
+                (- timestamp (:timestamp prev-event)))]))
 
 
 (def sessionize-web-requests
@@ -97,7 +98,7 @@
 (comment
   (def events [{:eventName "web.page.viewed" :timestamp 1  :sourceId "cookie1"}
                {:eventName "web.page.viewed" :timestamp 10 :sourceId "cookie1"}
-               {:eventName "web.page.viewed" :timestamp 50 :sourceId "cookie1"}])
+               #_{:eventName "web.page.viewed" :timestamp 50 :sourceId "cookie1"}])
 
   (def proc (moebius sessionize-web-requests))
 
