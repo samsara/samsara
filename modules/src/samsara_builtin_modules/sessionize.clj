@@ -85,6 +85,7 @@
                 (- timestamp (:timestamp prev-event)))]))
 
 
+
 (def sessionize-web-requests
   (pipeline
    add-sessionId
@@ -99,6 +100,12 @@
   (def events [{:eventName "web.page.viewed" :timestamp 1  :sourceId "cookie1"}
                {:eventName "web.page.viewed" :timestamp 10 :sourceId "cookie1"}
                #_{:eventName "web.page.viewed" :timestamp 50 :sourceId "cookie1"}])
+
+  (def events [{:eventName "web.page.viewed" :timestamp 1  :sourceId "cookie1"}
+               {:eventName "web.page.viewed" :timestamp 10 :sourceId "cookie1"}
+               {:eventName "web.page.viewed" :timestamp 25 :sourceId "cookie1"}
+               {:eventName "web.page.viewed" :timestamp 50 :sourceId "cookie1"}
+               {:eventName "web.page.viewed" :timestamp 60 :sourceId "cookie1"}])
 
   (def proc (moebius sessionize-web-requests))
 
