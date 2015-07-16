@@ -51,47 +51,6 @@
 
 
 
-(defn moebius-fn
-  "Takes a normal clojure function and add the necessary metadata
-   to be used inside a pipeline.
-
-     - `name`: is the function name as in `defn`
-     - `type`: is one of: :enrichment, `:correlation`, `:filtering`
-          or `:pipeline`
-     - `statefulness`: whether the function is handling the state
-          as well or it is stateless. Should be one of the following
-          options: `:stateful` or `:stateless`
-     - `f`: is the function which either process a single event
-          or it process `state` and `event`
-     - `opts`: optional parameters are used to add more details
-          such as `moebius-fns` in the pipeline which contains
-          the list of function which have been packed together.
-  "
-  [name type statefulness f & {:as opts}]
-  (with-meta f
-    (merge
-     opts
-     {:moebius-name name
-      :moebius-wrapper statefulness
-      :moebius-type type})))
-
-
-
-(defmacro -def-moebius-function
-  "handy macro to define an moebius function"
-  [type fname params & body]
-  (let [p# (count params)
-        wrapper (if (= 2 p#) :stateful :stateless)]
-    (if (not (<= 1 p# 2))
-      (throw (IllegalArgumentException.
-              (str "Invalid number of parameters for function: "
-                   name ". It can be either [event] or [state event]")))
-      `(def ~fname
-         (moebius-fn (str '~fname) ~type ~wrapper
-           (fn ~params
-             ~@body))))))
-
-
 ;;
 ;; #              Functional composition helpers
 ;;
@@ -212,6 +171,36 @@
 
 
 
+(defn moebius-fn
+  "Takes a normal clojure function and add the necessary metadata
+   to be used inside a pipeline.
+
+     - `name`: is the function name as in `defn`
+     - `docstring`: the description of the function
+     - `type`: is one of: :enrichment, `:correlation`, `:filtering`
+          or `:pipeline`
+     - `statefulness`: whether the function is handling the state
+          as well or it is stateless. Should be one of the following
+          options: `:stateful` or `:stateless`
+     - `f`: is the function which either process a single event
+          or it process `state` and `event`
+     - `opts`: optional parameters are used to add more details
+          such as:
+        - `moebius-fns` in the pipeline which contains
+          the list of function which have been packed together.
+  "
+  [name docstring type statefulness f & {:as opts}]
+  (with-meta f
+    (merge
+     opts
+     {:moebius-name name
+      :moebius-doc  docstring
+      :moebius-wrapper statefulness
+      :moebius-type type})))
+
+
+
+;; TODO: docstring support
 (defn- compose-pipeline
   "Composes the given moebius function into a single function
    which is the logical equivalent of (-> [state event] f1 f2 f3 f4)"
@@ -219,7 +208,8 @@
   (let [metas   (apply vector (map meta fs))
         compose (apply comp (reverse fs))
         wrap    (comp compose (fn [state e] [state [e]]))]
-    (moebius-fn "pipeline" :pipeline :stateful wrap :moebius-fns metas)))
+    (moebius-fn "pipeline" "" :pipeline :stateful wrap :moebius-fns metas)))
+
 
 
 ;;
@@ -239,24 +229,77 @@
 
 
 
+(defmacro -def-moebius-function
+  "handy macro to define an moebius function"
+  [type fname docstring params & body]
+  (let [p# (count params)
+        wrapper (if (= 2 p#) :stateful :stateless)]
+    (if (not (<= 1 p# 2))
+      (throw (IllegalArgumentException.
+              (str "Invalid number of parameters for function: "
+                   name ". It can be either [event] or [state event]")))
+      (let [attrs (merge (meta fname)
+                         {:doc docstring
+                          :arglists [`'~params]})
+            fsym (with-meta fname attrs)]
+        `(def ~fsym
+           (moebius-fn (str '~fname) ~docstring ~type ~wrapper
+                       (fn ~params
+                         ~@body)))))))
+
+
+
 (defmacro defenrich
   "handy macro to define an enrichment function"
-  [name params & body]
-  `(-def-moebius-function :enrichment ~name ~params ~@body))
+  ^{:arglists '([name docstring? [event] & body]
+                [name docstring? [state event] & body])}
+  [name & args]
+  (let [[docstring params & body] (if (string? (first args)) args (cons "" args))]
+    `(-def-moebius-function :enrichment ~name ~docstring ~params ~@body)))
+
+
+
+(defn as-enrich
+  ([name statefulness f]
+   (moebius-fn name "" :enrichment statefulness f))
+  ([name docstring statefulness f]
+   (moebius-fn name docstring :enrichment statefulness f)))
 
 
 
 (defmacro defcorrelate
-  "handy macro to define an correlations function"
-  [name params & body]
-  `(-def-moebius-function :correlation ~name ~params ~@body))
+  "handy macro to define a correlations function"
+  ^{:arglists '([name docstring? [event] & body]
+                [name docstring? [state event] & body])}
+  [name & args]
+  (let [[docstring params & body] (if (string? (first args)) args (cons "" args))]
+    `(-def-moebius-function :correlation ~name ~docstring ~params ~@body)))
+
+
+
+(defn as-correlate
+  ([name statefulness f]
+   (moebius-fn name "" :correlation statefulness f))
+  ([name docstring statefulness f]
+   (moebius-fn name docstring :correlation statefulness f)))
 
 
 
 (defmacro deffilter
-  "handy macro to define an filtering function"
-  [name params & body]
-  `(-def-moebius-function :filtering ~name ~params ~@body))
+  "handy macro to define a filtering function"
+  ^{:arglists '([name docstring? [event] & body]
+                [name docstring? [state event] & body])}
+  [name & args]
+  (let [[docstring params & body] (if (string? (first args)) args (cons "" args))]
+    `(-def-moebius-function :filtering ~name ~docstring ~params ~@body)))
+
+
+
+(defn as-filter
+  ([name statefulness f]
+   (moebius-fn name "" :filtering statefulness f))
+  ([name docstring statefulness f]
+   (moebius-fn name docstring :filtering statefulness f)))
 
 
 

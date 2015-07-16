@@ -11,22 +11,22 @@
 ;; Utility function for creating a moebius-fn with
 ;; the right metadata
 (defn as-enricher- [f]
-  (moebius-fn "enricher" :enrichment :stateless f ))
+  (as-enrich "enricher" :stateless f ))
 
 (defn as-enricher+ [f]
-  (moebius-fn "enricher" :enrichment :stateful f ))
+  (as-enrich "enricher" :stateful f ))
 
 (defn as-correlator- [f]
-  (moebius-fn "correlator" :correlation :stateless f ))
+  (as-correlate "correlator" :stateless f ))
 
 (defn as-correlator+ [f]
-  (moebius-fn "correlator" :correlation :stateful f ))
+  (as-correlate "correlator" :stateful f ))
 
 (defn as-filterer- [f]
-  (moebius-fn "filterer" :filtering :stateless f ))
+  (as-filter "filterer" :stateless f ))
 
 (defn as-filterer+ [f]
-  (moebius-fn "filterer" :filtering :stateful f ))
+  (as-filter "filterer" :stateful f ))
 
 
 
