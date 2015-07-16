@@ -248,6 +248,23 @@
                          ~@body)))))))
 
 
+(defmacro -def-moebius-builder [type fname docstring args &
+                                [[afn params & body] :as forms]]
+  (let [p# (count params)
+        wrapper (if (= 2 p#) :stateful :stateless)]
+    (if (not (<= 1 p# 2))
+      (throw (IllegalArgumentException.
+              (str "Invalid number of parameters for function: "
+                   name ". It can be either [event] or [state event]")))
+      (let [attrs (merge (meta fname)
+                         {:doc docstring
+                          :arglists [`'~params]})
+            fsym (with-meta fname attrs)]
+        `(defn ~fsym ~args
+           (moebius-fn (str '~fname) ~docstring ~type ~wrapper
+                       ~@forms))))))
+
+
 
 (defmacro defenrich
   "handy macro to define an enrichment function"
@@ -256,6 +273,15 @@
   [name & args]
   (let [[docstring params & body] (if (string? (first args)) args (cons "" args))]
     `(-def-moebius-function :enrichment ~name ~docstring ~params ~@body)))
+
+
+
+(defmacro defenrich*
+  "handy macro to define an enrichment function which closes over a configuration"
+  ^{:arglists '([name docstring? [cfg] & body])}
+  [name & args]
+  (let [[docstring params & body] (if (string? (first args)) args (cons "" args))]
+    `(-def-moebius-builder :enrichment ~name ~docstring ~params ~@body)))
 
 
 
@@ -277,6 +303,15 @@
 
 
 
+(defmacro defcorrelate*
+  "handy macro to define an correlation function which closes over a configuration"
+  ^{:arglists '([name docstring? [cfg] & body])}
+  [name & args]
+  (let [[docstring params & body] (if (string? (first args)) args (cons "" args))]
+    `(-def-moebius-builder :correlation ~name ~docstring ~params ~@body)))
+
+
+
 (defn as-correlate
   ([name statefulness f]
    (moebius-fn name "" :correlation statefulness f))
@@ -292,6 +327,15 @@
   [name & args]
   (let [[docstring params & body] (if (string? (first args)) args (cons "" args))]
     `(-def-moebius-function :filtering ~name ~docstring ~params ~@body)))
+
+
+
+(defmacro deffilter*
+  "handy macro to define an filtering function which closes over a configuration"
+  ^{:arglists '([name docstring? [cfg] & body])}
+  [name & args]
+  (let [[docstring params & body] (if (string? (first args)) args (cons "" args))]
+    `(-def-moebius-builder :filtering ~name ~docstring ~params ~@body)))
 
 
 
