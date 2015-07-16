@@ -124,5 +124,5 @@
 
   (require '[moebius.pipeline-utils :as g])
 
-  (g/view-pipeline-graph sessionize-web-requests)
+  (g/view-pipeline-graph (sessionize-web-requests cfg))
   )
