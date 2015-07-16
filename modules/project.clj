@@ -6,7 +6,7 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [samsara/moebius "0.2.0"]
+                 [samsara/moebius "0.3.0-SNAPSHOT"]
                  [digest "1.4.4"]]
 
   :profiles {:dev {:dependencies [[midje "1.7.0"]]
