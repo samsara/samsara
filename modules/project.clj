@@ -7,7 +7,8 @@
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [samsara/moebius "0.3.0-SNAPSHOT"]
-                 [digest "1.4.4"]]
+                 [digest "1.4.4"]
+                 [com.brunobonacci/ip-geoloc "0.1.0-SNAPSHOT"]]
 
   :profiles {:dev {:dependencies [[midje "1.7.0"]]
                    :plugins [[lein-midje "3.1.3"]]}}
