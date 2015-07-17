@@ -5,25 +5,47 @@
   (:require [samsara-builtin-modules.session-boundaries
              :refer [session-boundaries-correlation]]))
 
-;; TODO: which event? and which key?
-;; TODO: add sessionId on every requests
-;; TODO: add dwell time
-;; TODO: generate session.started/stopped
-;; TODO: cutoff line for unfinished sessions (start without a stop)
 
+(def DEFAULT-CONFIG
+  {;; :max-idle-time is max time in milliseconds which can elapse
+   ;; between two web calls from the same user to consider them part
+   ;; of the same web session.
+   ;;
+   ;; (default): 20 min
+   :max-idle-time  (* 20 60 1000) ;; 20 minutes
 
-
-;; TODO: what's the cleanest way to handle processors' config?
-;;       a param? a closure?, a var?
-;; (def *max-idle-time* 20)
-;; (def *attribute* nil)
-;; (def *web-event-name* "web.page.viewed")
-;; (def *session-event-basename* "web.session")
-
-(def cfg
-  {:max-idle-time  20
+   ;; :attribute is the name of the event attribute which together
+   ;; with the :sourceId form the guid (general user identifier). This
+   ;; is typically a value of a cookie which is assigned at the first
+   ;; access by the LB or server and used to keep track of new or
+   ;; returning users.  By default it uses only the sourceId, it
+   ;; doesn't use any additional attribute (`nil`). Remember that if
+   ;; you specify another attribute this will be used as composition
+   ;; with the sourceId and not as a replacement. This is due to the
+   ;; fact that the sourceId is the partition key, and the only way to
+   ;; define how data is distributed across processing machines. So if
+   ;; your identifier is in another field then you won't be guaranteed
+   ;; that all events from that specific user will be processed
+   ;; by the same processor thread. In that case you have to switch the
+   ;; attributes and put your GUID into sourceId.
+   ;; (default): nil
    :attribute      nil
+
+   ;; :web-event-name name of the event which contains the page views.
+   ;; only these events will be considered for the processing
+   ;;
+   ;; (default): "web.page.viewed"
    :web-event-name "web.page.viewed"
+
+   ;; :session-event-basename is the base name for the session events.
+   ;; When a session start a new event will be generated with the
+   ;; following name `${session-event-basename}.started`, similarly
+   ;; when the session ends a event called
+   ;; `${session-event-basename}.stopped` is generated.  This
+   ;; parameter enables you to customise the name of the generated
+   ;; event.
+   ;;
+   ;; (default): "web.session"
    :session-event-basename "web.session"})
 
 
@@ -96,17 +118,27 @@
 
 
 
-(defn sessionize-web-requests [cfg]
-  (pipeline
-   (add-sessionId cfg)
-   (identify-session-start cfg)
-   (emit-session-start-and-stop cfg)
-   calculate-dwell-time
-   cleanup-prev-event
-   session-boundaries-correlation))
+(defn sessionize-web-requests
+  ([cfg]
+   (pipeline
+    (add-sessionId cfg)
+    (identify-session-start cfg)
+    (emit-session-start-and-stop cfg)
+    calculate-dwell-time
+    cleanup-prev-event
+    session-boundaries-correlation))
+  ([]
+   (sessionize-web-requests DEFAULT-CONFIG)))
 
 
 (comment
+
+  (def cfg {:max-idle-time 20,
+            :attribute nil,
+            :web-event-name "web.page.viewed",
+            :session-event-basename "web.session"})
+
+
   (def events [{:eventName "web.page.viewed" :timestamp 1  :sourceId "cookie1"}
                {:eventName "web.page.viewed" :timestamp 10 :sourceId "cookie1"}
                #_{:eventName "web.page.viewed" :timestamp 50 :sourceId "cookie1"}])
