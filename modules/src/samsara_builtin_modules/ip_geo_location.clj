@@ -6,7 +6,7 @@
   {:db-file "/tmp/GeoLite2-City.mmdb"})
 
 
-(def provider nil)
+(def ^:dynamic *provider* nil)
 
 
 (defn init-provider [file]
@@ -14,7 +14,7 @@
 
 
 (defn init-provider! [file]
-  (alter-var-root #'provider (constantly (init-provider file))))
+  (alter-var-root #'*provider* (constantly (init-provider file))))
 
 
 (defenrich ip-geo-locate [{:keys [clientIp] :as event}]
@@ -32,4 +32,5 @@
 
   (init-provider! (:db-file cfg))
 
-  (geo/geo-lookup provider "8.8.8.8"))
+  (geo/geo-lookup provider "8.8.8.8")
+  )
