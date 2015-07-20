@@ -8,7 +8,7 @@ import org.slf4j.ILoggerFactory;
 
 public class SamsaraLoggerFactory implements ILoggerFactory
 {
-    private ConcurrentMap<String, Logger> loggerMap = new ConcurrentHashMap();
+    private ConcurrentMap<String, Logger> loggerMap = new ConcurrentHashMap<>();
 
     public Logger getLogger(String name)
     {
