@@ -1,5 +1,7 @@
 package samsara.slf4j;
 
+import samsara.logger.EventLogger;
+
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MarkerIgnoringBase;
 import org.slf4j.helpers.MessageFormatter;
@@ -15,11 +17,24 @@ public class SamsaraLogger extends MarkerIgnoringBase
     private static final int LOG_LEVEL_ERROR = LocationAwareLogger.ERROR_INT;
 
     private currentLogLevel = LOG_LEVEL_INFO;
+    private EventLogger eventLogger;
+    private AtomicBoolean warnOnce = new AtomicBoolean(false);
 
     public SamsaraLoggger(String name)
     {
         this.name = name;
+        String apiUrl = System.getenv("SAMSARA_API_URL");
+        String sourceId = System.getenv("SAMSARA_SOURCE_ID");
 
+        apiUrl = System.getProperty("SAMSARA_API_URL", apiUrl);
+        sourceId = System.getProperty("SAMSARA_SOURCE_ID", sourceId);
+
+        eventLogger = new eventLogger(apiUrl, sourceId);
+
+        if(apiUrl == null || apiUrl.trim().isEmpty())
+        {
+            warnOnce.set(true);
+        }
     }
 
     protected boolean isLevelEnabled(int logLevel)
@@ -29,17 +44,22 @@ public class SamsaraLogger extends MarkerIgnoringBase
 
     private void printWarning()
     {
-        //TODO
-        //Print warning if SAMARA_API_URL Environment variable is not given
+        System.out.println("****************************************************************");
+        System.out.println("SAMSARA: The environment variable \"SAMSARA_API_URL\" is not set");
+        System.out.println("SAMSARA: Samsara SLF4J logger will just print to console");
+        System.out.println("****************************************************************\n");
     }
 
     private void log(int level, String msg, Throwable t)
     {
         if (isLevelEnabled(level))
+        {
+            if(warnOnce.getAndSet(false))
             {
-                //TODO
-                //pass on to clojure 
+                printWarning();
             }
+            eventLogger.slf4jEvent(level, msg, t);
+        }
     }
 
 

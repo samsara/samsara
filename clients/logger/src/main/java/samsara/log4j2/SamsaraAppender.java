@@ -1,8 +1,9 @@
 package samsara.log4j2;
 
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import samsara.log4j2.SamsaraLogger;
+import samsara.logger.EventLogger;
 
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
@@ -19,11 +20,17 @@ import org.apache.logging.log4j.core.LogEvent;
 public class SamsaraAppender extends AbstractAppender
 {
     private SamsaraLogger samsaraLogger;
+    private AtomicBoolean warnOnce = new AtomicBoolean(false);
 
     protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, String apiUrl, String sourceId, boolean ignoreExceptions) 
     {
         super(name, filter, layout, ignoreExceptions);
-        samsaraLogger = new SamsaraLogger(apiUrl, sourceId);
+        eventLogger = new EventLogger(apiUrl, sourceId);
+
+        if(apiUrl == null || apiUrl.trim().isEmpty())
+        {
+            warnOnce.set(true);
+        }
     }
 
     @PluginFactory
@@ -48,10 +55,23 @@ public class SamsaraAppender extends AbstractAppender
         return new SamsaraAppender(name, filter, layout, apiUrl, sourceId, ignoreExceptions);
     }
 
+    private void printWarning()
+    {
+        System.out.println("****************************************************************");
+        System.out.println("SAMSARA: The apiUrl property for SamsaraAppender (log4j2.xml) has not been set");
+        System.out.println("SAMSARA: Samsara Log4j2 logger will just print to console");
+        System.out.println("****************************************************************\n");
+    }
+
     @Override
     public void append(LogEvent event)
     {
+        if(warnOnce.getAndSet(false))
+        {
+            printWarning();
+        }
+
         String message = new String(this.getLayout().toByteArray(event)); 
-        samsaraLogger.logEvent(event.getLevel(), message, event.getThrown());
+        eventLogger.log4j2Event(event.getLevel(), message, event.getThrown());
     }
 }
