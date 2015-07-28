@@ -1,4 +1,4 @@
-package samsara.sl4j;
+package samsara.slf4j;
 
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;

@@ -19,7 +19,7 @@ import org.apache.logging.log4j.core.LogEvent;
 @Plugin(name = "SamsaraAppender", category = "Core", elementType = "appender", printObject = true)
 public class SamsaraAppender extends AbstractAppender
 {
-    private SamsaraLogger samsaraLogger;
+    private EventLogger eventLogger;
     private AtomicBoolean warnOnce = new AtomicBoolean(false);
 
     protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, String apiUrl, String sourceId, boolean ignoreExceptions) 

@@ -1,7 +1,8 @@
 (ns samsara.logger.EventLogger
   (:require [samsara.client :as cli])
   (:import [java.net InetAddress UnknownHostException]
-           [java.lang.management ManagementFactory])
+           ;;[java.lang.management ManagementFactory]
+           )
   (:gen-class :constructors {[String String] []}
               :state state
               :init init

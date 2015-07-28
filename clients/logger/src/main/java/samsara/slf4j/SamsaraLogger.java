@@ -1,5 +1,6 @@
 package samsara.slf4j;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import samsara.logger.EventLogger;
 
 import org.slf4j.helpers.FormattingTuple;
@@ -16,11 +17,11 @@ public class SamsaraLogger extends MarkerIgnoringBase
     private static final int LOG_LEVEL_WARN = LocationAwareLogger.WARN_INT;
     private static final int LOG_LEVEL_ERROR = LocationAwareLogger.ERROR_INT;
 
-    private currentLogLevel = LOG_LEVEL_INFO;
+    private int currentLogLevel = LOG_LEVEL_INFO;
     private EventLogger eventLogger;
     private AtomicBoolean warnOnce = new AtomicBoolean(false);
 
-    public SamsaraLoggger(String name)
+    public SamsaraLogger(String name)
     {
         this.name = name;
         String apiUrl = System.getenv("SAMSARA_API_URL");
@@ -105,7 +106,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
 
     public void trace(String format, Object param1, Object param2)
     {
-        formatAndLog(LOG_LEVEL_TRACE, format, param1, param2)
+        formatAndLog(LOG_LEVEL_TRACE, format, param1, param2);
     }
 
     public void trace(String format, Object... paramArray)
@@ -138,7 +139,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
 
     public void debug(String format, Object param1, Object param2)
     {
-        formatAndLog(LOG_LEVEL_DEBUG, format, param1, param2)
+        formatAndLog(LOG_LEVEL_DEBUG, format, param1, param2);
     }
 
     public void debug(String format, Object... paramArray)
@@ -171,7 +172,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
 
     public void info(String format, Object param1, Object param2)
     {
-        formatAndLog(LOG_LEVEL_INFO, format, param1, param2)
+        formatAndLog(LOG_LEVEL_INFO, format, param1, param2);
     }
 
     public void info(String format, Object... paramArray)
@@ -204,7 +205,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
 
     public void warn(String format, Object param1, Object param2)
     {
-        formatAndLog(LOG_LEVEL_WARN, format, param1, param2)
+        formatAndLog(LOG_LEVEL_WARN, format, param1, param2);
     }
 
     public void warn(String format, Object... paramArray)
@@ -237,7 +238,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
 
     public void error(String format, Object param1, Object param2)
     {
-        formatAndLog(LOG_LEVEL_ERROR, format, param1, param2)
+        formatAndLog(LOG_LEVEL_ERROR, format, param1, param2);
     }
 
     public void error(String format, Object... paramArray)
