@@ -1,13 +1,15 @@
 (ns samsara.logger.EventLogger
   (:require [samsara.client :as cli])
   (:import [java.net InetAddress UnknownHostException]
-           ;;[java.lang.management ManagementFactory]
+           [java.lang.management ManagementFactory]
            )
-  (:gen-class :constructors {[String String] []}
+  (:gen-class 
+              :constructors {[String String] []}
               :state state
               :init init
-              :methods [[log4j2Event [Keyword String Throwable]]
-                        [slf4jEvent [Keyword String Throwable]]]))
+              :methods [[log4j2Event [Object String Throwable] void]
+                        [slf4jEvent [Object String Throwable] void]]
+              ))
 
 (def ALL_LEVEL :all)
 (def TRACE_LEVEL :trace)
@@ -37,7 +39,7 @@
 
 (defn- log->samsara-event [{:keys [timestamp eventName]
                             :or {timestamp (System/currentTimeMillis)
-                                 eventName "UnknownEvent"
+                                 eventName "UnknownEvent"}
                                  :as log}]
                            (assoc log :timestamp timestamp :eventName eventName))
 
@@ -47,7 +49,7 @@
 (defn- -init [^String api-url ^String source-id]
   (let [conf {:url api-url :sourceId source-id}]
     (when-not (empty? api-url)
-      (slc/set-config conf))
+      (cli/init! conf))
     [[] conf]))
 
 

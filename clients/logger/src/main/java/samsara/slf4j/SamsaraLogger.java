@@ -30,7 +30,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
         apiUrl = System.getProperty("SAMSARA_API_URL", apiUrl);
         sourceId = System.getProperty("SAMSARA_SOURCE_ID", sourceId);
 
-        eventLogger = new eventLogger(apiUrl, sourceId);
+        eventLogger = new EventLogger(apiUrl, sourceId);
 
         if(apiUrl == null || apiUrl.trim().isEmpty())
         {
