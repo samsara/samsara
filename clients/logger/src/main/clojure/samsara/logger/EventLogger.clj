@@ -2,22 +2,31 @@
   (:require [samsara.client :as cli])
   (:import [java.net InetAddress UnknownHostException]
            [java.lang.management ManagementFactory]
+           [org.slf4j.spi LocationAwareLogger]
+           [org.apache.logging.log4j Level]
            )
   (:gen-class 
               :constructors {[String String] []}
               :state state
               :init init
-              :methods [[log4j2Event [Object String Throwable] void]
-                        [slf4jEvent [Object String Throwable] void]]
+              :methods [[log4j2Event [org.apache.logging.log4j.Level String Throwable] void]
+                        [slf4jEvent [Integer String Throwable] void]]
               ))
 
-(def ALL_LEVEL :all)
-(def TRACE_LEVEL :trace)
-(def DEBUG_LEVEL :debug)
-(def INFO_LEVEL :info)
-(def WARN_LEVEL :warn)
-(def ERROR_LEVEL :error)
 
+(def slf4j-level-map {LocationAwareLogger/TRACE_INT :trace
+                      LocationAwareLogger/DEBUG_INT :debug
+                      LocationAwareLogger/INFO_INT  :info
+                      LocationAwareLogger/WARN_INT  :warn
+                      LocationAwareLogger/ERROR_INT :error})
+
+(def log4j2-level-map {Level/ALL   :all
+                       Level/TRACE :trace
+                       Level/DEBUG :debug
+                       Level/INFO  :info
+                       Level/WARN  :warn
+                       Level/ERROR :error
+                       Level/FATAL :fatal})
 
 (def ^:private hostname (try
                           (.getCanonicalHostName (InetAddress/getLocalHost))
@@ -63,17 +72,17 @@
         (cli/record-event (log->samsara-event log))))))
 
 
-(defn -log4j2Event [this log-level ^String msg ^Throwable t]
+(defn -log4j2Event [this ^Level log-level ^String msg ^Throwable t]
   (send-log (.state this) {:eventName "log"
-                             :loggingFramework "Log4j2"
-                             :level log-level
-                             :message msg
-                             :throwable t}))
+                           :loggingFramework "Log4j2"
+                           :level (get log4j2-level-map log-level)
+                           :message msg
+                           :throwable t}))
 
 
-(defn -slf4jEvent [this log-level ^String msg ^Throwable t]
+(defn -slf4jEvent [this ^Integer log-level ^String msg ^Throwable t]
   (send-log (.state this) {:eventName "log"
-                             :loggingFramework "SLF4J"
-                             :level log-level
-                             :message msg
-                             :throwable t}))
+                           :loggingFramework "SLF4J"
+                           :level (get slf4j-level-map log-level)
+                           :message msg
+                           :throwable t}))
