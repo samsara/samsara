@@ -12,6 +12,17 @@ public class SamsaraLoggerFactory implements ILoggerFactory
 
     public Logger getLogger(String name)
     {
-        return loggerMap.putIfAbsent(name, new SamsaraLogger(name));
+        Logger samsaraLogger = loggerMap.get(name);
+        if(samsaraLogger != null)
+        {
+            return samsaraLogger;
+        }
+        else
+        {
+            Logger newLogger = new SamsaraLogger(name);
+            Logger oldLogger = loggerMap.putIfAbsent(name, newLogger);
+            return oldLogger == null ? newLogger : oldLogger;
+        }
     }
 }
+
