@@ -20,6 +20,9 @@ variable "data_ami" {}
 variable "project" {
     default = "samsara"
 }
+variable "env" {
+    default = "dev"
+}
 variable "build" {}
 variable "zookeeper_type" {
     default = "t2.small"

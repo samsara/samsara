@@ -23,6 +23,7 @@ resource "aws_vpc" "samsara_vpc" {
           Name    = "Samsara Virtual network"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -34,6 +35,7 @@ resource "aws_internet_gateway" "samsara_igw" {
           Name    = "Samsara Gateway"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -115,6 +117,7 @@ resource "aws_security_group" "sg_general" {
           Name    = "Samsara general"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -142,6 +145,7 @@ resource "aws_security_group" "sg_ssh" {
           Name    = "Samsara SSH"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -163,6 +167,7 @@ resource "aws_security_group" "sg_ingestion_api" {
           Name    = "Samsara Ingestion-API"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -191,6 +196,7 @@ resource "aws_security_group" "sg_ingestion_api_lb" {
           Name    = "Samsara Ingestion-API LB"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -212,6 +218,7 @@ resource "aws_security_group" "sg_web_monitor" {
           Name    = "Samsara web monitoring"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -254,6 +261,7 @@ resource "aws_security_group" "sg_zookeeper" {
           Name    = "Samsara Zookeeper"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -282,6 +290,7 @@ resource "aws_security_group" "sg_kafka" {
           Name    = "Samsara Kafka"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -310,6 +319,7 @@ resource "aws_security_group" "sg_core" {
           Name    = "Samsara-CORE"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -331,6 +341,7 @@ resource "aws_security_group" "sg_qanal" {
           Name    = "Samsara Qanal"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -366,6 +377,7 @@ resource "aws_security_group" "sg_els" {
           Name    = "Samsara ElasticSearch"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -394,6 +406,7 @@ resource "aws_security_group" "sg_els_lb" {
           Name    = "Samsara ElasticSearch LB"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -422,6 +435,7 @@ resource "aws_security_group" "sg_kibana" {
           Name    = "Samsara Kibana"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -450,6 +464,7 @@ resource "aws_security_group" "sg_kibana_lb" {
           Name    = "Samsara Kibana LB"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -494,6 +509,7 @@ resource "aws_security_group" "sg_monitoring" {
           Name    = "Samsara Monitoring"
           project = "${var.project}"
           build   = "${var.build}"
+          env     = "${var.env}"
         }
 }
 
@@ -535,6 +551,7 @@ resource "aws_elb" "ingestion_api" {
         Name    = "Samsara Ingestion-API"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -572,6 +589,7 @@ resource "aws_elb" "kibana" {
         Name    = "Samsara Kibana ELB"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -611,6 +629,7 @@ resource "aws_elb" "els" {
         Name    = "Samsara ELS ILB"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -664,6 +683,7 @@ resource "aws_instance" "zookeeper1" {
         Name    = "zookeeper1"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -702,6 +722,7 @@ resource "aws_instance" "zookeeper2" {
         Name    = "zookeeper2"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -740,6 +761,7 @@ resource "aws_instance" "zookeeper3" {
         Name    = "zookeeper3"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -780,6 +802,7 @@ resource "aws_instance" "kafka1" {
         Name    = "kafka1"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -816,6 +839,7 @@ resource "aws_instance" "kafka2" {
         Name    = "kafka2"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -852,6 +876,7 @@ resource "aws_instance" "kafka3" {
         Name    = "kafka3"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -894,6 +919,7 @@ resource "aws_instance" "ingestion1" {
         Name    = "ingestion1"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -932,6 +958,7 @@ resource "aws_instance" "ingestion2" {
         Name    = "ingestion2"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -970,6 +997,7 @@ resource "aws_instance" "ingestion3" {
         Name    = "ingestion3"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -1014,6 +1042,7 @@ resource "aws_instance" "core1" {
         Name    = "core1"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -1059,6 +1088,7 @@ resource "aws_instance" "qanal1" {
 	Name	= "qanal1"
 	project = "${var.project}"
 	build	= "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -1100,6 +1130,7 @@ resource "aws_instance" "els1" {
         Name    = "els1"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -1137,6 +1168,7 @@ resource "aws_instance" "els2" {
         Name    = "els2"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -1174,6 +1206,7 @@ resource "aws_instance" "els3" {
         Name    = "els3"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -1216,6 +1249,7 @@ resource "aws_instance" "kibana1" {
         Name    = "kibana1"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -1255,6 +1289,7 @@ resource "aws_instance" "kibana2" {
         Name    = "kibana2"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -1294,6 +1329,7 @@ resource "aws_instance" "kibana3" {
         Name    = "kibana3"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
@@ -1335,6 +1371,7 @@ resource "aws_instance" "monitor1" {
         Name    = "monitor1"
         project = "${var.project}"
         build   = "${var.build}"
+        env     = "${var.env}"
     }
 }
 
