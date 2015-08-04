@@ -198,7 +198,7 @@ State path: terraform.tfstate
 
 Outputs:
 
-  cidr_allowed_access   = 83.98.24.231/32
+  cidr_allowed_access   = 0.0.0.0/0
   dashboard_lb          = kibana-elb-1874436396.eu-west-1.elb.amazonaws.com
   dashboard_lb_port     = 80
   ingestion_api_lb      = ingestion-api-elb-1894097573.eu-west-1.elb.amazonaws.com
