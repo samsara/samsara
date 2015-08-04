@@ -149,7 +149,7 @@ The following resources will be created:
 
   * In a region of your choice we make use of 3 availability zones
   * 1 VPC `10.10.0.0/16` contains the entire deployment
-  * 2 subnets, one on each AZ.
+  * 3 subnets, one on each AZ.
   * security group for every layer
   * a public facing ingestion load balancer
   * 3 ingestion API on every AZ with autoscale
