@@ -28,25 +28,25 @@ variable "zookeeper_type" {
     default = "t2.small"
 }
 variable "kafka_type" {
-    default = "t2.small"
+    default = "m4.large"
 }
 variable "ingestion_type" {
     default = "t2.small"
 }
 variable "core_type" {
-    default = "t2.small"
+    default = "m4.xlarge"
 }
 variable "qanal_type" {
-    default = "t2.small"
+    default = "t2.medium"
 }
 variable "els_type" {
-    default = "t2.small"
+    default = "m4.xlarge"
 }
 variable "kibana_type" {
     default = "t2.small"
 }
 variable "monitoring_type" {
-    default = "t2.small"
+    default = "m4.large"
 }
 variable "public_ingestion_port" {
     default = 9000
