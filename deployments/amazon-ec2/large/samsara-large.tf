@@ -519,7 +519,7 @@ resource "aws_security_group" "sg_monitoring" {
 #
 
 resource "aws_elb" "ingestion_api" {
-    name = "ingestion-api-elb"
+    name = "ingestion-api-elb-${var.env}"
    
     subnets = ["${aws_subnet.zone1.id}",
                "${aws_subnet.zone2.id}",
@@ -557,7 +557,7 @@ resource "aws_elb" "ingestion_api" {
 
 
 resource "aws_elb" "kibana" {
-    name = "kibana-elb"
+    name = "kibana-elb-${var.env}"
    
     subnets = ["${aws_subnet.zone1.id}",
                "${aws_subnet.zone2.id}",
@@ -595,7 +595,7 @@ resource "aws_elb" "kibana" {
 
 
 resource "aws_elb" "els" {
-    name = "els-elb"
+    name = "els-elb-${var.env}"
    
     subnets = ["${aws_subnet.zone1.id}",
                "${aws_subnet.zone2.id}",
