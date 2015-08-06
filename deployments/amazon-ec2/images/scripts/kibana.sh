@@ -13,28 +13,27 @@ sleep 30
 echo '------------------------------------------------------------------'
 echo '                    Setup upstart service'
 echo '------------------------------------------------------------------'
-cat >/etc/init/ingestion.conf <<\EOF
-description "Ingestion-API container"
+cat >/etc/init/kibana.conf <<\EOF
+description "Kibana container"
 author "Bruno"
 start on runlevel [2345]
 stop on runlevel [016]
 respawn
-pre-start exec /usr/bin/docker rm ingestion | true
-exec /usr/bin/docker run --name ingestion \
-       -p 9000:9000 \
+pre-start exec /usr/bin/docker rm kibana | true
+exec /usr/bin/docker run --name kibana \
+       -p 8000:8000 \
        -p 15000:15000 \
-       -v /logs/ingestion:/logs \
+       -v /logs/kibana:/logs \
        `curl "http://169.254.169.254/latest/user-data"` \
-       -e "TRACKING_ENABLED=true" \
-       samsara/ingestion-api
+       samsara/kibana
 
 pre-stop script
-        /usr/bin/docker stop ingestion
-        /usr/bin/docker rm ingestion
+        /usr/bin/docker stop kibana
+        /usr/bin/docker rm kibana
 end script
 EOF
 
 echo '------------------------------------------------------------------'
 echo '                Pull the latest image'
 echo '------------------------------------------------------------------'
-docker pull samsara/ingestion-api
+docker pull samsara/kibana

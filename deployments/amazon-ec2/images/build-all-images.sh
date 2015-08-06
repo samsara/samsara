@@ -75,6 +75,7 @@ mkdir $LOGDIR
 build-image      packer-base-image.json $*
 build-image-with $(get-image-ami packer-base-image.json) packer-base-image-with-storage.json $*
 build-image-with $(get-image-ami packer-base-image.json) packer-ingestion-api-image.json $*
+build-image-with $(get-image-ami packer-base-image.json) packer-kibana-image.json $*
 
 
 #
@@ -83,3 +84,4 @@ build-image-with $(get-image-ami packer-base-image.json) packer-ingestion-api-im
 echo "BASE ami id:" $(get-image-ami packer-base-image.json)
 echo "DATA ami id:" $(get-image-ami packer-base-image-with-storage.json)
 echo "INGESTION-API ami id:" $(get-image-ami packer-ingestion-api-image.json)
+echo "KIBANA ami id:" $(get-image-ami packer-kibana-image.json)

@@ -575,11 +575,6 @@ resource "aws_elb" "kibana" {
 
     security_groups = ["${aws_security_group.sg_kibana_lb.id}"]
 
-    # The instance is registered automatically
-    instances = ["${aws_instance.kibana1.id}",
-                 "${aws_instance.kibana2.id}",
-                 "${aws_instance.kibana3.id}"]
-
     tags {
         Name    = "Samsara Kibana ELB"
         project = "${var.project}"
@@ -1149,122 +1144,60 @@ resource "aws_instance" "els3" {
 # Kibana
 #
 
-resource "aws_instance" "kibana1" {
-    ami		    = "${var.base_ami}"
-    instance_type   = "${var.kibana_type}"
-    key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
-                              "${aws_security_group.sg_general.id}",
-                              "${aws_security_group.sg_kibana.id}"]
-    subnet_id = "${aws_subnet.zone1.id}"
-    associate_public_ip_address = "true"
+resource "aws_autoscaling_group" "kibana-asg" {
+    name = "kibana-asg-${var.env}"
 
-    connection {
-	user = "ubuntu"
-	agent = true
+    vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
+
+    max_size = 3
+    min_size = 2
+    desired_capacity = 2
+
+    health_check_grace_period = 180
+    health_check_type = "ELB"
+
+    force_delete = true
+    launch_configuration = "${aws_launch_configuration.kibana-lc.name}"
+    load_balancers = ["kibana-elb-${var.env}"]
+
+    tag {
+        key = "Name"
+        value = "kibana"
+        propagate_at_launch = true
     }
-
-    provisioner "file" {
-	source = "scripts/kibana.conf"
-	destination = "/tmp/kibana.conf"
+    tag {
+        key = "project"
+        value = "${var.project}"
+        propagate_at_launch = true
     }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/kibana.conf /etc/init/",
-            "sudo docker pull samsara/kibana",
-	    "sudo service kibana start"
-	]
+    tag {
+        key = "build"
+        value = "${var.build}"
+        propagate_at_launch = true
     }
-
-    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELASTICSEARCH_PORT_9200_TCP_PORT=9200"
-
-    tags {
-        Name    = "kibana1"
-        project = "${var.project}"
-        build   = "${var.build}"
-        env     = "${var.env}"
-    }
-}
-
-
-
-resource "aws_instance" "kibana2" {
-    ami		    = "${var.base_ami}"
-    instance_type   = "${var.kibana_type}"
-    key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
-                              "${aws_security_group.sg_general.id}",
-                              "${aws_security_group.sg_kibana.id}"]
-    subnet_id = "${aws_subnet.zone2.id}"
-    associate_public_ip_address = "true"
-
-    connection {
-	user = "ubuntu"
-	agent = true
-    }
-
-    provisioner "file" {
-	source = "scripts/kibana.conf"
-	destination = "/tmp/kibana.conf"
-    }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/kibana.conf /etc/init/",
-            "sudo docker pull samsara/kibana",
-	    "sudo service kibana start"
-	]
-    }
-
-    user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELASTICSEARCH_PORT_9200_TCP_PORT=9200"
-
-    tags {
-        Name    = "kibana2"
-        project = "${var.project}"
-        build   = "${var.build}"
-        env     = "${var.env}"
+    tag {
+        key = "env"
+        value = "${var.env}"
+        propagate_at_launch = true
     }
 }
 
 
+resource "aws_launch_configuration" "kibana-lc" {
+    name = "kibana-lc-${var.env}"
 
-resource "aws_instance" "kibana3" {
-    ami		    = "${var.base_ami}"
-    instance_type   = "${var.kibana_type}"
-    key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
-                              "${aws_security_group.sg_general.id}",
-                              "${aws_security_group.sg_kibana.id}"]
-    subnet_id = "${aws_subnet.zone3.id}"
+    image_id = "${var.kibana_ami}"
+    instance_type = "${var.kibana_type}"
+    key_name = "${var.key_name}"
+
+    security_groups = ["${aws_security_group.sg_ssh.id}",
+                       "${aws_security_group.sg_general.id}",
+		       "${aws_security_group.sg_kibana.id}"]
+
     associate_public_ip_address = "true"
-
-    connection {
-	user = "ubuntu"
-	agent = true
-    }
-
-    provisioner "file" {
-	source = "scripts/kibana.conf"
-	destination = "/tmp/kibana.conf"
-    }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/kibana.conf /etc/init/",
-            "sudo docker pull samsara/kibana",
-	    "sudo service kibana start"
-	]
-    }
 
     user_data = "-e ELASTICSEARCH_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELASTICSEARCH_PORT_9200_TCP_PORT=9200"
 
-    tags {
-        Name    = "kibana3"
-        project = "${var.project}"
-        build   = "${var.build}"
-        env     = "${var.env}"
-    }
 }
 
 
