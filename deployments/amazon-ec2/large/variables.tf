@@ -17,6 +17,7 @@ variable "key_name" {
 }
 variable "base_ami" {}
 variable "data_ami" {}
+variable "ingestion_ami" {}
 variable "project" {
     default = "samsara"
 }
