@@ -18,7 +18,7 @@ resource "aws_vpc" "samsara_vpc" {
 	cidr_block = "10.10.0.0/16"
         enable_dns_support = true
         enable_dns_hostnames = true
-        
+
         tags {
           Name    = "Samsara Virtual network"
           project = "${var.project}"
@@ -30,7 +30,7 @@ resource "aws_vpc" "samsara_vpc" {
 
 resource "aws_internet_gateway" "samsara_igw" {
 	vpc_id = "${aws_vpc.samsara_vpc.id}"
-        
+
         tags {
           Name    = "Samsara Gateway"
           project = "${var.project}"
@@ -211,7 +211,7 @@ resource "aws_security_group" "sg_web_monitor" {
 		protocol = "tcp"
 		cidr_blocks = ["${var.cidr_allowed_access}"]
 	}
-        
+
         vpc_id = "${aws_vpc.samsara_vpc.id}"
 
         tags {
@@ -256,7 +256,7 @@ resource "aws_security_group" "sg_zookeeper" {
 	}
 
         vpc_id = "${aws_vpc.samsara_vpc.id}"
-        
+
         tags {
           Name    = "Samsara Zookeeper"
           project = "${var.project}"
@@ -520,11 +520,11 @@ resource "aws_security_group" "sg_monitoring" {
 
 resource "aws_elb" "ingestion_api" {
     name = "ingestion-api-elb-${var.env}"
-   
+
     subnets = ["${aws_subnet.zone1.id}",
                "${aws_subnet.zone2.id}",
                "${aws_subnet.zone3.id}"]
-   
+
     listener {
       instance_port = 9000
       instance_protocol = "http"
@@ -541,7 +541,7 @@ resource "aws_elb" "ingestion_api" {
     }
 
     security_groups = ["${aws_security_group.sg_ingestion_api_lb.id}"]
-   
+
     tags {
         Name    = "Samsara Ingestion-API"
         project = "${var.project}"
@@ -553,11 +553,11 @@ resource "aws_elb" "ingestion_api" {
 
 resource "aws_elb" "kibana" {
     name = "kibana-elb-${var.env}"
-   
+
     subnets = ["${aws_subnet.zone1.id}",
                "${aws_subnet.zone2.id}",
                "${aws_subnet.zone3.id}"]
-   
+
     listener {
       instance_port = 8000
       instance_protocol = "http"
@@ -574,7 +574,7 @@ resource "aws_elb" "kibana" {
     }
 
     security_groups = ["${aws_security_group.sg_kibana_lb.id}"]
-   
+
     # The instance is registered automatically
     instances = ["${aws_instance.kibana1.id}",
                  "${aws_instance.kibana2.id}",
@@ -591,13 +591,13 @@ resource "aws_elb" "kibana" {
 
 resource "aws_elb" "els" {
     name = "els-elb-${var.env}"
-   
+
     subnets = ["${aws_subnet.zone1.id}",
                "${aws_subnet.zone2.id}",
                "${aws_subnet.zone3.id}"]
 
     internal = true
-   
+
     listener {
       instance_port = 9200
       instance_protocol = "http"
@@ -614,7 +614,7 @@ resource "aws_elb" "els" {
     }
 
     security_groups = ["${aws_security_group.sg_els_lb.id}"]
-   
+
     # The instance is registered automatically
     instances = ["${aws_instance.els1.id}",
                  "${aws_instance.els2.id}",
@@ -655,17 +655,17 @@ resource "aws_instance" "zookeeper1" {
     associate_public_ip_address = "true"
 
     private_ip = "10.10.1.5"
- 
+
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/zookeeper1.conf"
 	destination = "/tmp/zookeeper.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/zookeeper.conf /etc/init/",
@@ -692,19 +692,19 @@ resource "aws_instance" "zookeeper2" {
                               "${aws_security_group.sg_zookeeper.id}"]
     subnet_id = "${aws_subnet.zone2.id}"
     associate_public_ip_address = "true"
- 
+
     private_ip = "10.10.2.5"
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/zookeeper2.conf"
 	destination = "/tmp/zookeeper.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/zookeeper.conf /etc/init/",
@@ -736,14 +736,14 @@ resource "aws_instance" "zookeeper3" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/zookeeper3.conf"
 	destination = "/tmp/zookeeper.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/zookeeper.conf /etc/init/",
@@ -777,14 +777,14 @@ resource "aws_instance" "kafka1" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/kafka1.conf"
 	destination = "/tmp/kafka.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/kafka.conf /etc/init/",
@@ -814,14 +814,14 @@ resource "aws_instance" "kafka2" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/kafka2.conf"
 	destination = "/tmp/kafka.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/kafka.conf /etc/init/",
@@ -851,14 +851,14 @@ resource "aws_instance" "kafka3" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/kafka3.conf"
 	destination = "/tmp/kafka.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/kafka.conf /etc/init/",
@@ -894,7 +894,7 @@ resource "aws_autoscaling_group" "ingestion-api-asg" {
     force_delete = true
     launch_configuration = "${aws_launch_configuration.ingestion-api-lc.name}"
     load_balancers = ["ingestion-api-elb-${var.env}"]
-    
+
     tag {
         key = "Name"
         value = "ingestion"
@@ -920,7 +920,7 @@ resource "aws_autoscaling_group" "ingestion-api-asg" {
 
 resource "aws_launch_configuration" "ingestion-api-lc" {
     name = "ingestion-api-lc-${var.env}"
-    
+
     image_id = "${var.ingestion_ami}"
     instance_type = "${var.ingestion_type}"
     key_name = "${var.key_name}"
@@ -952,14 +952,14 @@ resource "aws_instance" "core1" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/core.conf"
 	destination = "/tmp/core.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/core.conf /etc/init/",
@@ -995,17 +995,17 @@ resource "aws_instance" "qanal1" {
 			      "${aws_security_group.sg_qanal.id}"]
     subnet_id = "${aws_subnet.zone3.id}"
     associate_public_ip_address = "true"
- 
+
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/qanal.conf"
 	destination = "/tmp/qanal.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/qanal.conf /etc/init/",
@@ -1013,11 +1013,11 @@ resource "aws_instance" "qanal1" {
 	    "sudo service qanal start"
 	]
     }
- 
+
     # TODO: accept more than 1 kafka and more than 1 zk
     #user_data = "-e KAFKA1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
     user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181 -e ZOOKEEPER_PORT_2181_TCP=tcp://${aws_instance.zookeeper1.private_ip}:2181 -e ELS_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELS_PORT_9200_TCP_PORT=9200 -e RIEMANN_PORT_5555_TCP_ADDR=${aws_instance.monitor1.private_ip}"
- 
+
     tags {
 	Name	= "qanal1"
 	project = "${var.project}"
@@ -1044,14 +1044,14 @@ resource "aws_instance" "els1" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/elasticsearch.conf"
 	destination = "/tmp/elasticsearch.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/elasticsearch.conf /etc/init/",
@@ -1082,14 +1082,14 @@ resource "aws_instance" "els2" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/elasticsearch.conf"
 	destination = "/tmp/elasticsearch.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/elasticsearch.conf /etc/init/",
@@ -1120,14 +1120,14 @@ resource "aws_instance" "els3" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/elasticsearch.conf"
 	destination = "/tmp/elasticsearch.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/elasticsearch.conf /etc/init/",
@@ -1161,14 +1161,14 @@ resource "aws_instance" "kibana1" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/kibana.conf"
 	destination = "/tmp/kibana.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/kibana.conf /etc/init/",
@@ -1201,14 +1201,14 @@ resource "aws_instance" "kibana2" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/kibana.conf"
 	destination = "/tmp/kibana.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/kibana.conf /etc/init/",
@@ -1241,14 +1241,14 @@ resource "aws_instance" "kibana3" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/kibana.conf"
 	destination = "/tmp/kibana.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/kibana.conf /etc/init/",
@@ -1285,14 +1285,14 @@ resource "aws_instance" "monitor1" {
 
     connection {
 	user = "ubuntu"
-	agent = true	
+	agent = true
     }
- 
+
     provisioner "file" {
 	source = "scripts/monitoring.conf"
 	destination = "/tmp/monitoring.conf"
     }
- 
+
     provisioner "remote-exec" {
 	inline = [
 	    "sudo mv /tmp/monitoring.conf /etc/init/",
