@@ -610,11 +610,6 @@ resource "aws_elb" "els" {
 
     security_groups = ["${aws_security_group.sg_els_lb.id}"]
 
-    # The instance is registered automatically
-    instances = ["${aws_instance.els1.id}",
-                 "${aws_instance.els2.id}",
-                 "${aws_instance.els3.id}"]
-
     tags {
         Name    = "Samsara ELS ILB"
         project = "${var.project}"
@@ -1027,116 +1022,58 @@ resource "aws_instance" "qanal1" {
 # ElasticSearch
 #
 
-resource "aws_instance" "els1" {
-    ami		    = "${var.data_ami}"
-    instance_type   = "${var.els_type}"
-    key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
-                              "${aws_security_group.sg_general.id}",
-                              "${aws_security_group.sg_els.id}"]
-    subnet_id = "${aws_subnet.zone1.id}"
-    associate_public_ip_address = "true"
+resource "aws_autoscaling_group" "els-asg" {
+    name = "els-asg-${var.env}"
 
-    connection {
-	user = "ubuntu"
-	agent = true
+    vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
+
+    max_size = 6
+    min_size = 3
+    desired_capacity = 3
+
+    health_check_grace_period = 180
+    health_check_type = "ELB"
+
+    force_delete = true
+    launch_configuration = "${aws_launch_configuration.els-lc.name}"
+    load_balancers = ["els-elb-${var.env}"]
+
+    tag {
+        key = "Name"
+        value = "els"
+        propagate_at_launch = true
     }
-
-    provisioner "file" {
-	source = "scripts/elasticsearch.conf"
-	destination = "/tmp/elasticsearch.conf"
+    tag {
+        key = "project"
+        value = "${var.project}"
+        propagate_at_launch = true
     }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/elasticsearch.conf /etc/init/",
-            "sudo docker pull samsara/elasticsearch",
-	    "sudo service elasticsearch start"
-	]
+    tag {
+        key = "build"
+        value = "${var.build}"
+        propagate_at_launch = true
     }
-
-    tags {
-        Name    = "els1"
-        project = "${var.project}"
-        build   = "${var.build}"
-        env     = "${var.env}"
-    }
-}
-
-
-
-resource "aws_instance" "els2" {
-    ami		    = "${var.data_ami}"
-    instance_type   = "${var.els_type}"
-    key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
-                              "${aws_security_group.sg_general.id}",
-                              "${aws_security_group.sg_els.id}"]
-    subnet_id = "${aws_subnet.zone2.id}"
-    associate_public_ip_address = "true"
-
-    connection {
-	user = "ubuntu"
-	agent = true
-    }
-
-    provisioner "file" {
-	source = "scripts/elasticsearch.conf"
-	destination = "/tmp/elasticsearch.conf"
-    }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/elasticsearch.conf /etc/init/",
-            "sudo docker pull samsara/elasticsearch",
-	    "sudo service elasticsearch start"
-	]
-    }
-
-    tags {
-        Name    = "els2"
-        project = "${var.project}"
-        build   = "${var.build}"
-        env     = "${var.env}"
+    tag {
+        key = "env"
+        value = "${var.env}"
+        propagate_at_launch = true
     }
 }
 
 
+resource "aws_launch_configuration" "els-lc" {
+    name = "els-lc-${var.env}"
 
-resource "aws_instance" "els3" {
-    ami		    = "${var.data_ami}"
-    instance_type   = "${var.els_type}"
-    key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
-                              "${aws_security_group.sg_general.id}",
-                              "${aws_security_group.sg_els.id}"]
-    subnet_id = "${aws_subnet.zone3.id}"
+    image_id = "${var.els_ami}"
+    instance_type = "${var.els_type}"
+    key_name = "${var.key_name}"
+
+    security_groups = ["${aws_security_group.sg_ssh.id}",
+                       "${aws_security_group.sg_general.id}",
+		       "${aws_security_group.sg_els.id}"]
+
     associate_public_ip_address = "true"
 
-    connection {
-	user = "ubuntu"
-	agent = true
-    }
-
-    provisioner "file" {
-	source = "scripts/elasticsearch.conf"
-	destination = "/tmp/elasticsearch.conf"
-    }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/elasticsearch.conf /etc/init/",
-            "sudo docker pull samsara/elasticsearch",
-	    "sudo service elasticsearch start"
-	]
-    }
-
-    tags {
-        Name    = "els3"
-        project = "${var.project}"
-        build   = "${var.build}"
-        env     = "${var.env}"
-    }
 }
 
 
