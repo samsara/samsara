@@ -78,6 +78,7 @@ build-image-with $(get-image-ami packer-base-image.json) packer-ingestion-api-im
 build-image-with $(get-image-ami packer-base-image.json) packer-kibana-image.json $*
 build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-els-image.json $*
 build-image-with $(get-image-ami packer-base-image.json) packer-qanal-image.json $*
+build-image-with $(get-image-ami packer-base-image.json) packer-core-image.json $*
 
 
 #
@@ -89,3 +90,4 @@ echo "INGESTION-API ami id:" $(get-image-ami packer-ingestion-api-image.json)
 echo "KIBANA ami id:" $(get-image-ami packer-kibana-image.json)
 echo "ELS ami id:" $(get-image-ami packer-els-image.json)
 echo "QANAL ami id:" $(get-image-ami packer-qanal-image.json)
+echo "CORE ami id:" $(get-image-ami packer-qanal-image.json)

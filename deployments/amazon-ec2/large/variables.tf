@@ -21,6 +21,7 @@ variable "ingestion_ami" {}
 variable "kibana_ami" {}
 variable "els_ami" {}
 variable "qanal_ami" {}
+variable "core_ami" {}
 variable "project" {
     default = "samsara"
 }

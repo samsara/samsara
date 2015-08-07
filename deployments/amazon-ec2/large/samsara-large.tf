@@ -930,44 +930,61 @@ resource "aws_launch_configuration" "ingestion-api-lc" {
 # Samsara-CORE
 #
 
-resource "aws_instance" "core1" {
-    ami		    = "${var.base_ami}"
-    instance_type   = "${var.core_type}"
-    key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
-                              "${aws_security_group.sg_general.id}",
-                              "${aws_security_group.sg_core.id}"]
-    subnet_id = "${aws_subnet.zone2.id}"
+resource "aws_autoscaling_group" "core-asg" {
+    name = "core-asg-${var.env}"
+
+    vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
+
+    max_size = 1
+    min_size = 1
+    desired_capacity = 1
+
+    health_check_grace_period = 180
+    health_check_type = "EC2"
+
+    force_delete = true
+    launch_configuration = "${aws_launch_configuration.core-lc.name}"
+
+    tag {
+        key = "Name"
+        value = "core"
+        propagate_at_launch = true
+    }
+    tag {
+        key = "project"
+        value = "${var.project}"
+        propagate_at_launch = true
+    }
+    tag {
+        key = "build"
+        value = "${var.build}"
+        propagate_at_launch = true
+    }
+    tag {
+        key = "env"
+        value = "${var.env}"
+        propagate_at_launch = true
+    }
+}
+
+
+resource "aws_launch_configuration" "core-lc" {
+    name = "core-lc-${var.env}"
+
+    image_id = "${var.core_ami}"
+    instance_type = "${var.core_type}"
+    key_name = "${var.key_name}"
+
+    security_groups = ["${aws_security_group.sg_ssh.id}",
+                       "${aws_security_group.sg_general.id}",
+		       "${aws_security_group.sg_core.id}"]
+
     associate_public_ip_address = "true"
-
-    connection {
-	user = "ubuntu"
-	agent = true
-    }
-
-    provisioner "file" {
-	source = "scripts/core.conf"
-	destination = "/tmp/core.conf"
-    }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/core.conf /etc/init/",
-            "sudo docker pull samsara/samsara-core",
-	    "sudo service core start"
-	]
-    }
 
     # TODO: accept more than 1 kafka and more than 1 zk
     #user_data = "-e KAFKA1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
     user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181 -e RIEMANN_PORT_5555_TCP_ADDR=${aws_instance.monitor1.private_ip}"
 
-    tags {
-        Name    = "core1"
-        project = "${var.project}"
-        build   = "${var.build}"
-        env     = "${var.env}"
-    }
 }
 
 
