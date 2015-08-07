@@ -95,6 +95,6 @@ ingestion_ami = "$(get-image-ami packer-ingestion-api-image.json)"
 els_ami = "$(get-image-ami packer-els-image.json)"
 kibana_ami = "$(get-image-ami packer-kibana-image.json)"
 qanal_ami = "$(get-image-ami packer-qanal-image.json)"
-core_ami = "$(get-image-ami packer-qanal-image.json)"
+core_ami = "$(get-image-ami packer-core-image.json)"
 ----------8<----------8<----------8<----------8<----------8<----------
 EOF
