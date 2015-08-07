@@ -91,6 +91,33 @@ name depend on the base name provided.
 these will be need to be provided on the next step so please
 note their IDs.
 
+**NOTE:** If your AWS account has the default EC2 Classic network
+style rather than the VPC by default then you will have to add these
+two lines in the json descriptors.
+
+```
+...
+    "builders": [{
+        "type": "amazon-ebs",
+        "access_key": "{{user `aws_access_key`}}",
+        "secret_key": "{{user `aws_secret_key`}}",
+        "region": "{{user `region`}}",
+        "instance_type": "t2.micro",
+        "ssh_username": "ubuntu",
+        "source_ami": "{{user `source_ami`}}",
+        "ami_name": "{{user `build_id`}}-base",
+        "tags": {
+            "project": "samsara",
+            "build": "{{user `build_id`}}"
+        },
+
+        // ADD the following two lines with
+        // the details of your vpc/subnet.
+        "vpc_id": "vpc-1364e476",
+        "subnet_id": "subnet-44fa8721"
+    }],
+...
+```
 
 #### Deploying the stack
 
