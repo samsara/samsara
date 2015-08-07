@@ -976,44 +976,62 @@ resource "aws_instance" "core1" {
 # Samsara-Qanal
 #
 
-resource "aws_instance" "qanal1" {
-    ami		    = "${var.base_ami}"
-    instance_type   = "${var.qanal_type}"
-    key_name	    = "${var.key_name}"
-    vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
-			      "${aws_security_group.sg_general.id}",
-			      "${aws_security_group.sg_qanal.id}"]
-    subnet_id = "${aws_subnet.zone3.id}"
+
+resource "aws_autoscaling_group" "qanal-asg" {
+    name = "qanal-asg-${var.env}"
+
+    vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
+
+    max_size = 1
+    min_size = 1
+    desired_capacity = 1
+
+    health_check_grace_period = 180
+    health_check_type = "EC2"
+
+    force_delete = true
+    launch_configuration = "${aws_launch_configuration.qanal-lc.name}"
+
+    tag {
+        key = "Name"
+        value = "qanal"
+        propagate_at_launch = true
+    }
+    tag {
+        key = "project"
+        value = "${var.project}"
+        propagate_at_launch = true
+    }
+    tag {
+        key = "build"
+        value = "${var.build}"
+        propagate_at_launch = true
+    }
+    tag {
+        key = "env"
+        value = "${var.env}"
+        propagate_at_launch = true
+    }
+}
+
+
+resource "aws_launch_configuration" "qanal-lc" {
+    name = "qanal-lc-${var.env}"
+
+    image_id = "${var.qanal_ami}"
+    instance_type = "${var.qanal_type}"
+    key_name = "${var.key_name}"
+
+    security_groups = ["${aws_security_group.sg_ssh.id}",
+                       "${aws_security_group.sg_general.id}",
+		       "${aws_security_group.sg_qanal.id}"]
+
     associate_public_ip_address = "true"
-
-    connection {
-	user = "ubuntu"
-	agent = true
-    }
-
-    provisioner "file" {
-	source = "scripts/qanal.conf"
-	destination = "/tmp/qanal.conf"
-    }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/qanal.conf /etc/init/",
-	    "sudo docker pull samsara/qanal",
-	    "sudo service qanal start"
-	]
-    }
 
     # TODO: accept more than 1 kafka and more than 1 zk
     #user_data = "-e KAFKA1_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA2_PORT_9092_TCP_ADDR=${aws_instance.kafka2.private_ip} -e KAFKA3_PORT_9092_TCP_ADDR=${aws_instance.kafka3.private_ip}"
     user_data = "-e KAFKA_PORT_9092_TCP_ADDR=${aws_instance.kafka1.private_ip} -e KAFKA_PORT_9092_TCP_PORT=9092 -e ZOOKEEPER_PORT_2181_TCP_ADDR=${aws_instance.zookeeper1.private_ip} -e ZOOKEEPER_PORT_2181_TCP_PORT=2181 -e ZOOKEEPER_PORT_2181_TCP=tcp://${aws_instance.zookeeper1.private_ip}:2181 -e ELS_PORT_9200_TCP_ADDR=${aws_elb.els.dns_name} -e ELS_PORT_9200_TCP_PORT=9200 -e RIEMANN_PORT_5555_TCP_ADDR=${aws_instance.monitor1.private_ip}"
 
-    tags {
-	Name	= "qanal1"
-	project = "${var.project}"
-	build	= "${var.build}"
-        env     = "${var.env}"
-    }
 }
 
 
