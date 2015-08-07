@@ -84,10 +84,17 @@ build-image-with $(get-image-ami packer-base-image.json) packer-core-image.json 
 #
 # OUTPUT AMI
 #
-echo "BASE ami id:" $(get-image-ami packer-base-image.json)
-echo "DATA ami id:" $(get-image-ami packer-base-image-with-storage.json)
-echo "INGESTION-API ami id:" $(get-image-ami packer-ingestion-api-image.json)
-echo "KIBANA ami id:" $(get-image-ami packer-kibana-image.json)
-echo "ELS ami id:" $(get-image-ami packer-els-image.json)
-echo "QANAL ami id:" $(get-image-ami packer-qanal-image.json)
-echo "CORE ami id:" $(get-image-ami packer-qanal-image.json)
+cat <<EOF
+
+
+                  # PUT this in your terraform.tfvars
+----------8<----------8<----------8<----------8<----------8<----------
+base_ami = "$(get-image-ami packer-base-image.json)"
+data_ami = "$(get-image-ami packer-base-image-with-storage.json)"
+ingestion_ami = "$(get-image-ami packer-ingestion-api-image.json)"
+els_ami = "$(get-image-ami packer-els-image.json)"
+kibana_ami = "$(get-image-ami packer-kibana-image.json)"
+qanal_ami = "$(get-image-ami packer-qanal-image.json)"
+core_ami = "$(get-image-ami packer-qanal-image.json)"
+----------8<----------8<----------8<----------8<----------8<----------
+EOF
