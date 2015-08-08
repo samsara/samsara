@@ -85,21 +85,21 @@ Here is the description of the configuration
                        and automatically reloads the changes without requiring
                        server reloads.
                        This should be used only used in development.
-      * `http-kit` additional configuration options available [here](http://www.http-kit.org/server.html#options) 
-    
+      * `http-kit` additional configuration options available [here](http://www.http-kit.org/server.html#options)
+
   * `:log` - This section controls the logging settings.
       * `:timestamp-pattern` - timestamp pattern for the log.
       * Any other [timbre logging](https://github.com/ptaoussanis/timbre) configuration.
-    
+
   * `:backend` - This section controls the backend configuarion where the events are sent.
       * `:type` - This can be one of: `:console` or `:kafka`
 
 Depending on the backend type you can have different options:
 
-  * `:type :console` - Prints all the events to the stdandard output. 
+  * `:type :console` - Prints all the events to the stdandard output.
                      This is mostly used for testing purposes only.
       * `:pretty?` can be `true` or `false` and defines if it is pretty printed or simple `println`.
-       
+
   * `:type :kafka` - Sends the events to a Kafka topic in JSON format.
       * `:topic` - is the name of the Kafka topic where to send the events to. (Default: `events`, *REQUIRED*)
       * `:metadata.broker.list` - This is a comma-separated-list of brokers host or IPs and their port. (*REQUIRED*)
@@ -138,8 +138,7 @@ docker build -t samsara/ingestion-api .
 Then to run the container:
 
 ```
-# it is important that you pass the `-i` option to create a stdin chanel
-docker run -tdi -p 9000:9000 -p 15000:15000 -v /tmp/ingestion-api:/logs \
+docker run -d -p 9000:9000 -p 15000:15000 -v /tmp/ingestion-api:/logs \
         --link=kafkadocker_kafka_11:kafka_1 \
         --link=kafkadocker_kafka_12:kafka_2 \
         --link=kafkadocker_kafka_13:kafka_3 \
@@ -148,7 +147,7 @@ docker run -tdi -p 9000:9000 -p 15000:15000 -v /tmp/ingestion-api:/logs \
 
 The linked containers will then be used for configuration autodiscovery.
 
-This will expose port `9000` and port `15000` on your docker host. It will mount 
+This will expose port `9000` and port `15000` on your docker host. It will mount
 a volume to expose the container logs as `/tmp/ingestion-api`.
 
 You should be able to point your browser to [http://127.0.0.1:15000] and log in with
@@ -156,7 +155,7 @@ You should be able to point your browser to [http://127.0.0.1:15000] and log in 
 
 **NOTE: if you are running on OSX with `boot2docker` the host on wich will the ports be exposed
 won't be the local host but the `boot2docker` virtual machine which by default is on
-`192.168.59.103` (check your $DOCKER_HOST).** This means that instead of accessing 
+`192.168.59.103` (check your $DOCKER_HOST).** This means that instead of accessing
 [http://127.0.0.1:15000] you will have to access [http://192.168.59.103:15000] and
 that the mounted volume (`/tmp/ingestion-api`) will be on the `boot2docker` virtual machine.
 To access them you can log into `boot2docker` with the following command: `boot2docker ssh`.
