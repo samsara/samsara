@@ -48,6 +48,31 @@ docker run -d -p 9000:9000 -p 15000:15000 -v /tmp/ingestion-api:/logs \
         samsara/ingestion-api
 ```
 
+Then send events with:
+
+```
+cat <<EOF | curl -i -H "Content-Type: application/json" \
+                -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
+                -XPOST "http://localhost:9000/v1/events" -d @-
+[
+  {
+    "timestamp": $(date +%s000),
+    "sourceId": "3aw4sedrtcyvgbuhjkn",
+    "eventName": "user.item.added",
+    "page": "orders",
+    "item": "sku-1234"
+  }, {
+    "timestamp": $(date +%s000),
+    "sourceId": "3aw4sedrtcyvgbuhjkn",
+    "eventName": "user.item.removed",
+    "page": "orders",
+    "item": "sku-5433",
+    "action": "remove"
+  }
+]
+EOF
+```
+
 ## Copyright & License
 
 Copyright © 2015 Samsara's authors.
