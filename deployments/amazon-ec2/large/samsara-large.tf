@@ -111,6 +111,35 @@ resource "aws_security_group" "sg_general" {
                 cidr_blocks = ["0.0.0.0/0"]
         }
 
+        # This is require for consul agents
+	ingress {
+		from_port = 8301
+		to_port = 8301
+		protocol = "tcp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8301
+		to_port = 8301
+		protocol = "udp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8302
+		to_port = 8302
+		protocol = "tcp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8302
+		to_port = 8302
+		protocol = "udp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
         vpc_id = "${aws_vpc.samsara_vpc.id}"
 
         tags {
@@ -143,6 +172,83 @@ resource "aws_security_group" "sg_ssh" {
 
         tags {
           Name    = "Samsara SSH"
+          project = "${var.project}"
+          build   = "${var.build}"
+          env     = "${var.env}"
+        }
+}
+
+resource "aws_security_group" "sg_consul" {
+	name = "sg_consul"
+	description = "consul boxes connections"
+
+	ingress {
+		from_port = 8300
+		to_port = 8300
+		protocol = "tcp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8301
+		to_port = 8301
+		protocol = "tcp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8301
+		to_port = 8301
+		protocol = "udp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8302
+		to_port = 8302
+		protocol = "tcp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8302
+		to_port = 8302
+		protocol = "udp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8400
+		to_port = 8400
+		protocol = "tcp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8500
+		to_port = 8500
+		protocol = "tcp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8600
+		to_port = 8600
+		protocol = "tcp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8600
+		to_port = 8600
+		protocol = "udp"
+                cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        vpc_id = "${aws_vpc.samsara_vpc.id}"
+
+        tags {
+          Name    = "Samsara Consul"
           project = "${var.project}"
           build   = "${var.build}"
           env     = "${var.env}"
@@ -640,7 +746,8 @@ resource "aws_instance" "zookeeper1" {
     key_name	    = "${var.key_name}"
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
                               "${aws_security_group.sg_general.id}",
-                              "${aws_security_group.sg_zookeeper.id}"]
+                              "${aws_security_group.sg_zookeeper.id}",
+                              "${aws_security_group.sg_consul.id}"]
     subnet_id = "${aws_subnet.zone1.id}"
     associate_public_ip_address = "true"
 
@@ -679,7 +786,8 @@ resource "aws_instance" "zookeeper2" {
     key_name	    = "${var.key_name}"
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
                               "${aws_security_group.sg_general.id}",
-                              "${aws_security_group.sg_zookeeper.id}"]
+                              "${aws_security_group.sg_zookeeper.id}",
+                              "${aws_security_group.sg_consul.id}"]
     subnet_id = "${aws_subnet.zone2.id}"
     associate_public_ip_address = "true"
 
@@ -718,7 +826,8 @@ resource "aws_instance" "zookeeper3" {
     key_name	    = "${var.key_name}"
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
                               "${aws_security_group.sg_general.id}",
-                              "${aws_security_group.sg_zookeeper.id}"]
+                              "${aws_security_group.sg_zookeeper.id}",
+                              "${aws_security_group.sg_consul.id}"]
     subnet_id = "${aws_subnet.zone3.id}"
     associate_public_ip_address = "true"
 

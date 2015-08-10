@@ -65,8 +65,8 @@ find . -name packer-\*.json -type f | xargs -I {} packer validate {}
 #
 # Cleanup logs
 #
-rm -fr $LOGDIR
-mkdir $LOGDIR
+####BBJ rm -fr $LOGDIR
+####BBJ mkdir $LOGDIR
 
 
 #
@@ -74,11 +74,12 @@ mkdir $LOGDIR
 #
 build-image      packer-base-image.json $*
 build-image-with $(get-image-ami packer-base-image.json) packer-base-image-with-storage.json $*
-build-image-with $(get-image-ami packer-base-image.json) packer-ingestion-api-image.json $*
-build-image-with $(get-image-ami packer-base-image.json) packer-kibana-image.json $*
-build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-els-image.json $*
-build-image-with $(get-image-ami packer-base-image.json) packer-qanal-image.json $*
-build-image-with $(get-image-ami packer-base-image.json) packer-core-image.json $*
+####BBJ build-image-with $(get-image-ami packer-base-image.json) packer-ingestion-api-image.json $*
+####BBJ build-image-with $(get-image-ami packer-base-image.json) packer-kibana-image.json $*
+####BBJ build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-els-image.json $*
+####BBJ build-image-with $(get-image-ami packer-base-image.json) packer-qanal-image.json $*
+####BBJ build-image-with $(get-image-ami packer-base-image.json) packer-core-image.json $*
+build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-zookeeper-image.json $*
 
 
 #
@@ -96,5 +97,6 @@ els_ami = "$(get-image-ami packer-els-image.json)"
 kibana_ami = "$(get-image-ami packer-kibana-image.json)"
 qanal_ami = "$(get-image-ami packer-qanal-image.json)"
 core_ami = "$(get-image-ami packer-core-image.json)"
+zookeeper_ami = "$(get-image-ami packer-zookeeper-image.json)"
 ----------8<----------8<----------8<----------8<----------8<----------
 EOF

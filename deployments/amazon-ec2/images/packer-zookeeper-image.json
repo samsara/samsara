@@ -3,7 +3,7 @@
         "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
         "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
         "region": "eu-west-1",
-        "source_ami": "ami-47a23a30",
+        "source_ami": "-base-ami-",
         "build_id": ""
     },
     "builders": [{
@@ -14,7 +14,7 @@
         "instance_type": "t2.micro",
         "ssh_username": "ubuntu",
         "source_ami": "{{user `source_ami`}}",
-        "ami_name": "{{user `build_id`}}-base",
+        "ami_name": "{{user `build_id`}}-zk",
         "tags": {
             "project": "samsara",
             "build": "{{user `build_id`}}"
@@ -23,9 +23,8 @@
     "provisioners": [{
         "type": "shell",
         "scripts": [
-            "scripts/base-os-and-docker.sh",
-            "scripts/consul-agent.sh",
-            "scripts/pull-images.sh"
+            "scripts/zookeeper.sh",
+            "scripts/consul-server.sh"
         ]
     }]
 }
