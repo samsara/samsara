@@ -236,12 +236,20 @@
                                (assoc-in [:cfg-name] (str topic "/" partition))))
                          topics-spec)]
     ;;
-    ;; Consuming each partition in a separate thread..
+    ;; if topics are not ready yet, retry in 30sec
     ;;
-    (doseq [{:keys [kafka-source cfg-name] :as cfg} all-configs]
-      (log/info "Starting consumer thread for" cfg-name)
-      (kafka/forever-do (str "consuming partition: " cfg-name) (:connect-retry kafka-source)
-                        (siphon cfg)))))
+    (if (empty? all-configs)
+      (do
+        (log/warn "No matching configurations found. Maybe topics are not ready yet. Retrying in 30sec.")
+        (Thread/sleep 30000)
+        (recur config))
+      ;;
+      ;; Consuming each partition in a separate thread..
+      ;;
+      (doseq [{:keys [kafka-source cfg-name] :as cfg} all-configs]
+        (log/info "Starting consumer thread for" cfg-name)
+        (kafka/forever-do (str "consuming partition: " cfg-name) (:connect-retry kafka-source)
+                          (siphon cfg))))))
 
 
 
