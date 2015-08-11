@@ -65,21 +65,21 @@ find . -name packer-\*.json -type f | xargs -I {} packer validate {}
 #
 # Cleanup logs
 #
-####BBJ rm -fr $LOGDIR
-####BBJ mkdir $LOGDIR
+rm -fr $LOGDIR
+mkdir $LOGDIR
 
 
 #
 # Building images
 #
-####BBJ build-image      packer-base-image.json $*
-####BBJ build-image-with $(get-image-ami packer-base-image.json) packer-base-image-with-storage.json $*
-####BBJ build-image-with $(get-image-ami packer-base-image.json) packer-ingestion-api-image.json $*
-####BBJ build-image-with $(get-image-ami packer-base-image.json) packer-kibana-image.json $*
-####BBJ build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-els-image.json $*
-####BBJ build-image-with $(get-image-ami packer-base-image.json) packer-qanal-image.json $*
-####BBJ build-image-with $(get-image-ami packer-base-image.json) packer-core-image.json $*
-####BBJ build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-zookeeper-image.json $*
+build-image      packer-base-image.json $*
+build-image-with $(get-image-ami packer-base-image.json) packer-base-image-with-storage.json $*
+build-image-with $(get-image-ami packer-base-image.json) packer-ingestion-api-image.json $*
+build-image-with $(get-image-ami packer-base-image.json) packer-kibana-image.json $*
+build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-els-image.json $*
+build-image-with $(get-image-ami packer-base-image.json) packer-qanal-image.json $*
+build-image-with $(get-image-ami packer-base-image.json) packer-core-image.json $*
+build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-zookeeper-image.json $*
 
 
 #
