@@ -22,10 +22,13 @@ respawn
 pre-start exec /usr/bin/docker rm qanal | true
 exec /usr/bin/docker run --name qanal \
        -dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
-       -p 9000:9000 \
        -p 15000:15000 \
        -v /logs/qanal:/logs \
-       `curl "http://169.254.169.254/latest/user-data"` \
+       -e KAFKA_PORT_9092_TCP_ADDR=kafka.service.consul \
+       -e ZOOKEEPER_PORT_2181_TCP_ADDR=zookeeper.service.consul \
+       -e ZOOKEEPER_PORT_2181_TCP=tcp://zookeeper.service.consul:2181 \
+       -e RIEMANN_PORT_5555_TCP_ADDR=riemann.service.consul \
+       -e ELS_PORT_9200_TCP_ADDR=els.service.consul \
        -e "KAFKA_TOPIC=events" \
        -e "KAFKA_PARTITIONS=:all" \
        -e "TRACKING_ENABLED=true" \
@@ -41,3 +44,16 @@ echo '------------------------------------------------------------------'
 echo '                Pull the latest image'
 echo '------------------------------------------------------------------'
 docker pull samsara/qanal
+
+
+echo '------------------------------------------------------------------'
+echo '                add service to consul'
+echo '------------------------------------------------------------------'
+cat > /etc/consul.d/qanal.json <<\EOF
+{
+  "service": {
+    "name": "qanal",
+    "tags": []
+  }
+}
+EOF

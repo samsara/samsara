@@ -24,6 +24,8 @@ variable "els_ami" {}
 variable "qanal_ami" {}
 variable "core_ami" {}
 variable "zookeeper_ami" {}
+variable "kafka_ami" {}
+variable "monitoring_ami" {}
 
 variable "project" {
     default = "samsara"

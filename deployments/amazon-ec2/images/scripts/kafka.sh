@@ -13,50 +13,50 @@ sleep 30
 echo '------------------------------------------------------------------'
 echo '                    Setup upstart service'
 echo '------------------------------------------------------------------'
-cat >/etc/init/ingestion.conf <<\EOF
-description "Ingestion-API container"
+cat >/etc/init/kafka.conf <<\EOF
+description "Kafka container"
 author "Bruno"
 start on runlevel [2345]
 stop on runlevel [016]
 respawn
-pre-start exec /usr/bin/docker rm ingestion | true
-exec /usr/bin/docker run --name ingestion \
+pre-start exec /usr/bin/docker rm kafka | true
+exec /usr/bin/docker run --name kafka \
        -dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
-       -p 9000:9000 \
+       -p 9092:9092 \
        -p 15000:15000 \
-       -v /logs/ingestion:/logs \
-       -e KAFKA_1_PORT_9092_TCP_ADDR=kafka.service.consul \
-       -e RIEMANN_PORT_5555_TCP_ADDR=riemann.service.consul \
-       -e "TRACKING_ENABLED=true" \
-       samsara/ingestion-api
+       -v /logs/kafka:/logs \
+       -v /data/kafka:/data \
+       -e "KAFKA_BROKER_ID=$(user-data KAFKA_BROKER_ID)" \
+       -e "ADV_IP=$(curl 'http://169.254.169.254/latest/meta-data/local-ipv4')" \
+       -e "ZOOKEEPER_PORT_2181_TCP_ADDR=zookeeper.service.consul" \
+       samsara/kafka
 
 pre-stop script
-        /usr/bin/docker stop ingestion
-        /usr/bin/docker rm ingestion
+        /usr/bin/docker stop kafka
+        /usr/bin/docker rm kafka
 end script
 EOF
 
 echo '------------------------------------------------------------------'
 echo '                Pull the latest image'
 echo '------------------------------------------------------------------'
-docker pull samsara/ingestion-api
-
+docker pull samsara/kafka
 
 
 echo '------------------------------------------------------------------'
 echo '                add service to consul'
 echo '------------------------------------------------------------------'
-cat > /etc/consul.d/ingestion.json <<\EOF
+cat > /etc/consul.d/kafka.json <<\EOF
 {
   "service": {
-    "name": "ingestion",
+    "name": "kafka",
     "tags": [],
-    "port": 9000
+    "port": 9092
   },
   "check": {
-    "id": "ingestion-http-status",
-    "name": "Ingestion api status",
-    "script": "curl -si -m 1 http://$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):9000/v1/api-status",
+    "id": "kafka-port",
+    "name": "Kafka client port open check",
+    "script": "/bin/nc -vz -w 1 $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4) 9092",
     "interval": "5s"
   }
 }

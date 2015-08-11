@@ -28,7 +28,7 @@ exec /usr/bin/docker run --name els \
        -v /logs/els:/logs \
        -v /data/els:/data \
        -e "ADV_IP=$(curl 'http://169.254.169.254/latest/meta-data/local-ipv4')" \
-       -e "ZOOKEEPER_PORT_2181_TCP_ADDR=10.10.1.5" \
+       -e ZOOKEEPER_PORT_2181_TCP_ADDR=zookeeper.service.consul \
        -e "ZOOKEEPER_PORT_2181_TCP_PORT=2181" \
        samsara/elasticsearch
 
@@ -36,13 +36,29 @@ pre-stop script
         /usr/bin/docker stop els
         /usr/bin/docker rm els
 end script
-# TODO:
-#       -e "ZOOKEEPER1_PORT_2181_TCP=tcp://10.10.1.5:2181" \
-#       -e "ZOOKEEPER2_PORT_2181_TCP=tcp://10.10.2.5:2181" \
-#       -e "ZOOKEEPER3_PORT_2181_TCP=tcp://10.10.3.5:2181" \
 EOF
 
 echo '------------------------------------------------------------------'
 echo '                Pull the latest image'
 echo '------------------------------------------------------------------'
 docker pull samsara/elasticsearch
+
+
+echo '------------------------------------------------------------------'
+echo '                add service to consul'
+echo '------------------------------------------------------------------'
+cat > /etc/consul.d/els.json <<\EOF
+{
+  "service": {
+    "name": "els",
+    "tags": [],
+    "port": 9200
+  },
+  "check": {
+    "id": "els-port",
+    "name": "ELS client port open check",
+    "script": "curl -is -m 1 http://$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):9200/",
+    "interval": "5s"
+  }
+}
+EOF

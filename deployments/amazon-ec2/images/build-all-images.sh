@@ -80,6 +80,8 @@ build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-els
 build-image-with $(get-image-ami packer-base-image.json) packer-qanal-image.json $*
 build-image-with $(get-image-ami packer-base-image.json) packer-core-image.json $*
 build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-zookeeper-image.json $*
+build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-kafka-image.json $*
+build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-monitoring-image.json $*
 
 
 #
@@ -98,5 +100,7 @@ kibana_ami = "$(get-image-ami packer-kibana-image.json)"
 qanal_ami = "$(get-image-ami packer-qanal-image.json)"
 core_ami = "$(get-image-ami packer-core-image.json)"
 zookeeper_ami = "$(get-image-ami packer-zookeeper-image.json)"
+kafka_ami = "$(get-image-ami packer-kafka-image.json)"
+monitoring_ami = "$(get-image-ami packer-monitoring-image.json)"
 ----------8<----------8<----------8<----------8<----------8<----------
 EOF

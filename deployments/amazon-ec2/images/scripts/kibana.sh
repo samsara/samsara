@@ -25,7 +25,8 @@ exec /usr/bin/docker run --name kibana \
        -p 8000:8000 \
        -p 15000:15000 \
        -v /logs/kibana:/logs \
-       `curl "http://169.254.169.254/latest/user-data"` \
+       -e ELASTICSEARCH_PORT_9200_TCP_ADDR=$(user-data ELS) \
+       -e ELASTICSEARCH_PORT_9200_TCP_PORT=9200 \
        samsara/kibana
 
 pre-stop script
@@ -38,3 +39,23 @@ echo '------------------------------------------------------------------'
 echo '                Pull the latest image'
 echo '------------------------------------------------------------------'
 docker pull samsara/kibana
+
+
+echo '------------------------------------------------------------------'
+echo '                add service to consul'
+echo '------------------------------------------------------------------'
+cat > /etc/consul.d/kibana.json <<\EOF
+{
+  "service": {
+    "name": "kibana",
+    "tags": [],
+    "port": 8000
+  },
+  "check": {
+    "id": "kibana-http-status",
+    "name": "Kibana client port check",
+    "script": "curl -is -m 1 http://$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):8000/",
+    "interval": "5s"
+  }
+}
+EOF
