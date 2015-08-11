@@ -27,7 +27,6 @@ mkdir -p /data/consul
 chown -R consul:consul /data/consul
 
 echo "(*) Consul upstart configuration"
-# TODO: join ips must be passed as user-data
 cat > /etc/init/consul.conf <<\EOF
 description "Consul server"
 author "Bruno"
@@ -39,10 +38,11 @@ script
    exec >> /logs/consul.log 2>&1
    exec /usr/sbin/consul agent -server \
        -bootstrap-expect 3 \
-       -retry-join 10.10.1.5 \
-       -retry-join 10.10.2.5 \
-       -retry-join 10.10.3.5 \
+       -retry-join $(user-data CONSUL 1) \
+       -retry-join $(user-data CONSUL 2) \
+       -retry-join $(user-data CONSUL 3) \
        -data-dir /data/consul \
+       -config-dir /etc/consul.d \
        -ui-dir /var/lib/consul-ui
 end script
 EOF

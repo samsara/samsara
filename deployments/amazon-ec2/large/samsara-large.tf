@@ -741,7 +741,7 @@ resource "aws_eip" "samsara_monitor_ip" {
 #
 
 resource "aws_instance" "zookeeper1" {
-    ami		    = "${var.data_ami}"
+    ami		    = "${var.zookeeper_ami}"
     instance_type   = "${var.zookeeper_type}"
     key_name	    = "${var.key_name}"
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
@@ -753,23 +753,7 @@ resource "aws_instance" "zookeeper1" {
 
     private_ip = "10.10.1.5"
 
-    connection {
-	user = "ubuntu"
-	agent = true
-    }
-
-    provisioner "file" {
-	source = "scripts/zookeeper1.conf"
-	destination = "/tmp/zookeeper.conf"
-    }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/zookeeper.conf /etc/init/",
-            "sudo docker pull samsara/zookeeper",
-	    "sudo service zookeeper start"
-	]
-    }
+    user_data = "ZK_SERVER_ID=1\nZOOKEEPER=10.10.1.5:2181,10.10.2.5:2181,10.10.3.5:2181\nCONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
 
     tags {
         Name    = "zookeeper1"
@@ -781,7 +765,7 @@ resource "aws_instance" "zookeeper1" {
 
 
 resource "aws_instance" "zookeeper2" {
-    ami		    = "${var.data_ami}"
+    ami		    = "${var.zookeeper_ami}"
     instance_type   = "${var.zookeeper_type}"
     key_name	    = "${var.key_name}"
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
@@ -793,23 +777,7 @@ resource "aws_instance" "zookeeper2" {
 
     private_ip = "10.10.2.5"
 
-    connection {
-	user = "ubuntu"
-	agent = true
-    }
-
-    provisioner "file" {
-	source = "scripts/zookeeper2.conf"
-	destination = "/tmp/zookeeper.conf"
-    }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/zookeeper.conf /etc/init/",
-            "sudo docker pull samsara/zookeeper",
-	    "sudo service zookeeper start"
-	]
-    }
+    user_data = "ZK_SERVER_ID=2\nZOOKEEPER=10.10.1.5:2181,10.10.2.5:2181,10.10.3.5:2181\nCONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
 
     tags {
         Name    = "zookeeper2"
@@ -821,7 +789,7 @@ resource "aws_instance" "zookeeper2" {
 
 
 resource "aws_instance" "zookeeper3" {
-    ami		    = "${var.data_ami}"
+    ami		    = "${var.zookeeper_ami}"
     instance_type   = "${var.zookeeper_type}"
     key_name	    = "${var.key_name}"
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
@@ -833,23 +801,7 @@ resource "aws_instance" "zookeeper3" {
 
     private_ip = "10.10.3.5"
 
-    connection {
-	user = "ubuntu"
-	agent = true
-    }
-
-    provisioner "file" {
-	source = "scripts/zookeeper3.conf"
-	destination = "/tmp/zookeeper.conf"
-    }
-
-    provisioner "remote-exec" {
-	inline = [
-	    "sudo mv /tmp/zookeeper.conf /etc/init/",
-            "sudo docker pull samsara/zookeeper",
-	    "sudo service zookeeper start"
-	]
-    }
+    user_data = "ZK_SERVER_ID=3\nZOOKEEPER=10.10.1.5:2181,10.10.2.5:2181,10.10.3.5:2181\nCONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
 
     tags {
         Name    = "zookeeper3"

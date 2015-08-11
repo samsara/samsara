@@ -25,11 +25,11 @@ usermod -a -G logger consul
 mkdir -p /data/consul
 chown -R consul:consul /data/consul
 
-echo "(*) Consul config dir"
+echo "(*) Consul config dir and scripts dir"
 mkdir -p /etc/consul.d
+mkdir -p /var/lib/consul-check
 
 echo "(*) Consul upstart configuration"
-# TODO: join ips must be passed as user-data
 cat > /etc/init/consul.conf <<\EOF
 description "Consul agent"
 author "Bruno"
@@ -40,10 +40,11 @@ respawn
 script
    exec >> /logs/consul.log 2>&1
    exec /usr/sbin/consul agent \
-       -retry-join 10.10.1.5 \
-       -retry-join 10.10.2.5 \
-       -retry-join 10.10.3.5 \
-       -data-dir /tmp/consul \
+       -retry-join $(user-data CONSUL 1) \
+       -retry-join $(user-data CONSUL 2) \
+       -retry-join $(user-data CONSUL 3) \
+       -config-dir /etc/consul.d \
+       -data-dir /tmp/consul
 end script
 EOF
 

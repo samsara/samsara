@@ -21,6 +21,7 @@ stop on runlevel [016]
 respawn
 pre-start exec /usr/bin/docker rm els | true
 exec /usr/bin/docker run --name els \
+       -dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
        -p 9200:9200 \
        -p 9300:9300 \
        -p 15000:15000 \

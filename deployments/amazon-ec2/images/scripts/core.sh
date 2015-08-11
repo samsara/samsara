@@ -21,6 +21,7 @@ stop on runlevel [016]
 respawn
 pre-start exec /usr/bin/docker rm core | true
 exec /usr/bin/docker run --name core \
+       -dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
        -p 9000:9000 \
        -p 15000:15000 \
        -v /logs/core:/logs \

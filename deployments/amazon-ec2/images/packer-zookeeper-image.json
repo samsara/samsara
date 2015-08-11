@@ -23,8 +23,8 @@
     "provisioners": [{
         "type": "shell",
         "scripts": [
-            "scripts/zookeeper.sh",
-            "scripts/consul-server.sh"
+            "scripts/consul-server.sh",
+            "scripts/zookeeper.sh"
         ]
     }]
 }
