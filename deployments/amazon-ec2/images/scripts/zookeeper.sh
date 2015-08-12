@@ -21,7 +21,7 @@ stop on runlevel [016]
 respawn
 pre-start exec /usr/bin/docker rm zookeeper | true
 exec /usr/bin/docker run --name zookeeper \
-       -dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
+       --dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
        -p 2181:2181 \
        -p 2888:2888 \
        -p 3888:3888 \

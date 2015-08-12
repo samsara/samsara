@@ -21,7 +21,7 @@ stop on runlevel [016]
 respawn
 pre-start exec /usr/bin/docker rm kafka | true
 exec /usr/bin/docker run --name kafka \
-       -dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
+       --dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
        -p 9092:9092 \
        -p 15000:15000 \
        -v /logs/kafka:/logs \

@@ -21,7 +21,7 @@ stop on runlevel [016]
 respawn
 pre-start exec /usr/bin/docker rm monitoring | true
 exec /usr/bin/docker run --name monitoring \
-       -dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
+       --dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
        -p 5555:5555 \
        -p 5556:5556 \
        -p 8083:8083 \

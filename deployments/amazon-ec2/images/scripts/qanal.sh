@@ -21,7 +21,7 @@ stop on runlevel [016]
 respawn
 pre-start exec /usr/bin/docker rm qanal | true
 exec /usr/bin/docker run --name qanal \
-       -dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
+       --dns $(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
        -p 15000:15000 \
        -v /logs/qanal:/logs \
        -e KAFKA_PORT_9092_TCP_ADDR=kafka.service.consul \
