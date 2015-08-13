@@ -51,3 +51,6 @@ EOF
 echo "(*) Set DNS/Consul integration"
 apt-get install -y dnsmasq
 echo "server=/consul/127.0.0.1#8600" > /etc/dnsmasq.d/10-consul
+
+echo "(*) Give enough time to DNS to bootstrap"
+sleep 30

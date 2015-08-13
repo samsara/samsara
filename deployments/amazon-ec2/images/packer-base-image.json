@@ -4,7 +4,9 @@
         "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
         "region": "eu-west-1",
         "source_ami": "ami-47a23a30",
-        "build_id": ""
+        "build_id": "",
+        "use_private_registry": "0",
+        "private_registry": "some.host:5000"
     },
     "builders": [{
         "type": "amazon-ebs",
@@ -24,7 +26,15 @@
         "type": "shell",
         "scripts": [
             "scripts/base-os-and-docker.sh",
-            "scripts/consul-agent.sh",
+            "scripts/consul-agent.sh"
+        ]
+    }, {
+        "type": "shell",
+        "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} {{ .Path }} {{user `use_private_registry`}} {{user `private_registry`}}",
+        "script": "scripts/private-docker-registry.sh"
+    }, {
+        "type": "shell",
+        "scripts": [
             "scripts/pull-images.sh"
         ]
     }]

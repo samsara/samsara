@@ -87,6 +87,7 @@ name depend on the base name provided.
   - `${BASE_NAME}-base`: is the base ami installation with all
     required tools and config
   - `${BASE_NAME}-data`: is the base ami plus a data disk.
+  - one image for every component in the stack
 
 these will be need to be provided on the next step so please
 note their IDs.
@@ -243,3 +244,23 @@ public IP address of the monitoring dashboard.
 The default credentials for the monitoring dashboard are **admin /
 samsara** and the default port is *15000*, tunneling is required to access
 the monitoring interface.
+
+
+#### How to use a private docker registry
+
+If your company has a private docker registry in which you want to
+push updated version of the images or your own images you can make the
+deployment stack use the private repository:
+
+Firstly when building the images add the following variables:
+
+```bash
+cd images
+./build-all-images.sh samsara-v01 \
+    -var "use_private_registry=1" \
+    -var "private_registry=some.private.docker.repo:5000"
+```
+
+Once all images are built they will use your private repository first
+and then fall back to the public docker-hub, so you can deploy your
+own images there and they will used by the deployments.
