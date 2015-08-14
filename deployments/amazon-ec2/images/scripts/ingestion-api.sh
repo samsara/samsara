@@ -1,4 +1,12 @@
 #!/bin/bash -e
+#
+# $1 - OPTIONAL
+#      The name of the docker image to use.
+#      ex:
+#        mytest/myimage:1.0
+#        some.private.docker.repo:5000/mytest/myimage:1.0
+#
+
 
 if [ "$(id -u)" != "0" ] ; then
     echo "Running the script with root privilege's"

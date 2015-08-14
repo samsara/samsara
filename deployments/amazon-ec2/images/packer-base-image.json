@@ -5,6 +5,7 @@
         "region": "eu-west-1",
         "source_ami": "ami-47a23a30",
         "build_id": "",
+        "security_group_id": "",
         "use_private_registry": "0",
         "private_registry": "some.host:5000"
     },
@@ -14,6 +15,7 @@
         "secret_key": "{{user `aws_secret_key`}}",
         "region": "{{user `region`}}",
         "instance_type": "t2.micro",
+        "security_group_id": "{{user `security_group_id`}}",
         "ssh_username": "ubuntu",
         "source_ami": "{{user `source_ami`}}",
         "ami_name": "{{user `build_id`}}-base",

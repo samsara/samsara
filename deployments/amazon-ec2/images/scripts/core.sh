@@ -1,13 +1,28 @@
 #!/bin/bash -e
+#
+# $1 - OPTIONAL
+#      The name of the docker image to use.
+#      ex:
+#        mytest/myimage:1.0
+#        some.private.docker.repo:5000/mytest/myimage:1.0
+#
 
 if [ "$(id -u)" != "0" ] ; then
     echo "Running the script with root privilege's"
-    sudo "$0"
+    sudo "$0" "$*"
     exit $?
 fi
 
 echo "waiting for system to fully come online."
 sleep 30
+
+
+IMAGE=${1:-samsara/samsara-core}
+echo '------------------------------------------------------------------'
+echo '                    Using image:' $IMAGE
+echo '------------------------------------------------------------------'
+mkdir -p /etc/samsara/images
+echo "$IMAGE" > /etc/samsara/images/core
 
 
 echo '------------------------------------------------------------------'
@@ -32,7 +47,7 @@ exec /usr/bin/docker run --name core \
        -e RIEMANN_PORT_5555_TCP_ADDR=riemann.service.consul \
        -e "INDEX_STRATEGY=:daily" \
        -e "TRACKING_ENABLED=true" \
-       samsara/samsara-core
+       `cat /etc/samsara/images/core`
 
 pre-stop script
         /usr/bin/docker stop core
@@ -43,7 +58,7 @@ EOF
 echo '------------------------------------------------------------------'
 echo '                Pull the latest image'
 echo '------------------------------------------------------------------'
-docker pull samsara/samsara-core
+docker pull `cat /etc/samsara/images/core`
 
 
 echo '------------------------------------------------------------------'

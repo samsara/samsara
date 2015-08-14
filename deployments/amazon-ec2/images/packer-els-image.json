@@ -4,7 +4,9 @@
         "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
         "region": "eu-west-1",
         "source_ami": "-base-ami-",
-        "build_id": ""
+        "build_id": "",
+        "security_group_id": "",
+        "docker_image_els": "samsara/elasticsearch"
     },
     "builders": [{
         "type": "amazon-ebs",
@@ -12,6 +14,7 @@
         "secret_key": "{{user `aws_secret_key`}}",
         "region": "{{user `region`}}",
         "instance_type": "t2.micro",
+        "security_group_id": "{{user `security_group_id`}}",
         "ssh_username": "ubuntu",
         "source_ami": "{{user `source_ami`}}",
         "ami_name": "{{user `build_id`}}-els",
@@ -22,6 +25,7 @@
     }],
     "provisioners": [{
         "type": "shell",
+        "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} {{ .Path }} {{user `docker_image_els`}}",
         "scripts": [
             "scripts/elasticsearch.sh"
         ]
