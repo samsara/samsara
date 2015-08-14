@@ -32,10 +32,5 @@
         "type": "shell",
         "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} {{ .Path }} {{user `use_private_registry`}} {{user `private_registry`}}",
         "script": "scripts/private-docker-registry.sh"
-    }, {
-        "type": "shell",
-        "scripts": [
-            "scripts/pull-images.sh"
-        ]
     }]
 }

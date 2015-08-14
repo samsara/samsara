@@ -2,12 +2,19 @@
 
 if [ "$(id -u)" != "0" ] ; then
     echo "Running the script with root privilege's"
-    sudo "$0"
+    sudo "$0" "$*"
     exit $?
 fi
 
 echo "waiting for system to fully come online."
 sleep 30
+
+IMAGE=${1:-samsara/ingestion-api}
+echo '------------------------------------------------------------------'
+echo '                    Using image:' $IMAGE
+echo '------------------------------------------------------------------'
+mkdir -p /etc/samsara/images
+echo "$IMAGE" > /etc/samsara/images/ingestion-api
 
 
 echo '------------------------------------------------------------------'
@@ -28,7 +35,7 @@ exec /usr/bin/docker run --name ingestion \
        -e KAFKA_1_PORT_9092_TCP_ADDR=kafka.service.consul \
        -e RIEMANN_PORT_5555_TCP_ADDR=riemann.service.consul \
        -e "TRACKING_ENABLED=true" \
-       samsara/ingestion-api
+       `cat /etc/samsara/images/ingestion-api`
 
 pre-stop script
         /usr/bin/docker stop ingestion
@@ -39,7 +46,7 @@ EOF
 echo '------------------------------------------------------------------'
 echo '                Pull the latest image'
 echo '------------------------------------------------------------------'
-docker pull samsara/ingestion-api
+docker pull `cat /etc/samsara/images/ingestion-api`
 
 
 

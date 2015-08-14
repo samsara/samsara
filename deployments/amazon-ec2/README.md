@@ -250,17 +250,58 @@ the monitoring interface.
 
 If your company has a private docker registry in which you want to
 push updated version of the images or your own images you can make the
-deployment stack use the private repository:
+deployment stack use the private repository.
 
-Firstly when building the images add the following variables:
+The point in which the docker registry is used it is when the AWS images
+are built, by adding the following variables to `build-all-images.sh` script
+will tell samsara to consider the private repository as well:
+
+```
+    -var "use_private_registry=1" \
+    -var "private_registry=some.private.docker.repo:5000"
+```
+
+When packer builds an image spin a vm with a temporary security group
+which contains only SSH access. However to be able to pull a private
+repository you need to be able to access it's port securely.  So you
+need to create a security group with the following properties
+
+  * Security Group 1 (for packer instance sg1)
+    - ALLOW inbound ssh (tcp:22) from Anywhere
+    - ALLOW outbound access to Anywhere to any port
+
+Additionally you need to make sure that the security group of the
+Docker registry VM has a rule which:
+
+  * Security Group 2 (for the Docker Registry)
+    - ALLOW inbound access to docker registry (tcp:5000) from the
+    above security group (sg1)
+
+We can tell packer to use the newly created security group (sg1)
+by adding the following line to the `build-all-images.sh` script.
+
+```
+    -var "security_group_id=sg-fa44a19e"
+```
+
+Now the packer instance should be able to connect to your private
+registry given that the DNS name is resolvable, and we can tell the
+build script to use one or more of your own images instead of the
+public ones:
+
+```
+    -var "docker_image_ingestion=some.private.docker.repo:5000/mytest/ingestion-api:1"
+```
+
+Putting all together:
 
 ```bash
 cd images
 ./build-all-images.sh samsara-v01 \
     -var "use_private_registry=1" \
-    -var "private_registry=some.private.docker.repo:5000"
+    -var "private_registry=some.private.docker.repo:5000" \
+    -var "security_group_id=sg-xxxxx" \
+    -var "docker_image_ingestion=some.private.docker.repo:5000/mytest/ingestion-api:1"
 ```
 
-Once all images are built they will use your private repository first
-and then fall back to the public docker-hub, so you can deploy your
-own images there and they will used by the deployments.
+Images will be built with the given docker image name.
