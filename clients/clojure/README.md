@@ -7,7 +7,7 @@ Clojure SDK for Samsara. [![Circle CI](https://circleci.com/gh/samsara/samsara-c
 To use the Samasara SDK you need to add the following dependency to your `project.clj` file.
 
 ```clojure
-[samsara/samsara-client "0.1.0-beta"]
+[samsara/samsara-client "0.1.0-beta2"]
 ```
 Load the namespace in the REPL
 ```clojure
@@ -27,11 +27,11 @@ Samsara SDK buffers events and publishes them to Ingestion API periodically. To 
 ```
 Alternatively, you can publish bulk events immediately to the Ingestion API using the publish-events function.
 ```clojure
-(samsara/publish-events [{:eventName "user.logged" 
-                          :timestamp 1431261991023 
+(samsara/publish-events [{:eventName "user.logged"
+                          :timestamp 1431261991023
                           :sourceId "e6f01efd-04a9-4c18-a210-2806718b6d43"})]
 ```
-The event will be sent to samsara immediately. 
+The event will be sent to samsara immediately.
 
 
 ### SourceID
@@ -44,7 +44,7 @@ In order to select a good `sourceId` you have to look for the following properti
   - **high cardinality** - which will help the system to scale
   - **non randomized** - the same id must be used by the same source over time.
   - **unique** - You must be able to identify uniquely a source from a given ID.
-  
+
 Here some examples of **good** choices for `sourceId`:
 
   - a device id for a mobile application
@@ -111,7 +111,7 @@ The interval to publish events and the maximum ring buffer size can also be conf
 To set your configuration with:
 
 ```clojure
-(samsara/init! {:url "http://my.samsara.server:9000/v1" 
+(samsara/init! {:url "http://my.samsara.server:9000/v1"
                 :sourceId "the identifier of the given source"})
 ```
 
@@ -121,4 +121,3 @@ To set your configuration with:
 Copyright © 2015 Samsara's authors.
 
 Distributed under the Apache License v 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
-
