@@ -306,13 +306,13 @@ cd images
 
 Images will be built with the given docker image name.
 
-This is hte list of vars to define in order to specify your own image:
+This is the list of vars to define in order to specify your own image:
 
-- `docker_image_core`
-- `docker_image_els`
-- `docker_image_ingestion`
-- `docker_image_kafka`
-- `docker_image_kibana`
-- `docker_image_monitoring`
-- `docker_image_qanal`
-- `docker_image_zookeeper`
+  - `docker_image_core`
+  - `docker_image_els`
+  - `docker_image_ingestion`
+  - `docker_image_kafka`
+  - `docker_image_kibana`
+  - `docker_image_monitoring`
+  - `docker_image_qanal`
+  - `docker_image_zookeeper`
