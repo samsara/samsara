@@ -182,10 +182,10 @@ The following resources will be created:
   * a public facing ingestion load balancer
   * 3 ingestion API on every AZ with autoscale
   * 3 zookeeper with fixed IP, one on each AZ
-  * 3 Kafka brokers, on on each AZ
+  * 3 Kafka brokers, on on each AZ with autoscale
   * 1 bifrost in any of the AZ with autoscale
   * 1 core in any AZ with autoscale
-  * 1 monitor in any AZ with autoscale
+  * 1 monitor in any AZ
   * 1 qanal indexer in any AZ with autoscale
   * 3 ElasticSearch nodes, one on each AZ with autoscale
   * 1 internal load balancer to balance ELS cluster
