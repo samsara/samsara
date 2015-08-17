@@ -1,4 +1,4 @@
-(defproject samsara/samsara-client "0.1.0-beta2"
+(defproject samsara/samsara-client "0.1.0"
   :description "Clojure SDK for Samsara"
   :url "http://samsara.github.io"
   :license {:name "Apache License 2.0"
@@ -9,8 +9,7 @@
                  [http-kit "2.1.16"]
                  [prismatic/schema "0.4.0"]
                  [amalloy/ring-buffer "1.0"]
-                 [jarohen/chime "0.1.6"]
-                 ]
+                 [jarohen/chime "0.1.6"]]
   :target-path "target/%s"
   :plugins [[lein-pprint "1.1.1"]
             [lein-midje "3.1.3"]]
