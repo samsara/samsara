@@ -117,8 +117,8 @@
     (when error
       (log/error "Failed to connect to samsara with error: " error)
       (throw error))
-    ;;Throw an exception if status is not 201.
-    (when (not (= 202 status))
+    ;;Throw an exception if status is not 2xx.
+    (when (not (<= 200 status 299))
       (log/error "Publish failed with status:" status)
       (throw (RuntimeException. (str "PublishFailed with status=" status))))))
 
