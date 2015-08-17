@@ -19,7 +19,10 @@
    ;; :url  - REQUIRED
 
    ;; the identifier of the source of these events
-   ;; :sourceId  - REQUIRED
+   ;; :sourceId  - REQUIRED only for record-event
+
+   ;; whether to start the publishing thread.
+   :start-publishing-thread true
 
    ;; how often should the events being sent to samsara
    :publish-interval 60               ;seconds
@@ -100,19 +103,22 @@
           :sourceId (:sourceId *config*)}
          event))
 
+
 (defn- prepare-event [event]
   "Enriches and validates the event and throws an Exception if validation fails."
   (let [e (enrich-event event)]
     (validate-event e)
     e))
 
+
 (defn- send-events [events]
   "Send events to samsara api"
-  (let [{:keys [status error] :as resp} @(http/post (str (:url *config*) "/events")
-                                                    {:timeout (:send-timeout-ms *config*)
-                                                     :headers {"Content-Type" "application/json"
-                                                               "X-Samsara-publishedTimestamp" (str (System/currentTimeMillis))}
-                                                     :body (to-json events)})]
+  (let [{:keys [status error] :as resp}
+        @(http/post (str (:url *config*) "/events")
+                    {:timeout (:send-timeout-ms *config*)
+                     :headers {"Content-Type" "application/json"
+                               "X-Samsara-publishedTimestamp" (str (System/currentTimeMillis))}
+                     :body (to-json events)})]
     ;;Throw the exception from HttpKit to the caller.
     (when error
       (log/error "Failed to connect to samsara with error: " error)
@@ -141,16 +147,17 @@
       (log/info "Nothing to send."))))
 
 
-(defn- init-timer! [{:keys [publish-interval] :as config}]
-  (let [times (periodic-seq (t/now) (-> publish-interval t/seconds))]
-    (log/info "Starting job to flush events.")
-    (let [chimes (chime-ch times {:ch (a/chan (a/sliding-buffer 1))})]
-      (thread
-        (loop [] ;; TODO: add a way to stop the timer.
-          (when-let [time (<!! chimes)]
-            (log/info "Flushing buffer now.")
-            (flush-buffer)
-            (recur)))))))
+(defn- init-timer! [{:keys [publish-interval start-publishing-thread] :as config}]
+  (when start-publishing-thread
+    (let [times (periodic-seq (t/now) (-> publish-interval t/seconds))]
+      (log/info "Starting job to flush events.")
+      (let [chimes (chime-ch times {:ch (a/chan (a/sliding-buffer 1))})]
+        (thread
+          (loop [] ;; TODO: add a way to stop the timer.
+            (when-let [time (<!! chimes)]
+              (log/info "Flushing buffer now.")
+              (flush-buffer)
+              (recur))))))))
 
 
 (defn init! [config]
