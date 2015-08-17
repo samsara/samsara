@@ -1,4 +1,4 @@
-(defproject samsara/samsara-client "0.1.2"
+(defproject samsara/samsara-client "0.1.3"
   :description "Clojure SDK for Samsara"
   :url "http://samsara.github.io"
   :license {:name "Apache License 2.0"
@@ -14,7 +14,7 @@
   :plugins [[lein-pprint "1.1.1"]
             [lein-midje "3.1.3"]]
   :deploy-repositories[["clojars" {:url "https://clojars.org/repo/"
-                                   :sign-releases false}]]
+                                   :sign-releases true}]]
   :profiles {:uberjar {:aot :all}
              :dev {
                    :dependencies [[http-kit.fake "0.2.1"]
