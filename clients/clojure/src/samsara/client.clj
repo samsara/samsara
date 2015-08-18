@@ -111,28 +111,32 @@
     e))
 
 
-(defn- send-events [{:keys [url send-timeout-ms]} events]
+(defn- send-events
   "Send events to samsara api"
-  (let [{:keys [status error] :as resp}
-        @(http/post (str url "/events")
-                    {:timeout send-timeout-ms
-                     :headers {"Content-Type" "application/json"
-                               "X-Samsara-publishedTimestamp" (str (System/currentTimeMillis))}
-                     :body (to-json events)})]
-    ;;Throw the exception from HttpKit to the caller.
-    (when error
-      (log/error "Failed to connect to samsara with error: " error)
-      (throw error))
-    ;;Throw an exception if status is not 2xx.
-    (when (not (<= 200 status 299))
-      (log/error "Publish failed with status:" status)
-      (throw (RuntimeException. (str "PublishFailed with status=" status))))))
+  ([events]
+   (send-events (merge DEFAULT-CONFIG *config*) events))
+  ([{:keys [url send-timeout-ms]} events]
+   (let [{:keys [status error] :as resp}
+         @(http/post (str url "/events")
+                     {:timeout send-timeout-ms
+                      :headers {"Content-Type" "application/json"
+                                "X-Samsara-publishedTimestamp" (str (System/currentTimeMillis))}
+                      :body (to-json events)})]
+     ;;Throw the exception from HttpKit to the caller.
+     (when error
+       (log/error "Failed to connect to samsara with error: " error)
+       (throw error))
+     ;;Throw an exception if status is not 2xx.
+     (when (not (<= 200 status 299))
+       (log/error "Publish failed with status:" status)
+       (throw (RuntimeException. (str "PublishFailed with status=" status)))))))
 
 
 (defn publish-events
   "Takes a vector containing events and publishes to samsara immediately."
   ([events]
-   (publish-events (merge DEFAULT-CONFIG *config*) events))
+   (validate-event events)
+   (send-events events))
   ([url events & {:as opts}]
    (validate-event events)
    (send-events
