@@ -89,7 +89,8 @@
                          (if (contains? (opts :headers) "X-Samsara-publishedTimestamp")
                            {:status 202}
                            {:status 500}))]
-        (#'samsara.client/send-events [{:eventName "AppOpened"}]) => nil))
+        (#'samsara.client/send-events {:url (:url (get-samsara-config))}
+                                      [{:eventName "AppOpened"}]) => nil))
 
 (fact "calling record-event buffers the event in a ring buffer and periodically flushes it"
 
