@@ -111,11 +111,11 @@
     e))
 
 
-(defn- send-events [events]
+(defn- send-events [{:keys [url send-timeout-ms]} events]
   "Send events to samsara api"
   (let [{:keys [status error] :as resp}
-        @(http/post (str (:url *config*) "/events")
-                    {:timeout (:send-timeout-ms *config*)
+        @(http/post (str url "/events")
+                    {:timeout send-timeout-ms
                      :headers {"Content-Type" "application/json"
                                "X-Samsara-publishedTimestamp" (str (System/currentTimeMillis))}
                      :body (to-json events)})]
@@ -129,10 +129,15 @@
       (throw (RuntimeException. (str "PublishFailed with status=" status))))))
 
 
-(defn publish-events [events]
+(defn publish-events
   "Takes a vector containing events and publishes to samsara immediately."
-  (validate-event events)
-  (send-events events))
+  ([events]
+   (publish-events (merge DEFAULT-CONFIG *config*) events))
+  ([url events & {:as opts}]
+   (validate-event events)
+   (send-events
+    (merge DEFAULT-CONFIG opts {:url url})
+    events)))
 
 
 (defn- flush-buffer []
