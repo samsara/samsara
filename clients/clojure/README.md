@@ -7,7 +7,7 @@ Clojure SDK for Samsara. [![Circle CI](https://circleci.com/gh/samsara/samsara-c
 To use the Samasara SDK you need to add the following dependency to your `project.clj` file.
 
 ```clojure
-[samsara/samsara-client "0.1.3"]
+[samsara/samsara-client "0.1.4"]
 ```
 Load the namespace in the REPL
 ```clojure

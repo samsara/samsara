@@ -1,4 +1,4 @@
-(defproject samsara/samsara-client "0.1.3"
+(defproject samsara/samsara-client "0.1.4"
   :description "Clojure SDK for Samsara"
   :url "http://samsara.github.io"
   :license {:name "Apache License 2.0"
