@@ -53,7 +53,7 @@
 
 (defn get-samsara-config [] *config*)
 
-(defn set-config! [config]
+(defn set-config!
   "Set samsara configuration.
    The following properties can be set:
    :url - Samsara URL
@@ -63,6 +63,7 @@
 
    NOTE: Changes to publish-interval and max-buffer-size properties will require a restart immediately
    after the first call to record-event"
+  [config]
   (alter-var-root #'*config* (constantly config)))
 
 
@@ -85,9 +86,10 @@
   [ single-event-schema ])
 
 
-(defn- validate-event [events]
+(defn- validate-event
   "Validates the event [or the list of events]
     and throws an Exception if Invalid"
+  [events]
   (try
     (let [schema (if (map? events) single-event-schema events-schema)]
       (s/validate schema events))
@@ -97,15 +99,17 @@
       (throw (IllegalArgumentException. "Validation error" x)))))
 
 
-(defn- enrich-event [event]
+(defn- enrich-event
   "Enriches the event with default properties etc."
+  [event]
   (merge {:timestamp (System/currentTimeMillis)
           :sourceId (:sourceId *config*)}
          event))
 
 
-(defn- prepare-event [event]
+(defn- prepare-event
   "Enriches and validates the event and throws an Exception if validation fails."
+  [event]
   (let [e (enrich-event event)]
     (validate-event e)
     e))
@@ -144,8 +148,9 @@
     events)))
 
 
-(defn- flush-buffer []
+(defn- flush-buffer
   "Flushes the event buffer to samsara api. Does nothing if another flush-buffer is in progress."
+  []
   (let [events (snapshot @!buffer!)]
     (if (seq events)
       (try
@@ -188,8 +193,9 @@
       cfg)))
 
 
-(defn record-event [event]
+(defn record-event
   "Buffers the events to be published later."
+  [event]
   (->> (prepare-event event)
       (swap! !buffer! enqueue!)
       (snapshot)
