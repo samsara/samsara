@@ -46,14 +46,21 @@
 (def ^:private default-app-id (str hostname "-" init-class "-" pid ))
 
 
-(defn- log->samsara-event [{:keys [timestamp eventName]
-                            :or {timestamp (System/currentTimeMillis)
-                                 eventName "UnknownEvent"}
-                                 :as log}]
-                           (assoc log :timestamp timestamp :eventName eventName))
+(defn- log->samsara-event [{:keys [sourceId appId] :as conf}
 
-;;IMPORTANT MAKE SURE EACH LOGGER ONLY CREATES ONE OF THIS CLASS .. WE DON'T WANT MULTIPLE loggers spamming samsara api url
-;;ALSO check that the source id is send to this classes constructor
+                           {:keys [timestamp eventName] :as log}]
+
+  (let [sourceId (or sourceId default-app-id)
+        appId (or appId default-app-id)
+        timestamp (or timestamp (System/currentTimeMillis))
+        eventName (or eventName "UnknownLogEvent")]
+
+    (assoc log
+           :timestamp timestamp
+           :eventName eventName
+           :sourceId sourceId
+           :appId appId)))
+
 
 (defn- -init [^String api-url ^String source-id]
   (let [conf {:url api-url :sourceId source-id}]
@@ -64,12 +71,14 @@
 
 
 
-(defn- send-log [conf m]
+(defn- send-log [conf log]
   (if (empty? (:url conf))
-    (println "*SAMSARA* " m)
-    (do
-      (let [log (assoc m :sourceId (:sourceId conf) :appId default-app-id)]
-        (cli/record-event (log->samsara-event log))))))
+    (println "*SAMSARA* " log)
+    (let [samsara-event (log->samsara-event conf log)]
+      (try
+        (cli/record-event samsara-event)
+        (catch Exception e
+          (println "Unable to record event ->" samsara-event "\n Cause->" e))))))
 
 
 (defn -log4j2Event [this ^Level log-level ^String msg ^Throwable t]
