@@ -17,13 +17,18 @@ public class SamsaraLogger extends MarkerIgnoringBase
     private static final int LOG_LEVEL_WARN = LocationAwareLogger.WARN_INT;
     private static final int LOG_LEVEL_ERROR = LocationAwareLogger.ERROR_INT;
 
-    private int currentLogLevel = LOG_LEVEL_INFO;
-    private EventLogger eventLogger;
-    private AtomicBoolean warnOnce = new AtomicBoolean(false);
+    private static EventLogger eventLogger;
+    private static AtomicBoolean warnOnce = new AtomicBoolean(false);
 
-    public SamsaraLogger(String name)
+    static
     {
-        this.name = name;
+        initializeEventLogger();
+    }
+
+    private int currentLogLevel = LOG_LEVEL_INFO;
+
+    private static void initializeEventLogger()
+    {
         String apiUrl = System.getenv("SAMSARA_API_URL");
         String sourceId = System.getenv("SAMSARA_SOURCE_ID");
 
@@ -36,6 +41,11 @@ public class SamsaraLogger extends MarkerIgnoringBase
         {
             warnOnce.set(true);
         }
+    }
+
+    public SamsaraLogger(String name)
+    {
+        this.name = name;
     }
 
     protected boolean isLevelEnabled(int logLevel)
