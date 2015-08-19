@@ -13,7 +13,7 @@
                  [samsara/moebius "0.2.0"]
                  [samsara/samsara-utils "0.3.0"]
                  [samsara/trackit "0.2.0"]
-                 [com.taoensso/timbre "4.0.2"]
+                 [com.taoensso/timbre "3.4.0"]
                  [org.clojure/tools.cli "0.3.1"]
                  [digest "1.4.4"]
                  [org.clojure/tools.nrepl "0.2.10"]
