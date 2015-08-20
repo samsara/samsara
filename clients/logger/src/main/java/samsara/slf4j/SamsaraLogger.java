@@ -56,7 +56,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
     private void printWarning()
     {
         System.out.println("****************************************************************");
-        System.out.println("SAMSARA: The environment variable \"SAMSARA_API_URL\" is not set");
+        System.out.println("SAMSARA: The environment variable or java system property \"SAMSARA_API_URL\" has not been set");
         System.out.println("SAMSARA: Samsara SLF4J logger will just print to console");
         System.out.println("****************************************************************\n");
     }

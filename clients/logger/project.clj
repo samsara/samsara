@@ -1,4 +1,4 @@
-(defproject samsara/samsara-logger "0.1.0-alpha"
+(defproject samsara/samsara-logger "0.1.0-beta"
   :description "FIXME: write description"
   :url "https://github.com/samsara/samsara-logger"
   :license {:name "Apache License V2"
