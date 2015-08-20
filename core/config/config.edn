@@ -6,7 +6,9 @@
   :zookeepers "127.0.0.1:2181"
   ;; a CSV list of host and ports of kafka brokers
   :brokers "127.0.0.1:9092"
-  :offset :smallest}
+  :offset :smallest
+  :samza-overrides { :task.checkpoint.replication.factor 1 }
+  }
 
  :index
  {:strategy :single :base-index "events"}

@@ -20,29 +20,39 @@
 
 
 (defn samza-config [{:keys [job-name zookeepers brokers offset
-                            input-topic kvstore-topic output-topic]}]
+                            input-topic kvstore-topic output-topic
+                            samza-overrides]}]
   (let [default-kvstore (str input-topic "-kv")
         inputs (->> [input-topic (or kvstore-topic default-kvstore)]
                     (map (partial str "kafka."))
-                    (s/join ","))]
+                    (s/join ","))
 
-    {"job.factory.class" "org.apache.samza.job.local.ThreadJobFactory"
-     "job.name"          job-name
-     "task.class"        "samsara.SamsaraSystem"
-     "task.inputs"       inputs
-     "serializers.registry.string.class" "org.apache.samza.serializers.StringSerdeFactory"
-     "systems.kafka.samza.factory" "org.apache.samza.system.kafka.KafkaSystemFactory"
-     "systems.kafka.samza.key.serde" "string"
-     "systems.kafka.samza.msg.serde" "string"
-     "systems.kafka.consumer.zookeeper.connect" zookeepers
-     "systems.kafka.consumer.auto.offset.reset" (name offset)
-     "systems.kafka.producer.bootstrap.servers" brokers
+        config-overrides (into {} (map (fn [[k v]] [(str (name k)) (str v)]) samza-overrides))
 
-     ;; bootstrapping kv-store
-     (str "systems.kafka.streams." input-topic "-kv.samza.bootstrap")    "true"
-     (str "systems.kafka.streams." input-topic "-kv.samza.reset.offset") "true"
-     (str "systems.kafka.streams." input-topic "-kv.samza.offset.default") "oldest"
-     }))
+        config
+        {"job.factory.class" "org.apache.samza.job.local.ThreadJobFactory"
+         "job.name"          job-name
+         "task.class"        "samsara.SamsaraSystem"
+         "task.inputs"       inputs
+         "task.checkpoint.factory" "org.apache.samza.checkpoint.kafka.KafkaCheckpointManagerFactory"
+         "task.checkpoint.system" "kafka"
+         "task.commit.ms"         "60000"
+
+         "serializers.registry.string.class" "org.apache.samza.serializers.StringSerdeFactory"
+         "systems.kafka.samza.factory" "org.apache.samza.system.kafka.KafkaSystemFactory"
+         "systems.kafka.samza.key.serde" "string"
+         "systems.kafka.samza.msg.serde" "string"
+         "systems.kafka.consumer.zookeeper.connect" zookeepers
+         "systems.kafka.consumer.auto.offset.reset" (name offset)
+         "systems.kafka.producer.bootstrap.servers" brokers
+         (str "systems.kafka.streams." input-topic ".samza.offset.default") "oldest"
+
+         ;; bootstrapping kv-store
+         (str "systems.kafka.streams." input-topic "-kv.samza.bootstrap")    "true"
+         (str "systems.kafka.streams." input-topic "-kv.samza.reset.offset") "true"
+         (str "systems.kafka.streams." input-topic "-kv.samza.offset.default") "oldest"
+         }]
+    (merge config config-overrides)))
 
 
 
