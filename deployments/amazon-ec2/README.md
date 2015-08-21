@@ -316,3 +316,28 @@ This is the list of vars to define in order to specify your own image:
   - `docker_image_monitoring`
   - `docker_image_qanal`
   - `docker_image_zookeeper`
+
+
+#### Build or update a singe incremental image
+
+If you wish to build a single image for example to update the software
+you can run packer as follow.
+
+```
+export AMI="ami-7c74280b"      ## base ami or data ami
+export BUILD="samsara-v01b"    ## a unique seed name
+
+packer build -var "build_id=$BUILD" \
+  -var "source_ami=$AMI" \
+  -var "use_private_registry=1" \
+  -var "private_registry=some.private.docker.repo:5000" \
+  -var "security_group_id=sg-fa44a19e" \
+  -var "docker_image_core=some.private.docker.repo:5000/samsara/samsara-core" \
+  packer-core-image.json
+```
+
+This example can be used just as an indication of the of the
+parameters to use.  The actual values will depend on your local
+setup. Then only two required parameters are `build_id` and the
+`source_ami` which can be defined respectively with the `$BUILD`
+and `$AMI` environment variables.
