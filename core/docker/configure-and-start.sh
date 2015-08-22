@@ -16,7 +16,9 @@ export INDEX_EVENT_TYPE=${INDEX_EVENT_TYPE:-"events"}
 export TRACKING_ENABLED=${TRACKING_ENABLED:-false}
 export RIEMANN_PORT_5555_TCP_ADDR=${RIEMANN_PORT_5555_TCP_ADDR:-localhost}
 export RIEMANN_PORT_5555_TCP_PORT=${RIEMANN_PORT_5555_TCP_PORT:-5555}
-
+export SINGLE_BROKER=${SINGLE_BROKER:-false}
+export SAMZA_CONFIG=${SAMZA_CONFIG:-""}
+[ "$SINGLE_BROKER" = "true" ] && export SAMZA_CONFIG="$SAMZA_CONFIG :task.checkpoint.replication.factor 1"
 
 export CONFIG_FILE=/opt/samsara-core/config/config.edn
 # replace variables in template with environment values
