@@ -59,6 +59,7 @@ core:
   environment:
     INDEX_STRATEGY: ":single"
     TRACKING_ENABLED: "true"
+    SINGLE_BROKER: "true"
   volumes:
     - /logs/core:/logs
 

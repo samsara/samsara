@@ -141,6 +141,10 @@
                 {
                     "name": "TRACKING_ENABLED",
                     "value": "true"
+                },
+                {
+                    "name": "SINGLE_BROKER",
+                    "value": "true"
                 }
             ],
             "mountPoints": [
