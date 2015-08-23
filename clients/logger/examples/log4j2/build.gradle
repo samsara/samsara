@@ -1,0 +1,20 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'samsara.examples.logger.Log4j2Example'
+version = '0.1.0'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    mavenCentral()
+    maven { url "https://clojars.org/repo"}
+}
+
+dependencies {
+    compile 'org.apache.logging.log4j:log4j-api:2.3',
+            'org.apache.logging.log4j:log4j-core:2.3',
+            'samsara:samsara-logger:0.1.0-beta'
+}
+
