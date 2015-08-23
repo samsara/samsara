@@ -6,10 +6,10 @@
    :zookeepers "%%ZOOKEEPER_PORT_2181_TCP_ADDR%%:%%ZOOKEEPER_PORT_2181_TCP_PORT%%"
    ;; a CSV list of host and ports of kafka brokers
    :brokers "%%KAFKA_PORT_9092_TCP_ADDR%%:%%KAFKA_PORT_9092_TCP_PORT%%"
-   :offset %%OFFSET_RESET%%}
+   :offset %%OFFSET_RESET%%
    :samza-overrides
    { %%SAMZA_CONFIG%% }
-
+  }
  :index
  {:strategy %%INDEX_STRATEGY%%
   :base-index "%%INDEX_BASE_NAME%%"
