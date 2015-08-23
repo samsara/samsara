@@ -1,5 +1,5 @@
 (defproject samsara/samsara-logger "0.1.0-beta"
-  :description "FIXME: write description"
+  :description "A logging interface for sending logs as events to samsara"
   :url "https://github.com/samsara/samsara-logger"
   :license {:name "Apache License V2"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
@@ -16,7 +16,7 @@
   :prep-tasks ["compile" "javac"]
 
   :deploy-repositories[["clojars" {:url "https://clojars.org/repo/"
-                                   :sign-releases false}]]
+                                   :sign-releases true}]]
   )
 
 
