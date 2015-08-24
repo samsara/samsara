@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
     compile 'org.apache.logging.log4j:log4j-api:2.3',
-            'org.apache.logging.log4j:log4j-core:2.3',
-            'samsara:samsara-logger:0.1.0-beta'
+            'org.apache.logging.log4j:log4j-core:2.3'
+    runtime 'samsara:samsara-logger:0.1.0-beta'
 }
 
