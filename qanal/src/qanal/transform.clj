@@ -4,15 +4,15 @@
              [format :as f]]))
 
 
-(defmulti topic-transducer
+(defmulti topic-transformer
   (juxt :type :indexing-strategy (comp not nil? :id-field)))
 
 
-(defmethod topic-transducer [:river nil false] [topic-cfg]
+(defmethod topic-transformer [:river nil false] [topic-cfg]
   identity)
 
 
-(defmethod topic-transducer [:plain :simple false]
+(defmethod topic-transformer [:plain :simple false]
   [{:keys [index doc-type]}]
   (fn [doc]
     {:index  index
@@ -20,7 +20,7 @@
      :source doc}))
 
 
-(defmethod topic-transducer [:plain :simple true]
+(defmethod topic-transformer [:plain :simple true]
   [{:keys [index doc-type id-field]}]
   (let [idf (keyword id-field)]
     (fn [doc]
@@ -30,7 +30,7 @@
        :source doc})))
 
 
-(defmethod topic-transducer [:plain :simple true]
+(defmethod topic-transformer [:plain :simple true]
   [{:keys [index doc-type id-field]}]
   (let [idf (keyword id-field)]
     (fn [doc]
@@ -73,7 +73,7 @@
 
 
 
-(defmethod topic-transducer [:plain :daily true]
+(defmethod topic-transformer [:plain :daily true]
   [{:keys [base-index doc-type id-field timestamp-field timestamp-field-format]}]
   (let [idf (keyword id-field)
         tsf (timestamp-extractor timestamp-field timestamp-field-format)
@@ -85,7 +85,7 @@
        :source doc})))
 
 
-(defmethod topic-transducer [:plain :daily false]
+(defmethod topic-transformer [:plain :daily false]
   [{:keys [base-index doc-type timestamp-field timestamp-field-format]}]
   (let [tsf (timestamp-extractor timestamp-field timestamp-field-format)
         idx-date-fmt #(str base-index (f/unparse (f/formatter "-YYYY-MM-dd") (tc/from-long %)))]
