@@ -22,10 +22,15 @@ public class SamsaraAppender extends AbstractAppender
     private EventLogger eventLogger;
     private AtomicBoolean warnOnce = new AtomicBoolean(false);
 
-    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, String apiUrl, String sourceId, boolean ignoreExceptions) 
+    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, String apiUrl, String sourceId, String logToConsole, boolean ignoreExceptions) 
     {
         super(name, filter, layout, ignoreExceptions);
         eventLogger = new EventLogger(apiUrl, sourceId);
+
+        if(logToConsole != null)
+        {
+            eventLogger.logToConsole(new Boolean(logToConsole));
+        }
 
         if(apiUrl == null || apiUrl.trim().isEmpty())
         {
@@ -37,6 +42,7 @@ public class SamsaraAppender extends AbstractAppender
     public static SamsaraAppender createAppender(@PluginAttribute("name") String name,
                                                  @PluginAttribute("apiUrl") String apiUrl,
                                                  @PluginAttribute("sourceId") String sourceId,
+                                                 @PluginAttribute("logToConsole") String logToConsole,
                                                  @PluginAttribute("ignoreExceptions") boolean ignoreExceptions,
                                                  @PluginElement("Layout") Layout<? extends Serializable> layout,
                                                  @PluginElement("Filter") Filter filter)
@@ -52,7 +58,7 @@ public class SamsaraAppender extends AbstractAppender
             layout = PatternLayout.createDefaultLayout();
         }
 
-        return new SamsaraAppender(name, filter, layout, apiUrl, sourceId, ignoreExceptions);
+        return new SamsaraAppender(name, filter, layout, apiUrl, sourceId, logToConsole, ignoreExceptions);
     }
 
     private void printWarning()

@@ -9,7 +9,8 @@
               :constructors {[String String] []}
               :state state
               :init init
-              :methods [[log4j2Event [org.apache.logging.log4j.Level String Throwable] void]
+              :methods [[logToConsole [Boolean] void]
+                        [log4j2Event [org.apache.logging.log4j.Level String Throwable] void]
                         [slf4jEvent [Integer String Throwable] void]]
               ))
 
@@ -63,17 +64,20 @@
 
 
 (defn- -init [^String api-url ^String source-id]
-  (let [conf {:url api-url :sourceId source-id}]
+  (let [conf {:url api-url
+              :sourceId source-id
+              :log-to-console true}]
     (when-not (empty? api-url)
       (cli/init! conf))
-    [[] conf]))
-
+    [[] (atom conf)]))
 
 
 
 (defn- send-log [conf log]
+  (when (= (:log-to-console conf) true)
+    (println log))
+
   (if (empty? (:url conf))
-    (println "*SAMSARA* " log)
     (let [samsara-event (log->samsara-event conf log)]
       (try
         (cli/record-event samsara-event)
@@ -81,8 +85,13 @@
           (println "Unable to record event ->" samsara-event "\n Cause->" e))))))
 
 
+(defn -logToConsole [this ^Boolean b]
+  (swap! (.state this) assoc :log-to-console b))
+
+
+
 (defn -log4j2Event [this ^Level log-level ^String msg ^Throwable t]
-  (send-log (.state this) {:eventName "log"
+  (send-log @(.state this) {:eventName "log"
                            :loggingFramework "Log4j2"
                            :level (get log4j2-level-map log-level)
                            :message msg
@@ -90,7 +99,7 @@
 
 
 (defn -slf4jEvent [this ^Integer log-level ^String msg ^Throwable t]
-  (send-log (.state this) {:eventName "log"
+  (send-log @(.state this) {:eventName "log"
                            :loggingFramework "SLF4J"
                            :level (get slf4j-level-map log-level)
                            :message msg

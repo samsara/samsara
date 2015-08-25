@@ -31,11 +31,18 @@ public class SamsaraLogger extends MarkerIgnoringBase
     {
         String apiUrl = System.getenv("SAMSARA_API_URL");
         String sourceId = System.getenv("SAMSARA_SOURCE_ID");
+        String logToConsole = System.getenv("SAMSARA_LOG_TO_CONSOLE");
 
         apiUrl = System.getProperty("SAMSARA_API_URL", apiUrl);
         sourceId = System.getProperty("SAMSARA_SOURCE_ID", sourceId);
+        logToConsole = System.getProperty("SAMSARA_LOG_TO_CONSOLE", logToConsole);
 
         eventLogger = new EventLogger(apiUrl, sourceId);
+
+        if(logToConsole != null)
+        {
+            eventLogger.logToConsole(new Boolean(logToConsole));
+        }
 
         if(apiUrl == null || apiUrl.trim().isEmpty())
         {
