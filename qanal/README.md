@@ -191,11 +191,13 @@ to provide a `:base-index` name which will be used as prefix.
 For example the indexes create from the above example will look
 like the following:
 
+```
    ...
    wikipedia-2015-08-23
    wikipedia-2015-08-24
    wikipedia-2015-08-25
    ...
+```
 
 the date will be rendered using the attribute specified by
 `:timestamp-field`. This can be either:
