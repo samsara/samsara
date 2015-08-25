@@ -220,7 +220,8 @@
 ;; but still not clear enough...
 ;; NEED CLEANER loop
 ;;
-(defn siphon [{:keys [kafka-source elasticsearch-target]}]
+(defn siphon [{:keys [kafka-source elasticsearch-target transform]
+               :or {transform identity}}]
   (loop [consumer (connect-to-kafka kafka-source)
          state (apply-initial-offset consumer kafka-source)]
     (let [kafka-msgs (get-kafka-messages consumer state)]
@@ -237,7 +238,8 @@
         ;; Good messages should go through a better validation
         ;; and bad messages should be handled differently
         (let [good-messages (filter identity (map :value kafka-msgs))
-              _ (els/bulk-index elasticsearch-target good-messages)
+              transformed   (map transform good-messages)
+              _ (els/bulk-index elasticsearch-target transformed)
               next-consumer-offset (-> kafka-msgs last :offset inc)
               updated-state (assoc state :consumer-offset next-consumer-offset)]
           ;; TODO: don't like this as it won't
@@ -248,16 +250,19 @@
 
 
 (defn uber-siphon
-  "It spawns a consumer thread for a specific topic/partion."
+  "It spawns a consumer thread for a specific topic/partition."
   [{:keys [kafka-source topics] :as config}]
   (let [zk (assoc kafka-source "zookeeper.connect" (:zookeeper-connect kafka-source))
         topics-conf (into {} (map (juxt :topic :partitions) topics))
         topics-spec (kafka/list-partitions-to-fetch topics-conf zk)
+        ;; map of topic and their transformations
+        transf-map  (into {} (map (juxt :topic (partial topic-transformer)) topics))
         all-configs (map (fn [[topic partition]]
                            (-> config
                                (assoc-in [:kafka-source :topic] topic)
                                (assoc-in [:kafka-source :partition-id] partition)
-                               (assoc-in [:cfg-name] (str topic "/" partition))))
+                               (assoc-in [:cfg-name] (str topic "/" partition))
+                               (assoc-in [:transform] (transf-map topic))))
                          topics-spec)]
     ;;
     ;; if topics are not ready yet, retry in 30sec
@@ -329,8 +334,7 @@
       :group-id           "qanal"
       :auto-offset-reset  :earliest     ; Can only be earliest or latest
       :fetch-size         (* 10 1024 1024)}
-      :topics {"events" :all
-               "test3" [0 2]}
+     :topics [{:topic "events", :partitions :all, :type :river}]
      :tracking {:type :console}
      :elasticsearch-target {:end-point "http://192.168.59.103:9200"}})
 

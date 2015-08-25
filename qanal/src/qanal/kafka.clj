@@ -94,12 +94,17 @@
     (safe-short nil (str "Invalid message format: " (prn-str msg))
           (s/validate validate-river-format msg))))
 
+(comment
+  ;; TODO: validation should be moved
+  (defn unmarshall-values
+    "Decodes json messages into clojures maps, or set it to nil if it can't"
+    [msg]
+    (update-in msg [:value] (comp validate-message from-json-safe bytes->string))))
 
 (defn unmarshall-values
   "Decodes json messages into clojures maps, or set it to nil if it can't"
   [msg]
-  (update-in msg [:value] (comp validate-message from-json-safe bytes->string)))
-
+  (update-in msg [:value] (comp from-json-safe bytes->string)))
 
 (defn get-messages
   "Uses the provided arguments to consume kafka messages and return the messages in a lazy sequence.
