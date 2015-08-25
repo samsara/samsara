@@ -6,10 +6,10 @@ machine:
 test:
   override:
     - MIDJE_COLORIZE=NONE lein do clean, midje, bin
-        
-  post:
-    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
-    - cp report.xml $CIRCLE_TEST_REPORTS/junit/
+
+#  post:
+#    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+#    - cp report.xml $CIRCLE_TEST_REPORTS/junit/
 
 deployment:
   docker-hub:
