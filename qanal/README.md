@@ -209,9 +209,9 @@ field called `timestamp` and we expect the date to the in the format
 specified by the `:timestamp-field-format` attribute which it can be
 one of:
 
-  - `:millis` for the time elapsed in milliseconds from EPOC (same as System.currentTimeMillis())
+  - `:millis` for the time elapsed in milliseconds from EPOC (same as `System.currentTimeMillis()`)
   - `:iso-8601` for a timestamp in the standard javascript ISO date such as `"2011-12-19T15:28:46.493Z"`
-  - or finally you can specify a string which defines the format fo the date such as: "YYYY-MM-dd" [full format spec available here](http://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html)
+  - or finally you can specify a string which defines the format fo the date such as: `"YYYY-MM-dd"` [full format spec available here](http://www.joda.org/joda-time/apidocs/org/joda/time/format/DateTimeFormat.html)
 
 ## Usage
 
