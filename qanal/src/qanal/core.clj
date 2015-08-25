@@ -14,8 +14,6 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 (ns qanal.core
-  (:require [clojurewerkz.elastisch.rest :as esr]
-            [clojurewerkz.elastisch.rest.bulk :as esb])
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.edn :as edn]
             [taoensso.timbre :as log]
@@ -23,12 +21,12 @@
             [qanal.kafka :as kafka]
             [qanal.elasticsearch :as els]
             [qanal.utils :refer :all]
+            [qanal.transform :refer :all]
             [samsara.trackit :as trackit]
             [schema.core :as s]
             [clojure.java.io :as io])
-  (:gen-class)
-  (:import (kafka.common OffsetOutOfRangeException InvalidMessageSizeException)))
-
+  (:import [kafka.common InvalidMessageSizeException OffsetOutOfRangeException])
+  (:gen-class))
 
 (def DEFAULT-CONFIG
   {:kafka-source
@@ -67,7 +65,30 @@
                   :auto-offset-reset  (s/enum :earliest :latest)
                   :fetch-size         s/Int
                   }
-   :topics {s/Str (s/either (s/enum :all) [s/Int])}
+
+   :topics [(s/either
+             {:topic      s/Str
+              :partitions (s/either (s/enum :all) [s/Int])
+              :type       (s/enum :river)}
+
+             {:topic      s/Str
+              :partitions (s/either (s/enum :all) [s/Int])
+              :type       (s/enum :plain)
+              :indexing-strategy (s/enum :simple)
+              :index      s/Str
+              :doc-type   s/Str
+              (s/optional-key :id-field)   s/Str}
+
+             {:topic      s/Str
+              :partitions (s/either (s/enum :all) [s/Int])
+              :type       (s/enum :plain)
+              :indexing-strategy (s/enum :daily)
+              :base-index s/Str
+              :doc-type   s/Str
+              (s/optional-key :id-field)   s/Str
+              :timestamp-field  (s/either (s/enum :system) s/Str)
+              :timestamp-field-format (s/either (s/enum :iso-8601 :millis) s/Str)})]
+
    :elasticsearch-target {:end-point s/Str}
    :tracking {s/Keyword s/Any}
    :logging-options {:min-level (s/enum :trace :debug :info :warn :error)
@@ -213,6 +234,8 @@
         ;; and pass only the `good-messages` to elasticsearch
         ;; but we use the overall `kafka-msgs` to save last offset
         ;; to avoid continuously reading a failing msg.
+        ;; Good messages should go through a better validation
+        ;; and bad messages should be handled differently
         (let [good-messages (filter identity (map :value kafka-msgs))
               _ (els/bulk-index elasticsearch-target good-messages)
               next-consumer-offset (-> kafka-msgs last :offset inc)
@@ -228,7 +251,8 @@
   "It spawns a consumer thread for a specific topic/partion."
   [{:keys [kafka-source topics] :as config}]
   (let [zk (assoc kafka-source "zookeeper.connect" (:zookeeper-connect kafka-source))
-        topics-spec (kafka/list-partitions-to-fetch topics zk)
+        topics-conf (into {} (map (juxt :topic :partitions) topics))
+        topics-spec (kafka/list-partitions-to-fetch topics-conf zk)
         all-configs (map (fn [[topic partition]]
                            (-> config
                                (assoc-in [:kafka-source :topic] topic)
@@ -300,15 +324,15 @@
 (comment
   (def test-config
     {:kafka-source
-     {:zookeeper-connect  "docker:49153"
+     {:zookeeper-connect  "192.168.59.103:2181"
       :connect-retry      5000
       :group-id           "qanal"
       :auto-offset-reset  :earliest     ; Can only be earliest or latest
       :fetch-size         (* 10 1024 1024)}
-      :topics {"test1" :all
+      :topics {"events" :all
                "test3" [0 2]}
      :tracking {:type :console}
-     :elasticsearch-target {:end-point "http://localhost:9200"}})
+     :elasticsearch-target {:end-point "http://192.168.59.103:9200"}})
 
   (uber-siphon test-config)
 

@@ -1,12 +1,24 @@
-{:kafka-source {:zookeeper-connect  "docker:2181"
-                :auto-offset-reset  :earliest ; Can only be earliest or latest
-                }
- :topics {"events" :all}
- :elasticsearch-target {:end-point "http://docker:9200"}
+{
+ ;; kafka endpoint
+ :kafka-source
+ {:zookeeper-connect  "192.168.59.103:2181"
+  :auto-offset-reset  :earliest       ; Can only be earliest or latest
+  }
 
- :tracking {:enabled true :type :riemann
-            :host "docker"
-            :port 5555}
+ ;; topics and partitions to consume
+ :topics [{:topic "events" :partitions :all :type :river}]
 
- :logging-options {:min-level :info
-                   :path "/tmp/qanal.log"}}
+ ;; elasticsearch
+ :elasticsearch-target
+ {:end-point "http://192.168.59.103:9200"}
+
+ ;; metrics tracking
+ :tracking
+ {:enabled true :type :riemann
+  :host "192.168.59.103"
+  :port 5555}
+
+ ;; logging options
+ :logging-options
+ {:min-level :info
+  :path "/tmp/qanal.log"}}
