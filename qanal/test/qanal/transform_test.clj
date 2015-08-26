@@ -112,8 +112,7 @@
        ;; without id field
        ((topic-transformer
          {:type :plain :topic "test" :partitions :all
-          :indexing {:strategy :simple :index "a-index" :doc-type "a-type"}
-          })
+          :indexing {:strategy :simple :index "a-index" :doc-type "a-type"}})
 
         test-record)
 

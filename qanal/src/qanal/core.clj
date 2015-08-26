@@ -22,6 +22,7 @@
             [qanal.elasticsearch :as els]
             [qanal.utils :refer :all]
             [qanal.transform :refer :all]
+            [qanal.validation :refer :all]
             [samsara.trackit :as trackit]
             [schema.core :as s]
             [clojure.java.io :as io])
@@ -222,8 +223,8 @@
 ;; but still not clear enough...
 ;; NEED CLEANER loop
 ;;
-(defn siphon [{:keys [kafka-source elasticsearch-target transform]
-               :or {transform identity}}]
+(defn siphon [{:keys [kafka-source elasticsearch-target transform validator]
+               :or {transform identity validator identity}}]
   (loop [consumer (connect-to-kafka kafka-source)
          state (apply-initial-offset consumer kafka-source)]
     (let [kafka-msgs (get-kafka-messages consumer state)]
@@ -239,7 +240,7 @@
         ;; to avoid continuously reading a failing msg.
         ;; Good messages should go through a better validation
         ;; and bad messages should be handled differently
-        (let [good-messages (filter identity (map :value kafka-msgs))
+        (let [good-messages (filter validator (map :value kafka-msgs))
               transformed   (map transform good-messages)
               _ (els/bulk-index elasticsearch-target transformed)
               next-consumer-offset (-> kafka-msgs last :offset inc)
@@ -257,6 +258,8 @@
   (let [zk (assoc kafka-source "zookeeper.connect" (:zookeeper-connect kafka-source))
         topics-conf (into {} (map (juxt :topic :partitions) topics))
         topics-spec (kafka/list-partitions-to-fetch topics-conf zk)
+        ;; map of topic and their validation functions
+        valid-map   (into {} (map (juxt :topic (partial topic-validator)) topics))
         ;; map of topic and their transformations
         transf-map  (into {} (map (juxt :topic (partial topic-transformer)) topics))
         all-configs (map (fn [[topic partition]]
@@ -264,7 +267,8 @@
                                (assoc-in [:kafka-source :topic] topic)
                                (assoc-in [:kafka-source :partition-id] partition)
                                (assoc-in [:cfg-name] (str topic "/" partition))
-                               (assoc-in [:transform] (transf-map topic))))
+                               (assoc-in [:transform] (transf-map topic))
+                               (assoc-in [:validator] (valid-map topic))))
                          topics-spec)]
     ;;
     ;; if topics are not ready yet, retry in 30sec

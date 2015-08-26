@@ -79,28 +79,6 @@
         (from-json m)))
 
 
-(def validate-river-format
-  "Validation schema for incoming messages"
-  {(s/required-key :index)  s/Str
-   (s/required-key :type)   s/Str
-   (s/optional-key :id)     s/Str
-   (s/required-key :source) {s/Any s/Any}})
-
-
-(defn validate-message
-  "Validate format of incoming message"
-  [msg]
-  (when msg
-    (safe-short nil (str "Invalid message format: " (prn-str msg))
-          (s/validate validate-river-format msg))))
-
-(comment
-  ;; TODO: validation should be moved
-  (defn unmarshall-values
-    "Decodes json messages into clojures maps, or set it to nil if it can't"
-    [msg]
-    (update-in msg [:value] (comp validate-message from-json-safe bytes->string))))
-
 (defn unmarshall-values
   "Decodes json messages into clojures maps, or set it to nil if it can't"
   [msg]
