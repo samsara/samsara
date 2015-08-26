@@ -35,8 +35,9 @@ The following is the provided example (config/config.edn)
 
   {:topic "twitter" :partitions [0 1 2 3 4 5 6 7 8 9]
    :type :plain
-   :indexing-strategy :simple
-   :index "social" :doc-type "twitter"
+   :indexing {:strategy :simple
+              :index "social"
+              :doc-type "twitter"}
    }]
 
  :elasticsearch-target
@@ -76,21 +77,24 @@ topics at the same time.
 
   {:topic "twitter" :partitions [0 1 2 3 4 5 6 7 8 9]
    :type :plain
-   :indexing-strategy :simple
-   :index "social" :doc-type "twitter"}
+   :indexing {:strategy :simple
+              :index "social"
+              :doc-type "twitter"}}
 
   {:topic "identica" :partitions [0 2 4] ; just even partitions
    :type :plain
-   :indexing-strategy :simple
-   :index "social" :doc-type "twitter"
-   }
+   :indexing {:strategy :simple
+              :index "social"
+              :doc-type "twitter"}}
 
   {:topic "wikipedia" :partitions :all
    :type :plain
-   :indexing-strategy :daily
-   :base-index "wikpedia" :doc-type "changes"
-   :timestamp-field "timestamp" :timestamp-field-format :iso-8601
-   :id-field "changeId"}]
+   :indexing {:strategy :daily
+              :base-index "wikpedia"
+              :doc-type "changes"
+              :timestamp-field "timestamp"
+              :timestamp-field-format :iso-8601
+              :id-field "changeId"}}]
    }
 ]
 
@@ -138,11 +142,11 @@ auto-generated value will be used.
 
   {:topic "twitter" :partitions [0 1 2 3 4 5 6 7 8 9]
    :type :plain
-   :indexing-strategy :simple
-   :index "social" :doc-type "twitter"
-   ;; optionally you can add a
-   ;; :id-field "fieldname"
-  }
+   :indexing {:strategy :simple
+              :index "social"
+              :doc-type "twitter"
+              ;; optionally you can add a
+              ;; :id-field "fieldname"}}
 
 ```
 
@@ -166,9 +170,9 @@ the two hosts.
 ```Clojure
   {:topic "identica" :partitions [0 2 4] ; just even partitions
    :type :plain
-   :indexing-strategy :simple
-   :index "social" :doc-type "twitter"
-   }
+   :indexing {:strategy :simple
+              :index "social"
+              :doc-type "twitter"}}
 
 ```
 
@@ -178,11 +182,12 @@ the two hosts.
 
   {:topic "wikipedia" :partitions :all
    :type :plain
-   :indexing-strategy :daily
-   :base-index "wikpedia" :doc-type "changes"
-   :timestamp-field "timestamp" :timestamp-field-format :iso-8601
-   :id-field "changeId"}]
-   }
+   :indexing {:strategy :daily
+              :base-index "wikpedia"
+              :doc-type "changes"
+              :timestamp-field "timestamp"
+              :timestamp-field-format :iso-8601
+              :id-field "changeId"}}
 
 ```
 

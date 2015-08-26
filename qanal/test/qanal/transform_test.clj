@@ -100,8 +100,8 @@
        ;; with id field
        ((topic-transformer
          {:type :plain :topic "test" :partitions :all
-          :indexing-strategy :simple :index "a-index" :doc-type "a-type"
-          :id-field "id"})
+          :indexing {:strategy :simple :index "a-index" :doc-type "a-type"
+                     :id-field "id"}})
 
         test-record)
 
@@ -112,7 +112,7 @@
        ;; without id field
        ((topic-transformer
          {:type :plain :topic "test" :partitions :all
-          :indexing-strategy :simple :index "a-index" :doc-type "a-type"
+          :indexing {:strategy :simple :index "a-index" :doc-type "a-type"}
           })
 
         test-record)
@@ -136,8 +136,9 @@
        ;; with id field and system timestamp
        ((topic-transformer
          {:type :plain :topic "test" :partitions :all
-          :indexing-strategy :daily :base-index "a-index" :doc-type "a-type"
-          :timestamp-field :system :timestamp-field-format :millis :id-field "id"})
+          :indexing {:strategy :daily :base-index "a-index" :doc-type "a-type"
+                     :timestamp-field :system :timestamp-field-format :millis
+                     :id-field "id"}})
 
         test-record)
 
@@ -150,8 +151,9 @@
        ;; with id field and system field timestamp in millis
        ((topic-transformer
          {:type :plain :topic "test" :partitions :all
-          :indexing-strategy :daily :base-index "a-index" :doc-type "a-type"
-          :timestamp-field "timestamp" :timestamp-field-format :millis :id-field "id"})
+          :indexing {:strategy :daily :base-index "a-index" :doc-type "a-type"
+                     :timestamp-field "timestamp" :timestamp-field-format :millis
+                     :id-field "id"}})
 
         test-record)
 
@@ -164,9 +166,9 @@
        ;; with id field and system field timestamp in millis
        ((topic-transformer
          {:type :plain :topic "test" :partitions :all
-          :indexing-strategy :daily :base-index "a-index" :doc-type "a-type"
-          :timestamp-field "ts" :timestamp-field-format :iso-8601
-          :id-field "id"})
+          :indexing {:strategy :daily :base-index "a-index" :doc-type "a-type"
+                     :timestamp-field "ts" :timestamp-field-format :iso-8601
+                     :id-field "id"}})
 
         test-record)
 
@@ -179,9 +181,10 @@
        ;; with id field and system field timestamp in millis
        ((topic-transformer
          {:type :plain :topic "test" :partitions :all
-          :indexing-strategy :daily :base-index "a-index" :doc-type "a-type"
-          :timestamp-field "ts" :timestamp-field-format "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
-          :id-field "id"})
+          :indexing {:strategy :daily :base-index "a-index" :doc-type "a-type"
+                     :timestamp-field "ts"
+                     :timestamp-field-format "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
+                     :id-field "id"}})
 
         test-record)
 
@@ -194,9 +197,9 @@
        ;; with-out id field and system field timestamp in millis
        ((topic-transformer
          {:type :plain :topic "test" :partitions :all
-          :indexing-strategy :daily :base-index "a-index" :doc-type "a-type"
-          :timestamp-field "ts" :timestamp-field-format "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
-          })
+          :indexing {:strategy :daily :base-index "a-index" :doc-type "a-type"
+                     :timestamp-field "ts"
+                     :timestamp-field-format "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"}})
 
         test-record)
 
@@ -208,9 +211,10 @@
        ;; with id field which isn't present and system field timestamp in millis
        ((topic-transformer
          {:type :plain :topic "test" :partitions :all
-          :indexing-strategy :daily :base-index "a-index" :doc-type "a-type"
-          :timestamp-field "ts" :timestamp-field-format "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
-          :id-field "NOT_PRESENT"})
+          :indexing {:strategy :daily :base-index "a-index" :doc-type "a-type"
+                     :timestamp-field "ts"
+                     :timestamp-field-format "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
+                     :id-field "NOT_PRESENT"}})
 
         test-record)
 

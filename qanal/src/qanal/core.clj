@@ -74,20 +74,22 @@
              {:topic      s/Str
               :partitions (s/either (s/enum :all) [s/Int])
               :type       (s/enum :plain)
-              :indexing-strategy (s/enum :simple)
-              :index      s/Str
-              :doc-type   s/Str
-              (s/optional-key :id-field)   s/Str}
+              :indexing
+              {:strategy (s/enum :simple)
+               :index      s/Str
+               :doc-type   s/Str
+               (s/optional-key :id-field)   s/Str}}
 
              {:topic      s/Str
               :partitions (s/either (s/enum :all) [s/Int])
               :type       (s/enum :plain)
-              :indexing-strategy (s/enum :daily)
-              :base-index s/Str
-              :doc-type   s/Str
-              (s/optional-key :id-field)   s/Str
-              :timestamp-field  (s/either (s/enum :system) s/Str)
-              :timestamp-field-format (s/either (s/enum :iso-8601 :millis) s/Str)})]
+              :indexing
+              {:strategy (s/enum :daily)
+               :base-index s/Str
+               :doc-type   s/Str
+               (s/optional-key :id-field)   s/Str
+               :timestamp-field  (s/either (s/enum :system) s/Str)
+               :timestamp-field-format (s/either (s/enum :iso-8601 :millis) s/Str)}})]
 
    :elasticsearch-target {:end-point s/Str}
    :tracking {s/Keyword s/Any}
