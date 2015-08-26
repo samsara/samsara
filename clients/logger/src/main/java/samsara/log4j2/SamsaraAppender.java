@@ -22,10 +22,18 @@ public class SamsaraAppender extends AbstractAppender
     private EventLogger eventLogger;
     private AtomicBoolean warnOnce = new AtomicBoolean(false);
 
-    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, String apiUrl, String sourceId, String logToConsole, boolean ignoreExceptions) 
+    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, String apiUrl, String sourceId, Integer publishInterval, String logToConsole, boolean ignoreExceptions) 
     {
         super(name, filter, layout, ignoreExceptions);
-        eventLogger = new EventLogger(apiUrl, sourceId);
+        //TODO - Refactor this actual constructor to use/take a builder
+        if(publishInterval == null)
+        {
+            eventLogger = new EventLogger(apiUrl, sourceId);
+        }
+        else
+        {
+            eventLogger = new EventLogger(apiUrl, sourceId, publishInterval);
+        }
 
         if(logToConsole != null)
         {
@@ -35,13 +43,14 @@ public class SamsaraAppender extends AbstractAppender
         if(apiUrl == null || apiUrl.trim().isEmpty())
         {
             warnOnce.set(true);
-        }
+       }
     }
 
     @PluginFactory
     public static SamsaraAppender createAppender(@PluginAttribute("name") String name,
                                                  @PluginAttribute("apiUrl") String apiUrl,
                                                  @PluginAttribute("sourceId") String sourceId,
+                                                 @PluginAttribute("publishInterval") Integer publishInterval, 
                                                  @PluginAttribute("logToConsole") String logToConsole,
                                                  @PluginAttribute("ignoreExceptions") boolean ignoreExceptions,
                                                  @PluginElement("Layout") Layout<? extends Serializable> layout,
@@ -58,7 +67,7 @@ public class SamsaraAppender extends AbstractAppender
             layout = PatternLayout.createDefaultLayout();
         }
 
-        return new SamsaraAppender(name, filter, layout, apiUrl, sourceId, logToConsole, ignoreExceptions);
+        return new SamsaraAppender(name, filter, layout, apiUrl, sourceId, publishInterval, logToConsole, ignoreExceptions);
     }
 
     private void printWarning()

@@ -6,7 +6,8 @@
            [org.apache.logging.log4j Level]
            )
   (:gen-class 
-              :constructors {[String String] []}
+              :constructors {[String String] []
+                             [String String Integer] []}
               :state state
               :init init
               :methods [[logToConsole [Boolean] void]
@@ -63,13 +64,26 @@
            :appId appId)))
 
 
-(defn- -init [^String api-url ^String source-id]
-  (let [conf {:url api-url
-              :sourceId source-id
-              :log-to-console true}]
-    (when-not (empty? api-url)
-      (cli/init! conf))
-    [[] (atom conf)]))
+(defn- -init
+  ([^String api-url ^String source-id]
+              (let [conf {:url api-url
+                          :sourceId source-id
+                          :log-to-console true}]
+
+                (-init conf)))
+
+  ([^String api-url ^String source-id ^Integer publish-interval]
+   (let [conf {:url api-url
+               :sourceId source-id
+               :publish-interval publish-interval
+               :log-to-console true}]
+
+     (-init conf)))
+
+  ([conf]
+   (when-not (empty? (:url conf))
+     (cli/init! conf))
+   [[] (atom conf)]))
 
 
 

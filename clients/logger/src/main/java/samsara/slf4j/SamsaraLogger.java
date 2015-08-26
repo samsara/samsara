@@ -32,12 +32,21 @@ public class SamsaraLogger extends MarkerIgnoringBase
         String apiUrl = System.getenv("SAMSARA_API_URL");
         String sourceId = System.getenv("SAMSARA_SOURCE_ID");
         String logToConsole = System.getenv("SAMSARA_LOG_TO_CONSOLE");
+        String publishInterval = System.getenv("SAMSARA_PUBLISH_INTERVAL");
 
         apiUrl = System.getProperty("SAMSARA_API_URL", apiUrl);
         sourceId = System.getProperty("SAMSARA_SOURCE_ID", sourceId);
         logToConsole = System.getProperty("SAMSARA_LOG_TO_CONSOLE", logToConsole);
+        publishInterval = System.getProperty("SAMSARA_PUBLISH_INTERVAL", publishInterval);
 
-        eventLogger = new EventLogger(apiUrl, sourceId);
+        if(publishInterval == null)
+        {
+            eventLogger = new EventLogger(apiUrl, sourceId);
+        }
+        else
+        {
+            eventLogger = new EventLogger(apiUrl, sourceId, Integer.parseInt(publishInterval));
+        }
 
         if(logToConsole != null)
         {
