@@ -7,16 +7,7 @@
 
  ;; topics and partitions to consume
  :topics
- [{:topic "tevents" :partitions :all :type :river}
-
-  {:topic "tplain"  :partitions :all :type :plain
-   :indexing {:strategy :simple :index "plain" :doc-type "simple"
-              :id-field "id"}}
-
-  {:topic "tdaily"  :partitions :all :type :plain
-   :indexing {:strategy :daily :base-index "daily" :doc-type "simple"
-              :id-field "id" :timestamp-field "timestamp"
-              :timestamp-field-format :millis}}]
+ [{:topic "events" :partitions :all :type :river}]
 
  ;; elasticsearch
  :elasticsearch-target

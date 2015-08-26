@@ -6,8 +6,7 @@
 # OR
 #   ZOOKEEPER_1_PORT_2181_TCP
 #
-#   KAFKA_TOPIC
-#   KAFKA_PARTITIONS
+#   KAFKA_TOPICS_SPEC
 #   ELS_PORT_9200_TCP_ADDR
 
 export KAFKA_ZOOKEEPER_CONNECT=$(env | grep 'ZOOKEEPER.*_PORT_2181_TCP=' | sed -e 's|.*tcp://||' | paste -sd ,)

@@ -6,10 +6,10 @@
   :fetch-size         10485760          ; size in bytes (10mb)
   }
 
- :topics { "%%KAFKA_TOPIC%%" %%KAFKA_PARTITIONS%% }
+ :topics [ %%KAFKA_TOPICS_SPEC%% ]
 
  :elasticsearch-target
- {:end-point          "http://%%ELS_PORT_9200_TCP_ADDR%%:%%ELS_PORT_9200_TCP_PORT%%"}
+ {:end-point "http://%%ELS_PORT_9200_TCP_ADDR%%:%%ELS_PORT_9200_TCP_PORT%%"}
 
  :tracking {:enabled %%TRACKING_ENABLED%% :type :riemann
             :host "%%RIEMANN_PORT_5555_TCP_ADDR%%"
