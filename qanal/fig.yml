@@ -8,6 +8,7 @@ zookeeper:
     - "15001:15000"
   environment:
     ZK_SERVER_ID: 1
+    ADV_IP: "192.168.59.103"
   volumes:
     - /tmp/logs/zk1:/logs
     - /tmp/data/zk1:/data
@@ -24,6 +25,7 @@ kafka:
     - zookeeper:zookeeper
   environment:
     KAFKA_BROKER_ID: 1
+    ADV_IP: "192.168.59.103"
   volumes:
     - /tmp/logs/kafka1:/logs
     - /tmp/data/kafka1:/data
@@ -40,11 +42,29 @@ ingestion:
     - "9000:9000"
     - "15003:15000"
   environment:
-    TRANSFORM_FN: "(fn [e] {:index \"events-test\" :type \"events\" :source (assoc e :ts (java.util.Date. (:timestamp e)))})"
-    TRANSFORM_ENABLE: "true"
+    OUTPUT_TOPIC: "ingestion"
     TRACKING_ENABLED: "true"
   volumes:
     - /tmp/logs/ingestion-api:/logs
+
+#
+# Samsara CORE
+#
+core:
+  image: samsara/samsara-core
+  links:
+    - kafka:kafka
+    - zookeeper:zookeeper
+    - monitoring:riemann
+  ports:
+    - "15010:15000"
+  environment:
+    INDEX_STRATEGY: ":single"
+    TRACKING_ENABLED: "true"
+    SINGLE_BROKER: "true"
+  volumes:
+    - /tmp/logs/core:/logs
+
 
 #
 # ElasticSearch
@@ -57,6 +77,8 @@ elasticsearch:
     - "9200:9200"
     - "9300:9300"
     - "15004:15000"
+  environment:
+    ADV_IP: "192.168.59.103"
   volumes:
     - /tmp/logs/els:/logs
     - /tmp/data/els:/data
@@ -77,20 +99,20 @@ kibana:
 #
 # Samsara Qanal
 #
-qanal:
-  image: samsara/qanal
-  links:
-    - zookeeper:zookeeper
-    - elasticsearch:els
-    - monitoring:riemann
-  ports:
-    - "15006:15000"
-  environment:
-    TRACKING_ENABLED: "true"
-    KAFKA_TOPIC: events
-    KAFKA_PARTITIONS: ":all"
-  volumes:
-    - /tmp/logs/qanal1:/logs
+# qanal:
+#   image: samsara/qanal
+#   links:
+#     - zookeeper:zookeeper
+#     - elasticsearch:els
+#     - monitoring:riemann
+#   ports:
+#     - "15006:15000"
+#   environment:
+#     TRACKING_ENABLED: "true"
+#     KAFKA_TOPICS_SPEC: |
+#       { :topic "events" :partitions :all :type :river }
+#   volumes:
+#     - /tmp/logs/qanal1:/logs
 
 #
 # Monitoring
@@ -109,3 +131,17 @@ monitoring:
   volumes:
     - /tmp/logs/monitoring:/logs
     - /tmp/data/monitoring:/data
+
+
+#
+# Bootstrap
+#
+bootstrap:
+  image: samsara/kafka
+  links:
+    - zookeeper:zookeeper
+    - kafka:kafka
+    - elasticsearch:elasticsearch
+  command: bash -c "curl -sSL 'https://raw.githubusercontent.com/samsara/samsara-docker-images/master/bootstrap/bootstrap.sh' | bash"
+  volumes:
+    - /tmp/logs/bootstrap:/logs
