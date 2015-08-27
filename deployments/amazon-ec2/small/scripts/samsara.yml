@@ -105,8 +105,8 @@ qanal:
     - "15006:15000"
   environment:
     TRACKING_ENABLED: "true"
-    KAFKA_TOPIC: events
-    KAFKA_PARTITIONS: ":all"
+    KAFKA_TOPICS_SPEC: |
+      { :topic "events" :partitions :all :type :river }
   volumes:
     - /logs/qanal1:/logs
 

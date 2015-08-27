@@ -45,8 +45,7 @@ exec /usr/bin/docker run --name qanal \
        -e ZOOKEEPER_PORT_2181_TCP=tcp://zookeeper.service.consul:2181 \
        -e RIEMANN_PORT_5555_TCP_ADDR=riemann.service.consul \
        -e ELS_PORT_9200_TCP_ADDR=els.service.consul \
-       -e "KAFKA_TOPIC=events" \
-       -e "KAFKA_PARTITIONS=:all" \
+       -e 'KAFKA_TOPICS_SPEC={ :topic "events" :partitions :all :type :river }' \
        -e "TRACKING_ENABLED=true" \
        `cat /etc/samsara/images/qanal`
 

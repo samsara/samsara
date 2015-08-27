@@ -18,8 +18,8 @@ desiredState:
               - name: supervisord
                 containerPort: 15000
             env:
-              - name: KAFKA_TOPIC
-                value: "events"
+              - name: KAFKA_TOPICS_SPEC
+                value: "{ :topic \"events\" :partitions :all :type :river }"
               - name: KAFKA_PARTITIONS
                 value: ":all"
               - name: TRACKING_ENABLED
