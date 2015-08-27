@@ -10,8 +10,7 @@
                              [String String Integer] []}
               :state state
               :init init
-              :methods [[logToConsole [Boolean] void]
-                        [log4j2Event [org.apache.logging.log4j.Level String Throwable] void]
+              :methods [[log4j2Event [org.apache.logging.log4j.Level String Throwable] void]
                         [slf4jEvent [Integer String Throwable] void]]
               ))
 
@@ -67,16 +66,14 @@
 (defn- -init
   ([^String api-url ^String source-id]
               (let [conf {:url api-url
-                          :sourceId source-id
-                          :log-to-console true}]
+                          :sourceId source-id}]
 
                 (-init conf)))
 
   ([^String api-url ^String source-id ^Integer publish-interval]
    (let [conf {:url api-url
                :sourceId source-id
-               :publish-interval publish-interval
-               :log-to-console true}]
+               :publish-interval publish-interval}]
 
      (-init conf)))
 
@@ -88,9 +85,6 @@
 
 
 (defn- send-log [conf log]
-  (when (= (:log-to-console conf) true)
-    (println log))
-
   (if (empty? (:url conf))
     (let [samsara-event (log->samsara-event conf log)]
       (try

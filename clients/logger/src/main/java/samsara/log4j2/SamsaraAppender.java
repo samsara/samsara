@@ -21,6 +21,8 @@ public class SamsaraAppender extends AbstractAppender
 {
     private EventLogger eventLogger;
     private AtomicBoolean warnOnce = new AtomicBoolean(false);
+    private AtomicBoolean printToConsole = new AtomicBoolean(false);
+    private AtomicBoolean sendToSamsara = new AtomicBoolean(true);
 
     protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, String apiUrl, String sourceId, Integer publishInterval, String logToConsole, boolean ignoreExceptions) 
     {
@@ -35,15 +37,19 @@ public class SamsaraAppender extends AbstractAppender
             eventLogger = new EventLogger(apiUrl, sourceId, publishInterval);
         }
 
-        if(logToConsole != null)
-        {
-            eventLogger.logToConsole(new Boolean(logToConsole));
-        }
-
         if(apiUrl == null || apiUrl.trim().isEmpty())
         {
             warnOnce.set(true);
-       }
+            //override and log to console
+            logToConsole = "true";
+            sendToSamsara.set(false);
+        }
+
+        if(logToConsole != null)
+        {
+            printToConsole.set((new Boolean(logToConsole)));
+        }
+
     }
 
     @PluginFactory
@@ -86,7 +92,15 @@ public class SamsaraAppender extends AbstractAppender
             printWarning();
         }
 
-        String message = new String(this.getLayout().toByteArray(event)); 
-        eventLogger.log4j2Event(event.getLevel(), message, event.getThrown());
+        String message = new String(this.getLayout().toByteArray(event));
+        if(printToConsole.get())
+        {
+            System.out.print(message);
+        }
+
+        if(sendToSamsara.get())
+        {
+            eventLogger.log4j2Event(event.getLevel(), message, event.getThrown());
+        }
     }
 }

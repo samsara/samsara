@@ -19,6 +19,8 @@ public class SamsaraLogger extends MarkerIgnoringBase
 
     private static EventLogger eventLogger;
     private static AtomicBoolean warnOnce = new AtomicBoolean(false);
+    private static AtomicBoolean printToConsole = new AtomicBoolean(false);
+    private static AtomicBoolean sendToSamsara = new AtomicBoolean(true);
 
     static
     {
@@ -48,15 +50,19 @@ public class SamsaraLogger extends MarkerIgnoringBase
             eventLogger = new EventLogger(apiUrl, sourceId, Integer.parseInt(publishInterval));
         }
 
-        if(logToConsole != null)
-        {
-            eventLogger.logToConsole(new Boolean(logToConsole));
-        }
-
         if(apiUrl == null || apiUrl.trim().isEmpty())
         {
             warnOnce.set(true);
+            //override and log to console
+            logToConsole = "true";
+            sendToSamsara.set(false);
         }
+
+        if(logToConsole != null)
+        {
+            printToConsole.set(new Boolean(logToConsole));
+        }
+
     }
 
     public SamsaraLogger(String name)
@@ -85,7 +91,17 @@ public class SamsaraLogger extends MarkerIgnoringBase
             {
                 printWarning();
             }
-            eventLogger.slf4jEvent(level, msg, t);
+
+            if(printToConsole.get())
+            {
+                System.out.println(msg);
+            }
+
+            if(sendToSamsara.get())
+            {
+                eventLogger.slf4jEvent(level, msg, t);
+            }
+
         }
     }
 
