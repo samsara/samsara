@@ -6,8 +6,11 @@
 
 (defenrich inject-kibana-timestamp
   #_"Adds the `ts` attribute suitable for Kibana4"
-  [{:keys [timestamp] :as event}]
-  (inject-as event :ts (java.util.Date. timestamp)))
+  [{:keys [timestamp receivedAt publishedAt] :as event}]
+  (-> event
+      (inject-as :ts (java.util.Date. timestamp))
+      (inject-as :receivedAtTs (and receivedAt (java.util.Date. receivedAt)))
+      (inject-as :publishedAtTs (and publishedAt (java.util.Date. publishedAt)))))
 
 
 
