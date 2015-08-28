@@ -57,7 +57,6 @@ core:
   ports:
     - "15010:15000"
   environment:
-    INDEX_STRATEGY: ":single"
     TRACKING_ENABLED: "true"
     SINGLE_BROKER: "true"
   volumes:
@@ -106,7 +105,8 @@ qanal:
   environment:
     TRACKING_ENABLED: "true"
     KAFKA_TOPICS_SPEC: |
-      { :topic "events" :partitions :all :type :river }
+      { :topic "events" :partitions :all :type :plain
+        :indexing {:strategy :simple :index "events" :doc-type "events"}}
   volumes:
     - /tmp/logs/qanal1:/logs
 
