@@ -106,7 +106,7 @@ qanal:
     TRACKING_ENABLED: "true"
     KAFKA_TOPICS_SPEC: |
       { :topic "events" :partitions :all :type :plain
-        :indexing {:strategy :simple :index "events" :doc-type "events"}}
+        :indexing {:strategy :simple :index "events" :doc-type "events" :id-field "id"}}
   volumes:
     - /tmp/logs/qanal1:/logs
 
