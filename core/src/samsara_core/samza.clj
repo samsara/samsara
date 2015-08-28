@@ -58,7 +58,7 @@
 
 (defn display-samza-config [topics-cfg]
   (println "\t------------------------------ Samza Config ------------------------------")
-  (doseq [[k v] (samza-config topics-cfg)]
+  (doseq [[k v] (sort-by first (samza-config topics-cfg))]
     (println "\t" k " = " v ))
   (println "\t--------------------------------------------------------------------------"))
 
