@@ -22,8 +22,6 @@ desiredState:
                 value: "ingestion"
               - name: OUTPUT_TOPIC
                 value: "events"
-              - name: INDEX_STRATEGY
-                value: ":daily"
               - name: TRACKING_ENABLED
                 value: "true"
             volumeMounts:

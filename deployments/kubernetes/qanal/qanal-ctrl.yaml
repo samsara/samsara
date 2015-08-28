@@ -19,7 +19,12 @@ desiredState:
                 containerPort: 15000
             env:
               - name: KAFKA_TOPICS_SPEC
-                value: "{ :topic \"events\" :partitions :all :type :river }"
+                value: |
+                  { :topic "events" :partitions :all :type :plain
+                    :indexing {:strategy :simple
+                               :index "events"
+                               :doc-type "events"
+                               :id-field "id"}}
               - name: KAFKA_PARTITIONS
                 value: ":all"
               - name: TRACKING_ENABLED

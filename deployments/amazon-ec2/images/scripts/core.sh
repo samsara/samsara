@@ -45,7 +45,6 @@ exec /usr/bin/docker run --name core \
        -e ZOOKEEPER_PORT_2181_TCP_ADDR=zookeeper.service.consul \
        -e ZOOKEEPER_PORT_2181_TCP_PORT=2181 \
        -e RIEMANN_PORT_5555_TCP_ADDR=riemann.service.consul \
-       -e "INDEX_STRATEGY=:daily" \
        -e "TRACKING_ENABLED=true" \
        `cat /etc/samsara/images/core`
 
