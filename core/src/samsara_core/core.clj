@@ -28,7 +28,7 @@
                 (> publishedAt receivedAt) false
                 ;; is received - published within
                 ;; a reasonable time (10s) otherwise we consider ti bogus
-                (not (>= 10000 (- receivedAt publishedAt) 0)) false
+                (not (>= 10000 (Math/abs (- receivedAt publishedAt)) 0)) false
                 ;; is the event generated within a
                 ;; reasonable time? 10d otherwise is bogus
                 (not (>= (* 10 24 60 60 1000) (- publishedAt timestamp) 0)) false
