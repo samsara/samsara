@@ -40,6 +40,7 @@ wait_for kafka     $KAFKA_PORT_9092_TCP_ADDR       9092
 
 
 create_topic ingestion
+create_topic ingestion-errors
 create_topic ingestion-kv compact
 create_topic events
 
