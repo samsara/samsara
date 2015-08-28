@@ -59,7 +59,6 @@ core:
   ports:
     - "15010:15000"
   environment:
-    INDEX_STRATEGY: ":single"
     TRACKING_ENABLED: "true"
     SINGLE_BROKER: "true"
   volumes:
@@ -99,20 +98,21 @@ kibana:
 #
 # Samsara Qanal
 #
-# qanal:
-#   image: samsara/qanal
-#   links:
-#     - zookeeper:zookeeper
-#     - elasticsearch:els
-#     - monitoring:riemann
-#   ports:
-#     - "15006:15000"
-#   environment:
-#     TRACKING_ENABLED: "true"
-#     KAFKA_TOPICS_SPEC: |
-#       { :topic "events" :partitions :all :type :river }
-#   volumes:
-#     - /tmp/logs/qanal1:/logs
+#qanal:
+#  image: samsara/qanal
+#  links:
+#    - zookeeper:zookeeper
+#    - elasticsearch:els
+#    - monitoring:riemann
+#  ports:
+#    - "15006:15000"
+#  environment:
+#    TRACKING_ENABLED: "true"
+#    KAFKA_TOPICS_SPEC: |
+#      { :topic "events" :partitions :all :type :plain
+#        :indexing {:strategy :simple :index "events" :doc-type "events" :id-field "id"}}
+#  volumes:
+#    - /tmp/logs/qanal1:/logs
 
 #
 # Monitoring
