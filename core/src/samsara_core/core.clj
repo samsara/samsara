@@ -41,26 +41,6 @@
 
 
 
-(defn- index-name
-  "returns the index name based where the event should land"
-  [{:keys [strategy base-index] :as indexing-strategy} {:keys [receivedAt] :as event}]
-  (case (keyword strategy)
-    :daily (format "%s-%tF" base-index (java.util.Date. receivedAt))
-    base-index))
-
-
-
-(defn format-to-qanal
-  "It formats the event into the qanal format"
-  [{:keys [strategy base-index event-type] :as indexing-strategy}]
-  (moebius-fn "format-to-qanal" :enrichment :stateless
-   (fn [{:keys [receivedAt id] :as event}]
-     {:index (index-name indexing-strategy event)
-      :type event-type
-      :id id
-      :source event})))
-
-
 (defenrich event-sequencer
   #_"It adds a 'seqn' attribute to the event with a monotonic incremental counter
     which helps to generate a sequence of the order the events have been processed."
@@ -70,13 +50,13 @@
     [state' (assoc event :seqn seqn)]))
 
 
+
 (defn make-samsara-pipeline [config]
   (pipeline
    inject-kibana-timestamp
    is-timestamp-reliable
    inject-id
-   event-sequencer
-   (format-to-qanal (:index config))))
+   event-sequencer))
 
 
 

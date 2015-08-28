@@ -16,22 +16,12 @@
     :input-topic "ingestion"
     ;; :kvstore-topic "ingestion-kv"
     :output-topic "events"
-    :output-topic-partition-fn (comp :sourceId :source)
+    :output-topic-partition-fn :sourceId
     ;; a CSV list of hosts and ports (and optional path)
     :zookeepers "127.0.0.1:2181"
     ;; a CSV list of host and ports of kafka brokers
     :brokers "127.0.0.1:9092"
     :offset :smallest}
-
-   ;; this section controls the indexing strategy
-   :index
-   {
-    ;; strategy can be either :single or :daily
-    ;; if daily the base-index will be used as prefix
-    ;; and date will appened eg: events-2015-05-27
-    :strategy :single
-    :base-index "events"
-    :event-type "events"}
 
    ;; metrics trackings
    :tracking
@@ -223,4 +213,19 @@ DESCRIPTION
   ;; start samza consumer threads
   (samza/start! config)
 
+  ;; or optionally process an event
+  (def e1  {:timestamp (System/currentTimeMillis)
+            :eventName "pipeline.tested"
+            :sourceId "me"})
+
+  ;; process the event
+  ;; input:  [state  [events]]
+  ;; output: [state' [events']]
+  (samza/*pipeline* (moebius.kv/make-in-memory-kvstore) [e1])
+
+  ;; process the event in its raw format
+  ;; input:  [state  json-event-as-string]
+  ;; output: [state' [[destination-topic partition-key json-event'-as-string]]
+  (def e1s (samsara.utils/to-json e1))
+  (samza/*raw-pipeline* (moebius.kv/make-in-memory-kvstore) e1s)
   )

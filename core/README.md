@@ -58,16 +58,7 @@ The configuration is a EDN file with the following format.
     ;; a CSV list of host and ports of kafka brokers
     :brokers "127.0.0.1:9092"
     :offset :smallest}
-
-   ;; this section controls the indexing strategy
-   :index
-   {
-    ;; strategy can be either :single or :daily
-    ;; if daily the base-index will be used as prefix
-    ;; and date will appened eg: events-2015-05-27
-    :strategy :single
-    :base-index "events"
-    :event-type "events"}}
+}
 ```
 
 ## How to build and run the Docker container

@@ -10,10 +10,6 @@
    :samza-overrides
    { %%SAMZA_CONFIG%% }
   }
- :index
- {:strategy %%INDEX_STRATEGY%%
-  :base-index "%%INDEX_BASE_NAME%%"
-  :event-type "%%INDEX_EVENT_TYPE%%"}
 
  :tracking {:enabled %%TRACKING_ENABLED%% :type :riemann
             :host "%%RIEMANN_PORT_5555_TCP_ADDR%%"

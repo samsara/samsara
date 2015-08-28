@@ -10,8 +10,5 @@
   :samza-overrides { :task.checkpoint.replication.factor 1 }
   }
 
- :index
- {:strategy :single :base-index "events"}
-
  :tracking {:enabled true :type :console
             :reporting-frequency-seconds 600}}
