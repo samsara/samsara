@@ -15,6 +15,6 @@ deployment:
   docker-hub:
     branch: master
     commands:
-      - docker build -t samsara/qanal .
+      - docker build -t samsara/qanal:snapshot .
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-      - docker push samsara/qanal
+      - docker push samsara/qanal:snapshot
