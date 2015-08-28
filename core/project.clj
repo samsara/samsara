@@ -1,4 +1,4 @@
-(defproject samsara-core "0.2.1"
+(defproject samsara-core "0.3.0-SNAPSHOT"
   :description "Event stream processing pipeline"
 
   :url "https://samsara.github.com/"
