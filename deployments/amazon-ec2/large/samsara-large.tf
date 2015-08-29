@@ -158,7 +158,7 @@ resource "aws_security_group" "sg_ssh" {
 		from_port = 22
 		to_port = 22
 		protocol = "tcp"
-		cidr_blocks = ["${split(",", var.cidr_allowed_access)}"]
+		cidr_blocks = ["${split(",", var.cidr_ssh_access)}"]
 	}
 
         egress {
@@ -286,7 +286,7 @@ resource "aws_security_group" "sg_ingestion_api_lb" {
 		from_port = "${var.public_ingestion_port}"
 		to_port = "${var.public_ingestion_port}"
 		protocol = "tcp"
-		cidr_blocks = ["${split(",", var.cidr_allowed_access)}"]
+		cidr_blocks = ["${split(",", var.cidr_ingestion_access)}"]
 	}
 
         egress {
@@ -315,7 +315,7 @@ resource "aws_security_group" "sg_web_monitor" {
 		from_port = 15000
 		to_port = 15000
 		protocol = "tcp"
-		cidr_blocks = ["${split(",", var.cidr_allowed_access)}"]
+		cidr_blocks = ["${split(",", var.cidr_monitoring_access)}"]
 	}
 
         vpc_id = "${aws_vpc.samsara_vpc.id}"
@@ -554,7 +554,7 @@ resource "aws_security_group" "sg_kibana_lb" {
 		from_port = "${var.public_kibana_port}"
 		to_port = "${var.public_kibana_port}"
 		protocol = "tcp"
-		cidr_blocks = ["${split(",", var.cidr_allowed_access)}"]
+		cidr_blocks = ["${split(",", var.cidr_kibana_access)}"]
 	}
 
         egress {
@@ -1340,6 +1340,18 @@ output "dashboard_lb_port" {
     value = "${var.public_kibana_port}"
 }
  
-output "cidr_allowed_access" {
-    value = "${var.cidr_allowed_access}"
+output "cidr_monitoring_access" {
+    value = "${var.cidr_monitoring_access}"
+}
+ 
+output "cidr_kibana_access" {
+    value = "${var.cidr_kibana_access}"
+}
+ 
+output "cidr_ingestion_access" {
+    value = "${var.cidr_ingestion_access}"
+}
+ 
+output "cidr_ssh_access" {
+    value = "${var.cidr_ssh_access}"
 }

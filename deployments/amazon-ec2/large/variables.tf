@@ -64,6 +64,15 @@ variable "public_ingestion_port" {
 variable "public_kibana_port" {
     default = 8000
 }
-variable "cidr_allowed_access" {
+variable "cidr_ssh_access" {
+    default = "0.0.0.0/0"
+}
+variable "cidr_ingestion_access" {
+    default = "0.0.0.0/0"
+}
+variable "cidr_kibana_access" {
+    default = "0.0.0.0/0"
+}
+variable "cidr_monitoring_access" {
     default = "0.0.0.0/0"
 }
