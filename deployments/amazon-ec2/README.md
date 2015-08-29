@@ -226,12 +226,15 @@ State path: terraform.tfstate
 
 Outputs:
 
-  cidr_allowed_access   = 0.0.0.0/0
-  dashboard_lb          = kibana-elb-1874436396.eu-west-1.elb.amazonaws.com
-  dashboard_lb_port     = 80
-  ingestion_api_lb      = ingestion-api-elb-1894097573.eu-west-1.elb.amazonaws.com
-  ingestion_api_lb_port = 80
-  monitoring_ip         = 52.18.40.61
+  cidr_ssh_access        = "0.0.0.0/0"
+  cidr_ingestion_access  = "0.0.0.0/0"
+  cidr_kibana_access     = "0.0.0.0/0"
+  cidr_monitoring_access = "0.0.0.0/0"
+  dashboard_lb           = kibana-elb-1874436396.eu-west-1.elb.amazonaws.com
+  dashboard_lb_port      = 80
+  ingestion_api_lb       = ingestion-api-elb-1894097573.eu-west-1.elb.amazonaws.com
+  ingestion_api_lb_port  = 80
+  monitoring_ip          = 52.18.40.61
 ```
 
 At the end of the processing you should see an output which looks
@@ -245,6 +248,9 @@ The default credentials for the monitoring dashboard are **admin /
 samsara** and the default port is *15000*, tunneling is required to access
 the monitoring interface.
 
+By providing custom values for the `cidr_*_access` variables you can customize
+which IP ranges can access certain services. You can specify a comma-separated
+list of CIDRs on any of these variables.
 
 #### How to use a private docker registry
 
