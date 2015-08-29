@@ -2,6 +2,7 @@ package samsara.slf4j;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import samsara.logger.EventLogger;
+import samsara.logger.EventLoggerBuilder;
 
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MarkerIgnoringBase;
@@ -40,27 +41,26 @@ public class SamsaraLogger extends MarkerIgnoringBase
         sourceId = System.getProperty("SAMSARA_SOURCE_ID", sourceId);
         logToConsole = System.getProperty("SAMSARA_LOG_TO_CONSOLE", logToConsole);
         publishInterval = System.getProperty("SAMSARA_PUBLISH_INTERVAL", publishInterval);
+        Integer publishIntervalInt = (publishInterval == null ? null : new Integer(publishInterval));
 
-        if(publishInterval == null)
-        {
-            eventLogger = new EventLogger(apiUrl, sourceId);
-        }
-        else
-        {
-            eventLogger = new EventLogger(apiUrl, sourceId, Integer.parseInt(publishInterval));
-        }
+        EventLoggerBuilder builder = new EventLoggerBuilder();
+        builder = (apiUrl == null ? builder : (EventLoggerBuilder)builder.setApiUrl(apiUrl));
+        builder = (sourceId == null ? builder : (EventLoggerBuilder)builder.setSourceId(sourceId));
+        builder = (publishIntervalInt == null ? builder : (EventLoggerBuilder)builder.setPublishInterval(publishIntervalInt));
 
-        if(apiUrl == null || apiUrl.trim().isEmpty())
-        {
-            warnOnce.set(true);
-            //override and log to console
-            logToConsole = "true";
-            sendToSamsara.set(false);
-        }
+        eventLogger = builder.build();
 
         if(logToConsole != null)
         {
             printToConsole.set(new Boolean(logToConsole));
+        }
+
+        if(!builder.sendToSamsara())
+        {
+            warnOnce.set(true);
+            //override and log to console
+            printToConsole.set(true);
+            sendToSamsara.set(false);
         }
 
     }
@@ -79,7 +79,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
     {
         System.out.println("****************************************************************");
         System.out.println("SAMSARA: The environment variable or java system property \"SAMSARA_API_URL\" has not been set");
-        System.out.println("SAMSARA: Samsara SLF4J logger will just print to console");
+        System.out.println("SAMSARA: Samsara SLF4J logger will just print to console and NOT send logs to Samsara");
         System.out.println("****************************************************************\n");
     }
 

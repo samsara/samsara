@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import samsara.logger.EventLogger;
+import samsara.logger.EventLoggerBuilder;
 
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
@@ -24,32 +25,24 @@ public class SamsaraAppender extends AbstractAppender
     private AtomicBoolean printToConsole = new AtomicBoolean(false);
     private AtomicBoolean sendToSamsara = new AtomicBoolean(true);
 
-    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, String apiUrl, String sourceId, Integer publishInterval, String logToConsole, boolean ignoreExceptions) 
+    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, EventLoggerBuilder builder, String logToConsole, boolean ignoreExceptions) 
     {
         super(name, filter, layout, ignoreExceptions);
-        //TODO - Refactor this actual constructor to use/take a builder
-        if(publishInterval == null)
-        {
-            eventLogger = new EventLogger(apiUrl, sourceId);
-        }
-        else
-        {
-            eventLogger = new EventLogger(apiUrl, sourceId, publishInterval);
-        }
 
-        if(apiUrl == null || apiUrl.trim().isEmpty())
-        {
-            warnOnce.set(true);
-            //override and log to console
-            logToConsole = "true";
-            sendToSamsara.set(false);
-        }
+        eventLogger = builder.build();
 
         if(logToConsole != null)
         {
             printToConsole.set((new Boolean(logToConsole)));
         }
 
+        if(!builder.sendToSamsara())
+        {
+            warnOnce.set(true);
+            //override and log to console
+            printToConsole.set(true);
+            sendToSamsara.set(false);
+        }
     }
 
     @PluginFactory
@@ -73,14 +66,19 @@ public class SamsaraAppender extends AbstractAppender
             layout = PatternLayout.createDefaultLayout();
         }
 
-        return new SamsaraAppender(name, filter, layout, apiUrl, sourceId, publishInterval, logToConsole, ignoreExceptions);
+        EventLoggerBuilder builder = new EventLoggerBuilder();
+        builder = (apiUrl == null ? builder : (EventLoggerBuilder)builder.setApiUrl(apiUrl));
+        builder = (sourceId == null ? builder : (EventLoggerBuilder)builder.setSourceId(sourceId));
+        builder = (publishInterval == null ? builder : (EventLoggerBuilder)builder.setPublishInterval(publishInterval));
+
+        return new SamsaraAppender(name, filter, layout, builder, logToConsole, ignoreExceptions);
     }
 
     private void printWarning()
     {
         System.out.println("****************************************************************");
         System.out.println("SAMSARA: The apiUrl property for SamsaraAppender (log4j2.xml) has not been set");
-        System.out.println("SAMSARA: Samsara Log4j2 logger will just print to console");
+        System.out.println("SAMSARA: Samsara Log4j2 logger will just print to console and NOT send logs to Samsara");
         System.out.println("****************************************************************\n");
     }
 

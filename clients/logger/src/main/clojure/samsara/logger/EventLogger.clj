@@ -4,10 +4,12 @@
            [java.lang.management ManagementFactory]
            [org.slf4j.spi LocationAwareLogger]
            [org.apache.logging.log4j Level]
+           [clojure.lang IPersistentMap]
            )
   (:gen-class 
               :constructors {[String String] []
-                             [String String Integer] []}
+                             [String String Integer] []
+                             [clojure.lang.IPersistentMap] []}
               :state state
               :init init
               :methods [[log4j2Event [org.apache.logging.log4j.Level String Throwable] void]
@@ -63,24 +65,10 @@
            :appId appId)))
 
 
-(defn- -init
-  ([^String api-url ^String source-id]
-              (let [conf {:url api-url
-                          :sourceId source-id}]
-
-                (-init conf)))
-
-  ([^String api-url ^String source-id ^Integer publish-interval]
-   (let [conf {:url api-url
-               :sourceId source-id
-               :publish-interval publish-interval}]
-
-     (-init conf)))
-
-  ([conf]
-   (when-not (empty? (:url conf))
-     (cli/init! conf))
-   [[] (atom conf)]))
+(defn- -init [^IPersistentMap conf]
+  (when-not (empty? (:url conf))
+    (cli/init! conf))
+  [[] (atom conf)])
 
 
 
