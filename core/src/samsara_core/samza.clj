@@ -5,7 +5,7 @@
   (:require [samsara-core.core :as core])
   (:require [moebius.kv :as kv])
   (:require [samsara.utils :refer [to-json from-json invariant]])
-  (:require [samsara.trackit :refer [track-time track-count
+  (:require [samsara.trackit :refer [track-time track-rate
                                      count-tracker distribution-tracker]])
   (:import org.apache.samza.config.MapConfig
            org.apache.samza.job.JobRunner
@@ -249,7 +249,7 @@
     ;;
     (catch Exception x
       (log/warn x "Error processing message from [" stream "]:" message)
-      (track-count (str "pipeline." stream ".errors"))
+      (track-rate (str "pipeline." stream ".errors"))
       (.send collector (OutgoingMessageEnvelope.
                         (topic->stream (str stream "-errors")) partition message)))))
 
