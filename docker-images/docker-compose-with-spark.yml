@@ -29,6 +29,36 @@ kafka:
     - /tmp/data/kafka1:/data
 
 #
+# Spark-master
+#
+sparkmaster:
+  image: samsara/spark-master
+  ports:
+    - "7077:7077"
+    - "8080:8080"
+    - "15007:15000"
+  links:
+    - zookeeper:zookeeper
+  volumes:
+    - /tmp/logs/spark-master:/logs
+    - /tmp/data/spark-master:/data
+
+#
+# Spark-worker
+#
+sparkworker:
+  image: samsara/spark-worker
+  ports:
+    - "7078:7078"
+    - "8081:8081"
+    - "15008:15000"
+  links:
+    - sparkmaster:spark-master
+  volumes:
+    - /tmp/logs/spark-worker:/logs
+    - /tmp/data/spark-worker:/data
+
+#
 # Samsara Ingestion API
 #
 ingestion:
