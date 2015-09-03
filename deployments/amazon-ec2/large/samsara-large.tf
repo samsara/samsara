@@ -620,6 +620,64 @@ resource "aws_security_group" "sg_monitoring" {
 }
 
 
+resource "aws_security_group" "sg_spark_master" {
+	name = "sg_spark_master"
+	description = "Spark Master boxes connections"
+
+	ingress {
+		from_port = 7077
+		to_port = 7077
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        ingress {
+		from_port = 8080
+		to_port = 8080
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        vpc_id = "${aws_vpc.samsara_vpc.id}"
+
+        tags {
+          Name    = "Samsara Spark Master"
+          project = "${var.project}"
+          build   = "${var.build}"
+          env     = "${var.env}"
+        }
+}
+
+
+resource "aws_security_group" "sg_spark_worker" {
+	name = "sg_spark_worker"
+	description = "Spark Worker boxes connections"
+
+	ingress {
+		from_port = 7078
+		to_port = 7078
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+	ingress {
+		from_port = 8081
+		to_port = 8081
+		protocol = "tcp"
+		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+	}
+
+        vpc_id = "${aws_vpc.samsara_vpc.id}"
+
+        tags {
+          Name    = "Samsara Spark Worker"
+          project = "${var.project}"
+          build   = "${var.build}"
+          env     = "${var.env}"
+        }
+}
+
+
 #
 # Elastic LoadBalancers
 #
@@ -1284,6 +1342,126 @@ resource "aws_launch_configuration" "kibana-lc" {
 
     # TODO: put els ilb in consul
     user_data = "ELS=${aws_elb.els.dns_name}\nCONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
+ 
+}
+ 
+ 
+#
+# Spark-Master
+#
+
+resource "aws_autoscaling_group" "spark-master-asg" {
+    name = "spark-master-asg-${var.env}"
+ 
+    vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
+ 
+    max_size = 3
+    min_size = 2
+    desired_capacity = 2
+ 
+    health_check_grace_period = 180
+    health_check_type = "EC2"
+ 
+    force_delete = true
+    launch_configuration = "${aws_launch_configuration.spark-master-lc.name}"
+ 
+    tag {
+	key = "Name"
+	value = "spark-master"
+	propagate_at_launch = true
+    }
+    tag {
+	key = "project"
+	value = "${var.project}"
+	propagate_at_launch = true
+    }
+    tag {
+	key = "build"
+	value = "${var.build}"
+	propagate_at_launch = true
+    }
+    tag {
+	key = "env"
+	value = "${var.env}"
+	propagate_at_launch = true
+    }
+}
+ 
+ 
+resource "aws_launch_configuration" "spark-master-lc" {
+    name = "spark-master-lc-${var.env}"
+ 
+    image_id = "${var.spark_master_ami}"
+    instance_type = "${var.spark_master_type}"
+    key_name = "${var.key_name}"
+ 
+    security_groups = ["${aws_security_group.sg_ssh.id}",
+		       "${aws_security_group.sg_general.id}",
+		       "${aws_security_group.sg_spark_master.id}"]
+ 
+    associate_public_ip_address = "true"
+
+    user_data = "CONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
+ 
+}
+ 
+ 
+#
+# Spark-Worker
+#
+
+resource "aws_autoscaling_group" "spark-worker-asg" {
+    name = "spark-worker-asg-${var.env}"
+ 
+    vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
+ 
+    max_size = 3
+    min_size = 1
+    desired_capacity = 1
+ 
+    health_check_grace_period = 180
+    health_check_type = "EC2"
+ 
+    force_delete = true
+    launch_configuration = "${aws_launch_configuration.spark-worker-lc.name}"
+ 
+    tag {
+	key = "Name"
+	value = "spark-worker"
+	propagate_at_launch = true
+    }
+    tag {
+	key = "project"
+	value = "${var.project}"
+	propagate_at_launch = true
+    }
+    tag {
+	key = "build"
+	value = "${var.build}"
+	propagate_at_launch = true
+    }
+    tag {
+	key = "env"
+	value = "${var.env}"
+	propagate_at_launch = true
+    }
+}
+ 
+ 
+resource "aws_launch_configuration" "spark-worker-lc" {
+    name = "spark-worker-lc-${var.env}"
+ 
+    image_id = "${var.spark_worker_ami}"
+    instance_type = "${var.spark_worker_type}"
+    key_name = "${var.key_name}"
+ 
+    security_groups = ["${aws_security_group.sg_ssh.id}",
+		       "${aws_security_group.sg_general.id}",
+		       "${aws_security_group.sg_spark_worker.id}"]
+ 
+    associate_public_ip_address = "true"
+
+    user_data = "CONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
  
 }
  

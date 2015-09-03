@@ -26,6 +26,8 @@ variable "core_ami" {}
 variable "zookeeper_ami" {}
 variable "kafka_ami" {}
 variable "monitoring_ami" {}
+variable "spark_master_ami" {}
+variable "spark_worker_ami" {}
 
 variable "project" {
     default = "samsara"
@@ -57,6 +59,12 @@ variable "kibana_type" {
 }
 variable "monitoring_type" {
     default = "m4.large"
+}
+variable "spark_master_type" {
+    default = "m3.large"
+}
+variable "spark_worker_type" {
+    default = "m3.xlarge"
 }
 variable "public_ingestion_port" {
     default = 9000
