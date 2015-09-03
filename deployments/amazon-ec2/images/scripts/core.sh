@@ -8,7 +8,7 @@
 #
 
 if [ "$(id -u)" != "0" ] ; then
-    echo "Running the script with root privilege's"
+    echo "Running the script with root's privileges"
     sudo "$0" "$*"
     exit $?
 fi
