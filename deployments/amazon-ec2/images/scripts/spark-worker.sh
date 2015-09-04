@@ -132,15 +132,26 @@ start on runlevel [2345]
 stop on runlevel [016]
 respawn
 pre-start exec /usr/bin/docker rm spark-worker | true
-exec /usr/bin/docker run --name spark-worker \
+script
+
+     # wait for at least 2 master ips to come up
+     while [ "$(dig +short spark-master.service.consul | wc -l)" -lt "2" ] ; do
+       echo "Waiting for more spark-master.service.consul to start up... (found:$(dig +short spark-master.service.consul | wc -l))"
+       sleep 3
+     done
+
+     export SPARK_MASTERS=`dig +short spark-master.service.consul | sed 's/\./-/g;s/^/ip-/g;s/$/:7077/g' | paste -s -d ','` && \
+
+     exec /usr/bin/docker run --name spark-worker \
        --net=host \
        -p 4555:4555 \
        -p 15000:15000 \
        -v /logs/spark-worker:/logs \
-       -e SPARK_MASTER_PORT_7077_TCP_ADDR=spark-master.service.consul \
-       -e SPARK_MASTER_PORT_7077_TCP_PORT=7077 \
+       -e SPARK_MASTERS=`dig +short spark-master.service.consul | sed 's/\./-/g;s/^/ip-/g;s/$/:7077/g' | paste -s -d ','` \
        -e ADV_IP=$(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
        `cat /etc/samsara/images/spark-worker`
+
+end script
 
 pre-stop script
         /usr/bin/docker stop spark-worker

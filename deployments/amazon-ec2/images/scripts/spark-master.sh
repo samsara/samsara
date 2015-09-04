@@ -163,12 +163,6 @@ cat > /etc/consul.d/spark-master.json <<\EOF
     "name": "spark-master",
     "tags": [],
     "port": 7077
-  },
-  "check": {
-    "id": "spark-master-port",
-    "name": "Spark Master port",
-    "script": "/bin/nc -vz -w 1 127.0.0.1 7077",
-    "interval": "5s"
   }
 }
 EOF
