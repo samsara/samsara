@@ -8,4 +8,4 @@ $(dirname $0)/bin/spark-class \
              --host $SPARK_LOCAL_IP \
              --port $SPARK_WORKER_PORT \
              --webui-port $SPARK_WORKER_WEBUI_PORT \
-             spark://$SPARK_MASTER_PORT_7077_TCP_ADDR:$SPARK_MASTER_PORT_7077_TCP_PORT
+             spark://$SPARK_MASTERS

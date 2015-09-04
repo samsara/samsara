@@ -7,6 +7,9 @@ exec 2>&1
 # REQUIRED:
 #   SPARK_MASTER_PORT_7077_TCP_ADDR
 #   SPARK_MASTER_PORT_7077_TCP_PORT
+#   or
+#   SPARK_MASTERS
+
 export HOSTNAME=${HOSTNAME:-spark-$HOSTNAME}
 export IP=${ADV_IP:-`ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)"`}
 
@@ -16,6 +19,7 @@ export SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_WEBUI_PORT:-8081}
 export SPARK_LOCAL_DIRS=/data
 export SPARK_WORKER_DIR=/data
 
+export SPARK_MASTERS=${SPARK_MASTERS:-$SPARK_MASTER_PORT_7077_TCP_ADDR:$SPARK_MASTER_PORT_7077_TCP_PORT}
 
 export CONFIG_FILE=/opt/spark/conf/spark-env.sh
 # replace variables in template with environment values
