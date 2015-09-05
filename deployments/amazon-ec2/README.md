@@ -322,6 +322,8 @@ This is the list of vars to define in order to specify your own image:
   - `docker_image_monitoring`
   - `docker_image_qanal`
   - `docker_image_zookeeper`
+  - `docker_image_spark_worker`
+  - `docker_image_spark_master`
 
 
 #### Build or update a singe incremental image
