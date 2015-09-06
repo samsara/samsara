@@ -140,14 +140,14 @@ script
        sleep 3
      done
 
-     export SPARK_MASTERS=`dig +short spark-master.service.consul | sed 's/\./-/g;s/^/ip-/g;s/$/:7077/g' | paste -s -d ','` && \
+     export SPARK_MASTERS=`dig +short spark-master.service.consul | sed 's/$/:7077/g' | paste -s -d ','`
 
      exec /usr/bin/docker run --name spark-worker \
        --net=host \
        -p 4555:4555 \
        -p 15000:15000 \
        -v /logs/spark-worker:/logs \
-       -e SPARK_MASTERS=`dig +short spark-master.service.consul | sed 's/\./-/g;s/^/ip-/g;s/$/:7077/g' | paste -s -d ','` \
+       -e SPARK_MASTERS=$SPARK_MASTERS \
        -e ADV_IP=$(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \
        `cat /etc/samsara/images/spark-worker`
 
