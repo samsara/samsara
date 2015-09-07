@@ -1395,7 +1395,7 @@ resource "aws_autoscaling_group" "spark-worker-asg" {
 
     max_size = 3
     min_size = 1
-    desired_capacity = 3
+    desired_capacity = 1
 
     health_check_grace_period = 180
     health_check_type = "EC2"
