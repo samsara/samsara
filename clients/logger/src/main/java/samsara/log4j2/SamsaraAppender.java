@@ -35,6 +35,10 @@ public class SamsaraAppender extends AbstractAppender
         {
             printToConsole.set((new Boolean(logToConsole)));
         }
+        else
+        {
+            printToConsole.set(true);
+        }
 
         if(!builder.sendToSamsara())
         {

@@ -66,14 +66,14 @@
 
 
 (defn- -init [^IPersistentMap conf]
-  (when-not (empty? (:url conf))
+  (when-not (clojure.string/blank? (:url conf))
     (cli/init! conf))
   [[] (atom conf)])
 
 
 
 (defn- send-log [conf log]
-  (if (empty? (:url conf))
+  (when-not (clojure.string/blank? (:url conf))
     (let [samsara-event (log->samsara-event conf log)]
       (try
         (cli/record-event samsara-event)

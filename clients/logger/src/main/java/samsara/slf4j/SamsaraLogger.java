@@ -54,6 +54,10 @@ public class SamsaraLogger extends MarkerIgnoringBase
         {
             printToConsole.set(new Boolean(logToConsole));
         }
+        else
+        {
+            printToConsole.set(true);
+        }
 
         if(!builder.sendToSamsara())
         {
