@@ -620,9 +620,9 @@ resource "aws_security_group" "sg_monitoring" {
 }
 
 
-resource "aws_security_group" "sg_spark_master" {
-	name = "sg_spark_master"
-	description = "Spark Master boxes connections"
+resource "aws_security_group" "sg_spark" {
+	name = "sg_spark"
+	description = "Spark boxes connections"
 
 	ingress {
 		from_port = 7077
@@ -638,39 +638,17 @@ resource "aws_security_group" "sg_spark_master" {
 		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
 	}
 
-        vpc_id = "${aws_vpc.samsara_vpc.id}"
-
-        tags {
-          Name    = "Samsara Spark Master"
-          project = "${var.project}"
-          build   = "${var.build}"
-          env     = "${var.env}"
-        }
-}
-
-
-resource "aws_security_group" "sg_spark_worker" {
-	name = "sg_spark_worker"
-	description = "Spark Worker boxes connections"
-
-	ingress {
-		from_port = 7078
-		to_port = 7078
-		protocol = "tcp"
-		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
-	}
-
-	ingress {
-		from_port = 8081
-		to_port = 8081
-		protocol = "tcp"
-		cidr_blocks = ["${aws_vpc.samsara_vpc.cidr_block}"]
+        ingress {
+		from_port = 0
+		to_port = 0
+		protocol = -1
+		self = true
 	}
 
         vpc_id = "${aws_vpc.samsara_vpc.id}"
 
         tags {
-          Name    = "Samsara Spark Worker"
+          Name    = "Samsara Spark"
           project = "${var.project}"
           build   = "${var.build}"
           env     = "${var.env}"
@@ -876,19 +854,19 @@ resource "aws_instance" "zookeeper3" {
 
 resource "aws_autoscaling_group" "kafka1-asg" {
     name = "kafka1-asg-${var.env}"
- 
+
     vpc_zone_identifier = ["${aws_subnet.zone1.id}"]
- 
+
     max_size = 1
     min_size = 1
     desired_capacity = 1
- 
+
     health_check_grace_period = 180
     health_check_type = "EC2"
- 
+
     force_delete = true
     launch_configuration = "${aws_launch_configuration.kafka1-lc.name}"
- 
+
     tag {
         key = "Name"
         value = "kafka1"
@@ -910,41 +888,41 @@ resource "aws_autoscaling_group" "kafka1-asg" {
         propagate_at_launch = true
     }
 }
- 
- 
+
+
 resource "aws_launch_configuration" "kafka1-lc" {
     name = "kafka1-lc-${var.env}"
- 
+
     image_id = "${var.kafka_ami}"
     instance_type = "${var.kafka_type}"
     key_name = "${var.key_name}"
- 
+
     security_groups = ["${aws_security_group.sg_ssh.id}",
                        "${aws_security_group.sg_general.id}",
                        "${aws_security_group.sg_kafka.id}"]
- 
+
     associate_public_ip_address = "true"
- 
+
     user_data = "KAFKA_BROKER_ID=1\nCONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
- 
+
 }
 
 
 resource "aws_autoscaling_group" "kafka2-asg" {
     name = "kafka2-asg-${var.env}"
- 
+
     vpc_zone_identifier = ["${aws_subnet.zone2.id}"]
- 
+
     max_size = 1
     min_size = 1
     desired_capacity = 1
- 
+
     health_check_grace_period = 180
     health_check_type = "EC2"
- 
+
     force_delete = true
     launch_configuration = "${aws_launch_configuration.kafka2-lc.name}"
- 
+
     tag {
         key = "Name"
         value = "kafka2"
@@ -966,41 +944,41 @@ resource "aws_autoscaling_group" "kafka2-asg" {
         propagate_at_launch = true
     }
 }
- 
- 
+
+
 resource "aws_launch_configuration" "kafka2-lc" {
     name = "kafka2-lc-${var.env}"
- 
+
     image_id = "${var.kafka_ami}"
     instance_type = "${var.kafka_type}"
     key_name = "${var.key_name}"
- 
+
     security_groups = ["${aws_security_group.sg_ssh.id}",
                        "${aws_security_group.sg_general.id}",
                        "${aws_security_group.sg_kafka.id}"]
- 
+
     associate_public_ip_address = "true"
- 
+
     user_data = "KAFKA_BROKER_ID=2\nCONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
- 
+
 }
 
 
 resource "aws_autoscaling_group" "kafka3-asg" {
     name = "kafka3-asg-${var.env}"
- 
+
     vpc_zone_identifier = ["${aws_subnet.zone3.id}"]
- 
+
     max_size = 1
     min_size = 1
     desired_capacity = 1
- 
+
     health_check_grace_period = 180
     health_check_type = "EC2"
- 
+
     force_delete = true
     launch_configuration = "${aws_launch_configuration.kafka3-lc.name}"
- 
+
     tag {
         key = "Name"
         value = "kafka3"
@@ -1022,23 +1000,23 @@ resource "aws_autoscaling_group" "kafka3-asg" {
         propagate_at_launch = true
     }
 }
- 
- 
+
+
 resource "aws_launch_configuration" "kafka3-lc" {
     name = "kafka3-lc-${var.env}"
- 
+
     image_id = "${var.kafka_ami}"
     instance_type = "${var.kafka_type}"
     key_name = "${var.key_name}"
- 
+
     security_groups = ["${aws_security_group.sg_ssh.id}",
                        "${aws_security_group.sg_general.id}",
                        "${aws_security_group.sg_kafka.id}"]
- 
+
     associate_public_ip_address = "true"
- 
+
     user_data = "KAFKA_BROKER_ID=3\nCONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
- 
+
 }
 
 
@@ -1048,20 +1026,20 @@ resource "aws_launch_configuration" "kafka3-lc" {
 #
 resource "aws_autoscaling_group" "ingestion-api-asg" {
     name = "ingestion-api-asg-${var.env}"
- 
+
     vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
- 
+
     max_size = 3
     min_size = 3
     desired_capacity = 3
- 
+
     health_check_grace_period = 180
     health_check_type = "ELB"
- 
+
     force_delete = true
     launch_configuration = "${aws_launch_configuration.ingestion-api-lc.name}"
     load_balancers = ["ingestion-api-elb-${var.env}"]
- 
+
     tag {
         key = "Name"
         value = "ingestion"
@@ -1083,288 +1061,288 @@ resource "aws_autoscaling_group" "ingestion-api-asg" {
         propagate_at_launch = true
     }
 }
- 
- 
+
+
 resource "aws_launch_configuration" "ingestion-api-lc" {
     name = "ingestion-api-lc-${var.env}"
- 
+
     image_id = "${var.ingestion_ami}"
     instance_type = "${var.ingestion_type}"
     key_name = "${var.key_name}"
- 
+
     security_groups = ["${aws_security_group.sg_ssh.id}",
                        "${aws_security_group.sg_general.id}",
                        "${aws_security_group.sg_ingestion_api.id}"]
- 
+
     associate_public_ip_address = "true"
- 
+
     user_data = "CONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
- 
+
 }
- 
- 
+
+
 #
 # Samsara-CORE
 #
- 
+
 resource "aws_autoscaling_group" "core-asg" {
     name = "core-asg-${var.env}"
- 
+
     vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
- 
+
     max_size = 1
     min_size = 1
     desired_capacity = 1
- 
+
     health_check_grace_period = 180
     health_check_type = "EC2"
- 
+
     force_delete = true
     launch_configuration = "${aws_launch_configuration.core-lc.name}"
- 
+
     tag {
-	key = "Name"
-	value = "core"
-	propagate_at_launch = true
+        key = "Name"
+        value = "core"
+        propagate_at_launch = true
     }
     tag {
-	key = "project"
-	value = "${var.project}"
-	propagate_at_launch = true
+        key = "project"
+        value = "${var.project}"
+        propagate_at_launch = true
     }
     tag {
-	key = "build"
-	value = "${var.build}"
-	propagate_at_launch = true
+        key = "build"
+        value = "${var.build}"
+        propagate_at_launch = true
     }
     tag {
-	key = "env"
-	value = "${var.env}"
-	propagate_at_launch = true
+        key = "env"
+        value = "${var.env}"
+        propagate_at_launch = true
     }
 }
- 
- 
+
+
 resource "aws_launch_configuration" "core-lc" {
     name = "core-lc-${var.env}"
- 
+
     image_id = "${var.core_ami}"
     instance_type = "${var.core_type}"
     key_name = "${var.key_name}"
- 
+
     security_groups = ["${aws_security_group.sg_ssh.id}",
-		       "${aws_security_group.sg_general.id}",
-		       "${aws_security_group.sg_core.id}"]
- 
+        	       "${aws_security_group.sg_general.id}",
+        	       "${aws_security_group.sg_core.id}"]
+
     associate_public_ip_address = "true"
- 
+
     user_data = "CONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
- 
+
 }
- 
- 
- 
+
+
+
 #
 # Samsara-Qanal
 #
- 
- 
+
+
 resource "aws_autoscaling_group" "qanal-asg" {
     name = "qanal-asg-${var.env}"
- 
+
     vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
- 
+
     max_size = 1
     min_size = 1
     desired_capacity = 1
- 
+
     health_check_grace_period = 180
     health_check_type = "EC2"
- 
+
     force_delete = true
     launch_configuration = "${aws_launch_configuration.qanal-lc.name}"
- 
+
     tag {
-	key = "Name"
-	value = "qanal"
-	propagate_at_launch = true
+        key = "Name"
+        value = "qanal"
+        propagate_at_launch = true
     }
     tag {
-	key = "project"
-	value = "${var.project}"
-	propagate_at_launch = true
+        key = "project"
+        value = "${var.project}"
+        propagate_at_launch = true
     }
     tag {
-	key = "build"
-	value = "${var.build}"
-	propagate_at_launch = true
+        key = "build"
+        value = "${var.build}"
+        propagate_at_launch = true
     }
     tag {
-	key = "env"
-	value = "${var.env}"
-	propagate_at_launch = true
+        key = "env"
+        value = "${var.env}"
+        propagate_at_launch = true
     }
 }
- 
- 
+
+
 resource "aws_launch_configuration" "qanal-lc" {
     name = "qanal-lc-${var.env}"
- 
+
     image_id = "${var.qanal_ami}"
     instance_type = "${var.qanal_type}"
     key_name = "${var.key_name}"
- 
+
     security_groups = ["${aws_security_group.sg_ssh.id}",
-		       "${aws_security_group.sg_general.id}",
-		       "${aws_security_group.sg_qanal.id}"]
- 
+        	       "${aws_security_group.sg_general.id}",
+        	       "${aws_security_group.sg_qanal.id}"]
+
     associate_public_ip_address = "true"
- 
+
     user_data = "CONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
 }
- 
- 
+
+
 #
 # ElasticSearch
 #
- 
+
 resource "aws_autoscaling_group" "els-asg" {
     name = "els-asg-${var.env}"
- 
+
     vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
- 
+
     max_size = 6
     min_size = 3
     desired_capacity = 3
- 
+
     health_check_grace_period = 180
     health_check_type = "ELB"
- 
+
     force_delete = true
     launch_configuration = "${aws_launch_configuration.els-lc.name}"
     load_balancers = ["els-elb-${var.env}"]
- 
+
     tag {
-	key = "Name"
-	value = "els"
-	propagate_at_launch = true
+        key = "Name"
+        value = "els"
+        propagate_at_launch = true
     }
     tag {
-	key = "project"
-	value = "${var.project}"
-	propagate_at_launch = true
+        key = "project"
+        value = "${var.project}"
+        propagate_at_launch = true
     }
     tag {
-	key = "build"
-	value = "${var.build}"
-	propagate_at_launch = true
+        key = "build"
+        value = "${var.build}"
+        propagate_at_launch = true
     }
     tag {
-	key = "env"
-	value = "${var.env}"
-	propagate_at_launch = true
+        key = "env"
+        value = "${var.env}"
+        propagate_at_launch = true
     }
 }
- 
- 
+
+
 resource "aws_launch_configuration" "els-lc" {
     name = "els-lc-${var.env}"
- 
+
     image_id = "${var.els_ami}"
     instance_type = "${var.els_type}"
     key_name = "${var.key_name}"
- 
+
     security_groups = ["${aws_security_group.sg_ssh.id}",
-		       "${aws_security_group.sg_general.id}",
-		       "${aws_security_group.sg_els.id}"]
- 
+        	       "${aws_security_group.sg_general.id}",
+        	       "${aws_security_group.sg_els.id}"]
+
     associate_public_ip_address = "true"
- 
+
     user_data = "CONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
 }
- 
- 
+
+
 #
 # Kibana
 #
- 
+
 resource "aws_autoscaling_group" "kibana-asg" {
     name = "kibana-asg-${var.env}"
- 
+
     vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
- 
+
     max_size = 3
     min_size = 2
     desired_capacity = 2
- 
+
     health_check_grace_period = 180
     health_check_type = "ELB"
- 
+
     force_delete = true
     launch_configuration = "${aws_launch_configuration.kibana-lc.name}"
     load_balancers = ["kibana-elb-${var.env}"]
- 
+
     tag {
-	key = "Name"
-	value = "kibana"
-	propagate_at_launch = true
+        key = "Name"
+        value = "kibana"
+        propagate_at_launch = true
     }
     tag {
-	key = "project"
-	value = "${var.project}"
-	propagate_at_launch = true
+        key = "project"
+        value = "${var.project}"
+        propagate_at_launch = true
     }
     tag {
-	key = "build"
-	value = "${var.build}"
-	propagate_at_launch = true
+        key = "build"
+        value = "${var.build}"
+        propagate_at_launch = true
     }
     tag {
-	key = "env"
-	value = "${var.env}"
-	propagate_at_launch = true
+        key = "env"
+        value = "${var.env}"
+        propagate_at_launch = true
     }
 }
- 
- 
+
+
 resource "aws_launch_configuration" "kibana-lc" {
     name = "kibana-lc-${var.env}"
- 
+
     image_id = "${var.kibana_ami}"
     instance_type = "${var.kibana_type}"
     key_name = "${var.key_name}"
- 
+
     security_groups = ["${aws_security_group.sg_ssh.id}",
-		       "${aws_security_group.sg_general.id}",
-		       "${aws_security_group.sg_kibana.id}"]
- 
+        	       "${aws_security_group.sg_general.id}",
+        	       "${aws_security_group.sg_kibana.id}"]
+
     associate_public_ip_address = "true"
 
     # TODO: put els ilb in consul
     user_data = "ELS=${aws_elb.els.dns_name}\nCONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
- 
+
 }
- 
- 
+
+
 #
 # Spark-Master
 #
 
 resource "aws_autoscaling_group" "spark-master-asg" {
     name = "spark-master-asg-${var.env}"
- 
+
     vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
- 
+
     max_size = 3
     min_size = 2
     desired_capacity = 2
- 
+
     health_check_grace_period = 180
     health_check_type = "EC2"
- 
+
     force_delete = true
     launch_configuration = "${aws_launch_configuration.spark-master-lc.name}"
- 
+
     tag {
 	key = "Name"
 	value = "spark-master"
@@ -1386,45 +1364,45 @@ resource "aws_autoscaling_group" "spark-master-asg" {
 	propagate_at_launch = true
     }
 }
- 
- 
+
+
 resource "aws_launch_configuration" "spark-master-lc" {
     name = "spark-master-lc-${var.env}"
- 
+
     image_id = "${var.spark_master_ami}"
     instance_type = "${var.spark_master_type}"
     key_name = "${var.key_name}"
- 
+
     security_groups = ["${aws_security_group.sg_ssh.id}",
 		       "${aws_security_group.sg_general.id}",
-		       "${aws_security_group.sg_spark_master.id}"]
- 
+		       "${aws_security_group.sg_spark.id}"]
+
     associate_public_ip_address = "true"
 
     user_data = "CONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
- 
+
 }
- 
- 
+
+
 #
 # Spark-Worker
 #
 
 resource "aws_autoscaling_group" "spark-worker-asg" {
     name = "spark-worker-asg-${var.env}"
- 
+
     vpc_zone_identifier = ["${aws_subnet.zone1.id}", "${aws_subnet.zone2.id}", "${aws_subnet.zone3.id}"]
- 
+
     max_size = 3
     min_size = 1
-    desired_capacity = 1
- 
+    desired_capacity = 3
+
     health_check_grace_period = 180
     health_check_type = "EC2"
- 
+
     force_delete = true
     launch_configuration = "${aws_launch_configuration.spark-worker-lc.name}"
- 
+
     tag {
 	key = "Name"
 	value = "spark-worker"
@@ -1446,46 +1424,46 @@ resource "aws_autoscaling_group" "spark-worker-asg" {
 	propagate_at_launch = true
     }
 }
- 
- 
+
+
 resource "aws_launch_configuration" "spark-worker-lc" {
     name = "spark-worker-lc-${var.env}"
- 
+
     image_id = "${var.spark_worker_ami}"
     instance_type = "${var.spark_worker_type}"
     key_name = "${var.key_name}"
- 
+
     security_groups = ["${aws_security_group.sg_ssh.id}",
 		       "${aws_security_group.sg_general.id}",
-		       "${aws_security_group.sg_spark_worker.id}"]
- 
+		       "${aws_security_group.sg_spark.id}"]
+
     associate_public_ip_address = "true"
 
     user_data = "CONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
- 
+
 }
- 
- 
- 
+
+
+
 #
 # Monitoring
 #
- 
+
 resource "aws_instance" "monitor1" {
     ami		    = "${var.monitoring_ami}"
     instance_type   = "${var.monitoring_type}"
     key_name	    = "${var.key_name}"
     vpc_security_group_ids = ["${aws_security_group.sg_ssh.id}",
-			      "${aws_security_group.sg_general.id}",
-			      "${aws_security_group.sg_monitoring.id}"]
+        		      "${aws_security_group.sg_general.id}",
+        		      "${aws_security_group.sg_monitoring.id}"]
     subnet_id = "${aws_subnet.zone2.id}"
     associate_public_ip_address = "true"
- 
+
     tags {
-	Name	= "monitor1"
-	project = "${var.project}"
-	build	= "${var.build}"
-	env	= "${var.env}"
+        Name	= "monitor1"
+        project = "${var.project}"
+        build	= "${var.build}"
+        env	= "${var.env}"
     }
 
     user_data = "CONSUL=10.10.1.5,10.10.2.5,10.10.3.5"
@@ -1503,33 +1481,33 @@ resource "aws_instance" "monitor1" {
 output "monitoring_ip" {
     value = "${aws_eip.samsara_monitor_ip.public_ip}"
 }
- 
+
 output "ingestion_api_lb" {
     value = "${aws_elb.ingestion_api.dns_name}"
 }
 output "ingestion_api_lb_port" {
     value = "${var.public_ingestion_port}"
 }
- 
+
 output "dashboard_lb" {
     value = "${aws_elb.kibana.dns_name}"
 }
 output "dashboard_lb_port" {
     value = "${var.public_kibana_port}"
 }
- 
+
 output "cidr_monitoring_access" {
     value = "${var.cidr_monitoring_access}"
 }
- 
+
 output "cidr_kibana_access" {
     value = "${var.cidr_kibana_access}"
 }
- 
+
 output "cidr_ingestion_access" {
     value = "${var.cidr_ingestion_access}"
 }
- 
+
 output "cidr_ssh_access" {
     value = "${var.cidr_ssh_access}"
 }
