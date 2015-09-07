@@ -82,6 +82,8 @@ build-image-with $(get-image-ami packer-base-image.json) packer-core-image.json 
 build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-zookeeper-image.json $*
 build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-kafka-image.json $*
 build-image-with $(get-image-ami packer-base-image-with-storage.json) packer-monitoring-image.json $*
+build-image-with $(get-image-ami packer-base-image.json) packer-spark-master-image.json $*
+build-image-with $(get-image-ami packer-base-image.json) packer-spark-worker-image.json $*
 
 
 #
@@ -102,5 +104,7 @@ core_ami = "$(get-image-ami packer-core-image.json)"
 zookeeper_ami = "$(get-image-ami packer-zookeeper-image.json)"
 kafka_ami = "$(get-image-ami packer-kafka-image.json)"
 monitoring_ami = "$(get-image-ami packer-monitoring-image.json)"
+spark_master_ami = "$(get-image-ami packer-spark-master-image.json)"
+spark_worker_ami = "$(get-image-ami packer-spark-worker-image.json)"
 ----------8<----------8<----------8<----------8<----------8<----------
 EOF
