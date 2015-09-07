@@ -144,8 +144,6 @@ script
 
      exec /usr/bin/docker run --name spark-worker \
        --net=host \
-       -p 4555:4555 \
-       -p 15000:15000 \
        -v /logs/spark-worker:/logs \
        -e SPARK_MASTERS=$SPARK_MASTERS \
        -e ADV_IP=$(curl "http://169.254.169.254/latest/meta-data/local-ipv4") \

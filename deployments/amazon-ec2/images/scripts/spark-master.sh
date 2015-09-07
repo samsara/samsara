@@ -134,8 +134,6 @@ respawn
 pre-start exec /usr/bin/docker rm spark-master | true
 exec /usr/bin/docker run --name spark-master \
        --net=host \
-       -p 4555:4555 \
-       -p 15000:15000 \
        -v /logs/spark-master:/logs \
        -e ZOOKEEPER_PORT_2181_TCP_ADDR=zookeeper.service.consul \
        -e ZOOKEEPER_PORT_2181_TCP_PORT=2181 \
