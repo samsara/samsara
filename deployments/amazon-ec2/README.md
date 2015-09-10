@@ -349,3 +349,46 @@ parameters to use.  The actual values will depend on your local
 setup. Then only two required parameters are `build_id` and the
 `source_ami` which can be defined respectively with the `$BUILD`
 and `$AMI` environment variables.
+
+### Set up your boot2docker to work with insecure registry
+
+* Tell the docker daemon to accept insecure registry
+
+```
+boot2docker ssh "echo 'EXTRA_ARGS=\"$EXTRA_ARGS --insecure-registry=some.private.docker.repo:5000\"' | sudo tee -a /var/lib/boot2docker/profile && sudo /etc/init.d/docker restart"
+```
+
+* Build your project as usual
+
+```
+docker build .
+....
+Removing intermediate container 89e7bc18e9f0
+Successfully built ff0e8b9dc52e
+```
+
+* Tag the built image with the insecure registry signature
+
+```
+docker tag ff0e8b9dc52e some.private.docker.repo:5000/samsara/samsara-core:my-version
+```
+
+* **NOTE: if you need to establish a SSH Tunnel in order to push to your insecure registry with boot2docker then do as follow: **
+
+* establish the tunnel on your host
+
+```
+ssh -L 0.0.0.0:5000:localhost:5000 ubuntu@your.registry.ip
+```
+
+* now tell the daemon to use your local tunnel
+
+```
+boot2docker ssh "echo '192.168.59.3 some.private.docker.repo' | sudo tee -a /etc/hosts"
+```
+
+* Finally push the image to your registry
+
+```
+docker push some.private.docker.repo:5000/samsara/samsara-core:my-version
+```
