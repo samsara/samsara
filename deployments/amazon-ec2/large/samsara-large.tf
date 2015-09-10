@@ -865,7 +865,7 @@ resource "aws_autoscaling_group" "kafka1-asg" {
     health_check_type = "EC2"
 
     force_delete = true
-    launch_configuration = "${aws_launch_configuration.kafka1-lc.name}"
+    launch_configuration = "${aws_launch_configuration.kafka1-lc.id}"
 
     tag {
         key = "Name"
@@ -891,7 +891,7 @@ resource "aws_autoscaling_group" "kafka1-asg" {
 
 
 resource "aws_launch_configuration" "kafka1-lc" {
-    name = "kafka1-lc-${var.env}"
+    lifecycle { create_before_destroy = true }
 
     image_id = "${var.kafka_ami}"
     instance_type = "${var.kafka_type}"
@@ -921,7 +921,7 @@ resource "aws_autoscaling_group" "kafka2-asg" {
     health_check_type = "EC2"
 
     force_delete = true
-    launch_configuration = "${aws_launch_configuration.kafka2-lc.name}"
+    launch_configuration = "${aws_launch_configuration.kafka2-lc.id}"
 
     tag {
         key = "Name"
@@ -947,7 +947,7 @@ resource "aws_autoscaling_group" "kafka2-asg" {
 
 
 resource "aws_launch_configuration" "kafka2-lc" {
-    name = "kafka2-lc-${var.env}"
+    lifecycle { create_before_destroy = true }
 
     image_id = "${var.kafka_ami}"
     instance_type = "${var.kafka_type}"
@@ -977,7 +977,7 @@ resource "aws_autoscaling_group" "kafka3-asg" {
     health_check_type = "EC2"
 
     force_delete = true
-    launch_configuration = "${aws_launch_configuration.kafka3-lc.name}"
+    launch_configuration = "${aws_launch_configuration.kafka3-lc.id}"
 
     tag {
         key = "Name"
@@ -1003,7 +1003,7 @@ resource "aws_autoscaling_group" "kafka3-asg" {
 
 
 resource "aws_launch_configuration" "kafka3-lc" {
-    name = "kafka3-lc-${var.env}"
+    lifecycle { create_before_destroy = true }
 
     image_id = "${var.kafka_ami}"
     instance_type = "${var.kafka_type}"
@@ -1037,7 +1037,7 @@ resource "aws_autoscaling_group" "ingestion-api-asg" {
     health_check_type = "ELB"
 
     force_delete = true
-    launch_configuration = "${aws_launch_configuration.ingestion-api-lc.name}"
+    launch_configuration = "${aws_launch_configuration.ingestion-api-lc.id}"
     load_balancers = ["ingestion-api-elb-${var.env}"]
 
     tag {
@@ -1064,7 +1064,7 @@ resource "aws_autoscaling_group" "ingestion-api-asg" {
 
 
 resource "aws_launch_configuration" "ingestion-api-lc" {
-    name = "ingestion-api-lc-${var.env}"
+    lifecycle { create_before_destroy = true }
 
     image_id = "${var.ingestion_ami}"
     instance_type = "${var.ingestion_type}"
@@ -1098,7 +1098,7 @@ resource "aws_autoscaling_group" "core-asg" {
     health_check_type = "EC2"
 
     force_delete = true
-    launch_configuration = "${aws_launch_configuration.core-lc.name}"
+    launch_configuration = "${aws_launch_configuration.core-lc.id}"
 
     tag {
         key = "Name"
@@ -1124,7 +1124,7 @@ resource "aws_autoscaling_group" "core-asg" {
 
 
 resource "aws_launch_configuration" "core-lc" {
-    name = "core-lc-${var.env}"
+    lifecycle { create_before_destroy = true }
 
     image_id = "${var.core_ami}"
     instance_type = "${var.core_type}"
@@ -1160,7 +1160,7 @@ resource "aws_autoscaling_group" "qanal-asg" {
     health_check_type = "EC2"
 
     force_delete = true
-    launch_configuration = "${aws_launch_configuration.qanal-lc.name}"
+    launch_configuration = "${aws_launch_configuration.qanal-lc.id}"
 
     tag {
         key = "Name"
@@ -1186,7 +1186,7 @@ resource "aws_autoscaling_group" "qanal-asg" {
 
 
 resource "aws_launch_configuration" "qanal-lc" {
-    name = "qanal-lc-${var.env}"
+    lifecycle { create_before_destroy = true }
 
     image_id = "${var.qanal_ami}"
     instance_type = "${var.qanal_type}"
@@ -1219,7 +1219,7 @@ resource "aws_autoscaling_group" "els-asg" {
     health_check_type = "ELB"
 
     force_delete = true
-    launch_configuration = "${aws_launch_configuration.els-lc.name}"
+    launch_configuration = "${aws_launch_configuration.els-lc.id}"
     load_balancers = ["els-elb-${var.env}"]
 
     tag {
@@ -1246,7 +1246,7 @@ resource "aws_autoscaling_group" "els-asg" {
 
 
 resource "aws_launch_configuration" "els-lc" {
-    name = "els-lc-${var.env}"
+    lifecycle { create_before_destroy = true }
 
     image_id = "${var.els_ami}"
     instance_type = "${var.els_type}"
@@ -1279,7 +1279,7 @@ resource "aws_autoscaling_group" "kibana-asg" {
     health_check_type = "ELB"
 
     force_delete = true
-    launch_configuration = "${aws_launch_configuration.kibana-lc.name}"
+    launch_configuration = "${aws_launch_configuration.kibana-lc.id}"
     load_balancers = ["kibana-elb-${var.env}"]
 
     tag {
@@ -1306,7 +1306,7 @@ resource "aws_autoscaling_group" "kibana-asg" {
 
 
 resource "aws_launch_configuration" "kibana-lc" {
-    name = "kibana-lc-${var.env}"
+    lifecycle { create_before_destroy = true }
 
     image_id = "${var.kibana_ami}"
     instance_type = "${var.kibana_type}"
@@ -1341,7 +1341,7 @@ resource "aws_autoscaling_group" "spark-master-asg" {
     health_check_type = "EC2"
 
     force_delete = true
-    launch_configuration = "${aws_launch_configuration.spark-master-lc.name}"
+    launch_configuration = "${aws_launch_configuration.spark-master-lc.id}"
 
     tag {
 	key = "Name"
@@ -1367,7 +1367,7 @@ resource "aws_autoscaling_group" "spark-master-asg" {
 
 
 resource "aws_launch_configuration" "spark-master-lc" {
-    name = "spark-master-lc-${var.env}"
+    lifecycle { create_before_destroy = true }
 
     image_id = "${var.spark_master_ami}"
     instance_type = "${var.spark_master_type}"
@@ -1401,7 +1401,7 @@ resource "aws_autoscaling_group" "spark-worker-asg" {
     health_check_type = "EC2"
 
     force_delete = true
-    launch_configuration = "${aws_launch_configuration.spark-worker-lc.name}"
+    launch_configuration = "${aws_launch_configuration.spark-worker-lc.id}"
 
     tag {
 	key = "Name"
@@ -1427,7 +1427,7 @@ resource "aws_autoscaling_group" "spark-worker-asg" {
 
 
 resource "aws_launch_configuration" "spark-worker-lc" {
-    name = "spark-worker-lc-${var.env}"
+    lifecycle { create_before_destroy = true }
 
     image_id = "${var.spark_worker_ami}"
     instance_type = "${var.spark_worker_type}"
