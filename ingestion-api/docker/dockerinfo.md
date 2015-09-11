@@ -4,6 +4,9 @@ Runs a RESTful ingestion API for the Samsara real-time analytics.
 
 Api specification available [https://github.com/samsara/samsara-ingestion-api/blob/master/spec/ingestion-api-spec.yaml](https://github.com/samsara/samsara-ingestion-api/blob/master/spec/ingestion-api-spec.yaml).
 
+## Dependecies
+  - Kafka broker **REQUIRED**
+
 ## Ports exposed
 
 | Port  | Description            |
