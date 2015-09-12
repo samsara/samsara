@@ -4,7 +4,13 @@ Runs a RESTful ingestion API for the Samsara real-time analytics.
 
 Api specification available [https://github.com/samsara/samsara-ingestion-api/blob/master/spec/ingestion-api-spec.yaml](https://github.com/samsara/samsara-ingestion-api/blob/master/spec/ingestion-api-spec.yaml).
 
-## Dependecies
+## Versions
+
+* `snapshot` - is an automated build with last version of the master branch
+* `0.3.0`    - First usable version. Includes jdk8-u40 and ubuntu 14.10
+
+
+## Dependencies
   - Kafka broker **REQUIRED**
 
 ## Ports exposed
@@ -47,7 +53,7 @@ docker run -d -p 9000:9000 -p 15000:15000 -v /tmp/ingestion-api:/logs \
         --link=kafkadocker_kafka_11:kafka_1 \
         --link=kafkadocker_kafka_12:kafka_2 \
         --link=kafkadocker_kafka_13:kafka_3 \
-        -e OUTPUT_TOPIC=ingestion
+        -e OUTPUT_TOPIC=ingestion \
         samsara/ingestion-api
 ```
 
