@@ -5,9 +5,8 @@ exec > >( tee -a /logs/configure-and-start.out )
 exec 2>&1
 
 # REQUIRED:
-#   KAFKA_BROKER_ID
-#   ZOOKEEPER*_PORT_2181_TCP_ADDR
-export HOSTNAME=${HOSTNAME-kafka$KAFKA_BROKER_ID}
+#   ZK_SERVER_ID
+export HOSTNAME=${HOSTNAME-zk$ZK_SERVER_ID}
 export IP=${ADV_IP:-`ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)"`}
 
 #
