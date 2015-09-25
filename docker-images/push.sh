@@ -34,4 +34,4 @@ docker push samsara/elasticsearch:1.5.2
 # PUSHING Kibana image
 #
 docker push samsara/kibana:latest
-docker push samsara/kibana:4.0.2
+docker push samsara/kibana:4.1.2
