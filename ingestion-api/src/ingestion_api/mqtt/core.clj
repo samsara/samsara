@@ -4,7 +4,6 @@
         [compojure.core :only [defroutes GET POST DELETE ANY context]]
         [clojure.string :only [split trim lower-case]]
         org.httpkit.server)
-  (:use [clojurewerkz.machine-head.conversion :as conv])
   (:require [ingestion-api.mqtt.handler :as handler])
   (:require [ingestion-api.mqtt.tcp :as tcp])
   (:import [org.httpkit.server AsyncChannel])
