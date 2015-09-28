@@ -1,5 +1,7 @@
 
-(ns ingestion-api.mqtt.scratch)
+(ns scratch
+  (:require [cheshire.core :refer :all]
+            [clojurewerkz.machine-head.client :as mh]))
 
 
 (def connect1 [16 69 0 6 77 81 73 115 100 112 3 -58 0 60 0 19 99 108 105 101 110 116 73 100 45 55 102 74 50 65 106 111 119 67 69 0 5 116 111 112 105 99 0 11 72 101 108 108 111 32 87 111 114 108 100 0 4 115 97 116 115 0 8 80 97 115 115 119 48 114 100])
@@ -44,6 +46,8 @@
 
 (def evil '(-64 0))
 
+
+
 (bit-test -64 7)
 
 (let [x -64]
@@ -56,6 +60,20 @@
 
 (bit-shift-right 192 4)
 
-3 2 1 0
+
+
+(def event {:sourceId "5340-dfd0350"
+            :eventName "session.created"
+            :timestamp "2015-09-20T19:31:36+00:00"
+            :user      "svittal@gmail.com"})
+
+(defn publish
+  [event]
+  (let [id   (mh/generate-id)
+        conn (mh/connect "tcp://localhost:10010" id)]
+    (mh/publish conn "topic/events" event 0)))
+
+(publish (generate-string event))
+
 
 
