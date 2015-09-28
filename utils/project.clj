@@ -1,4 +1,4 @@
-(defproject samsara/samsara-utils "0.3.0"
+(defproject samsara/samsara-utils "0.4.0"
   :description "Common utilities from Samsara's project"
 
   :url "https://samsara.github.com/"
@@ -6,7 +6,7 @@
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
-  :dependencies [[org.clojure/clojure "1.6.0"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
                  [cheshire "5.5.0"]
                  [com.taoensso/timbre "3.4.0"]]
 

@@ -68,3 +68,78 @@
     (safely "invariant operation"
             (invf x))
     x))
+
+
+(defn stoppable-thread
+  "Execute the function `f` in a separate thread called `name`,
+   and it return a function without arguments which when called it
+  stop the execution of the thread.  The function `f` can be a
+  thunk (function with no arguments) or can optionally have a state
+  which is passed on every execution and the result of a prior
+  execution of `f` is passed to the next execution. The first time it
+  is called with `nil`. When the function `f' expects a sate then
+  the option `:with-state true' must be passed.
+
+  Between two execution the thread will sleep of 3000 millis (configurable
+  with :sleep-time 5000)
+
+  Ex:
+
+      (def t (stoppable-thread \"hello\" (fn [] (println \"hello world\"))))
+
+      ;; in background you should see every 3s appear the following message
+      ;; hello world
+      ;; hello world
+      ;; hello world
+
+      ;; to stop the thread
+      (t)
+
+
+      (def t (stoppable-thread \"counter\"
+               (fn [counter]
+                  (let [c (or counter 0)]
+                    (println \"counter:\" c)
+                    ;; return the next value
+                    (inc c)))
+               :with-state true
+               :sleep-time 1000))
+
+      ;; in background you should see every 1s appear the following message
+      ;; counter: 0
+      ;; counter: 1
+      ;; counter: 2
+      ;; counter: 3
+
+      ;; to stop the thread
+      (t)
+
+  "
+  [name f & {:keys [with-state sleep-time]
+             :or {with-state false
+                  sleep-time 3000}}]
+  (let [stopped (atom false)
+        thread
+        (Thread.
+         (fn []
+           (log/debug "Starting thread:" name)
+           (loop [state nil]
+
+             (let [new-state
+                   (safely name
+                    (if with-state (f state) (f)))]
+
+               (safely "sleeping"
+                (Thread/sleep sleep-time))
+
+               ;; if the thread is interrupted then exit
+               (when-not @stopped
+                 (recur new-state)))))
+         name)]
+    (.start thread)
+    ;; return a function without params which
+    ;; when executed stop the thread
+    (fn []
+      (swap! stopped (constantly true))
+      (.interrupt thread)
+      (log/debug "Stopping thread:" name))))
