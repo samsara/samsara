@@ -23,14 +23,14 @@
      (s/take! s ::drained)
      ;; Call the actual mqtt-handler
      (fn [data]
-       (if (identical? ::drained data)
+       (if (= ::drained data)
          ::drained
          (do-safely #(mqtt/mqtt-handler data))))
      ;; Write the result
      (fn [result]
-       (when-not (identical? ::drained result)
-         (when-let [data result]
-           (s/put! s data))
+       (when-not (= ::drained result)
+         (when result
+           (s/put! s result))
          (d/recur))))))
 
 
@@ -39,17 +39,10 @@
 (defn start-tcp-server
   "Starts the TCP server at the given port"
   [port]
-  (reset! tcp-server 
+  (reset! tcp-server
           (tcp/start-server mqtt-handler {:port port})))
 
 (defn stop-tcp-server
   "Stops the TCP server"
   []
   (.close @tcp-server))
-
-
-
-
-
-
-

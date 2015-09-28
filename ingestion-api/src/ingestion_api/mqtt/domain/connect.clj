@@ -116,15 +116,3 @@
         (assoc :protocol-level (:protocol-level parsed))
         (assoc :connect-flags  conn-flags)
         (conj payload))))
-
-
-
-
-
-
-
-
-
-
-
-

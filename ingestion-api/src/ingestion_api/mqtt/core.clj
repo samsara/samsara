@@ -1,9 +1,10 @@
 (ns ingestion-api.mqtt.core
-  (:use [compojure.route :only [files not-found]]
-        [compojure.handler :only [site]] ; form, query params decode; cookie; session, etc
-        [compojure.core :only [defroutes GET POST DELETE ANY context]]
-        [clojure.string :only [split trim lower-case]]
-        org.httpkit.server)
+  (:require [compojure.route :refer [files not-found]]
+            [compojure.handler :refer [site]]
+            [compojure.core :refer [defroutes GET POST DELETE ANY context]]
+            [clojure.string :refer [split trim lower-case]]
+            [org.httpkit.server :refer [run-server accept on-close on-receive
+                                        send! close]])
   (:require [ingestion-api.mqtt.handler :as handler])
   (:require [ingestion-api.mqtt.tcp :as tcp])
   (:import [org.httpkit.server AsyncChannel])
@@ -59,7 +60,7 @@
                             (when-let [resp (handler/mqtt-handler data)]
                               (send! channel resp))
                             (catch Throwable t
-                              (do (.printStackTrace t) 
+                              (do (.printStackTrace t)
                                   (close channel))))))))
 
 (defroutes all-routes
@@ -85,5 +86,3 @@
   (reset! server (run-server #'all-routes {:port 9090}))
   (println "Starting TCP server at 10010")
   (tcp/start-tcp-server 10010))
-
-

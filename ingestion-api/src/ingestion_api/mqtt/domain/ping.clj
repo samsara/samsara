@@ -10,5 +10,4 @@
 (defn mqtt-pingresp->bytes
   "Returns a PINGRESP to keep-alive."
   [alive?]
-  (if alive? pingresp))
-
+  (when alive? pingresp))

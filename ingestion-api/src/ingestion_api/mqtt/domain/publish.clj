@@ -78,12 +78,3 @@
      :qos          qos
      :topic        (:topic parsed)
      :payload      (apply str (:payload parsed))}))
-
-
-
-
-
-
-
-
-

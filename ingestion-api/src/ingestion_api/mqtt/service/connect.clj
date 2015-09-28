@@ -7,7 +7,7 @@
 ;;; Return an MQTT message as a map or
 ;;; an Exception.
 
-(def Connect
+(def connect-schema
   "Schema for MQTT CONNECT message."
   {:message-type   (s/eq :connect)
    :client-id      s/Str
@@ -23,7 +23,7 @@
    Returns a map containing :request and :error."
   [req-bytes]
   (let [req (bytes->mqtt-connect req-bytes)
-        err (s/check Connect req)]
+        err (s/check connect-schema req)]
     {:request req :error err}))
 
 
@@ -31,9 +31,7 @@
   "Handles MQTT connect."
   [req-bytes]
   (let [{:keys [request error]} (parse-request req-bytes)]
-    (if (not (nil? error))
-      (assert false (str "Invalid message received:" error)))
+    (when error
+      (throw (ex-info "Invalid message received:" error)))
     ;; request is fine. return connack
     (mqtt-connack->bytes {:session-present true :status :accepted})))
-
-

@@ -25,8 +25,7 @@
   [{:keys [session-present status]}]
   (.array (glossio/contiguous
            (glossio/encode connack-codec
-                           {:control-packet-type (bit-shift-left 2 4)
+                           {:control-packet-type 2r00100000 ;; (bit-shift-left 2 4)
                             :remaining-length    2
                             :session-present     (if session-present 0x01 0x00)
                             :connection-status   (get connack-connection-status status)}))))
-

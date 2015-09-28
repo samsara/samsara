@@ -1,10 +1,10 @@
 (ns ingestion-api.mqtt.service.publish
   (:require [ingestion-api.mqtt.domain.publish :refer [bytes->mqtt-publish]]
             [schema.core :as s]
-            [cheshire.core :as json]))
+            [samsara.utils :refer [from-json]]))
 
 
-(def Publish
+(def publish-schema
   "Schema for MQTT PUBLISH message."
   {:message-type (s/eq :publish)
    :qos          (s/eq 0)
@@ -16,17 +16,17 @@
    Returns a map containing :request and :error"
   [req-bytes]
   (let [req (bytes->mqtt-publish req-bytes)
-        err (s/check Publish req)]
+        err (s/check publish-schema req)]
     {:request req :error err}))
 
 (defn publish
-  "Handles MQTT Publish. We only handle QOS-0, 
+  "Handles MQTT Publish. We only handle QOS-0,
    so there is no response required. Just return nil."
   [req-bytes]
   (let [{:keys [request error]} (parse-request req-bytes)]
-    (if (not (nil? error))
-      (assert false (str "Invalid publish message received:" error)))
+    (when error
+      (throw (ex-info "Invalid publish message received:" error)))
+    ;; TODO: send to kafka
     (println "Received @ " (:topic request)
-             " Message: " (json/parse-string (:payload request)))
+             " Message: " (from-json (:payload request)))
     nil))
-
