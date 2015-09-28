@@ -1,5 +1,6 @@
 (ns ingestion-api.core
-  (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!]])
+  (:require [ingestion-api.mqtt.tcp :refer [start-tcp-server]]
+            [samsara.trackit :refer [set-base-metrics-name! start-reporting!]])
   (:require [clojure.tools.cli :refer [parse-opts]])
   (:require [org.httpkit.server :refer [run-server]])
   (:require [taoensso.timbre :as log])
@@ -8,14 +9,16 @@
   (:require [ingestion-api.route :refer [app]]
             [ingestion-api.events :refer [*backend*]])
   (:require [ingestion-api.backend :refer [make-console-backend]]
-            [ingestion-api.backend-kafka :refer [make-kafka-backend make-kafka-backend-for-docker]])
+            [ingestion-api.backend-kafka
+             :refer
+             [make-kafka-backend make-kafka-backend-for-docker]])
   (:gen-class))
-
 
 (def DEFAULT-CONFIG
   "Default configuration which will be merged with
   the user defined configuration."
   {:server {:port 9000 :auto-reload false}
+   :mqtt   {:port 10010 :enabled true}
 
    :log   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}
 
@@ -179,10 +182,14 @@ DESCRIPTION
      (let [_ (println (headline))
            {config-file :config} options
            {{:keys [port auto-reload] :as server} :server
-             :as config} (init! config-file)]
+              mqtt :mqtt :as config} (init! config-file)]
        ;; starting server
        (run-server (if auto-reload (reload/wrap-reload #'app) app) server)
        (log/info "Samsara Ingestion-API listening on port: " port)
        ;; warn when auto-reload is enabled
        (when auto-reload
-             (log/warn "AUTO-RELOAD enabled!!! I hope you are in dev mode."))))))
+         (log/warn "AUTO-RELOAD enabled!!! I hope you are in dev mode."))
+       ;; start MQTT server
+       (when (:enabled mqtt)
+         (start-tcp-server (:port mqtt))
+         (log/info "Samsara MQTT listener started on port:" (:port mqtt)))))))

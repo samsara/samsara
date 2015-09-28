@@ -1,4 +1,4 @@
-(ns ingestion-api.mqtt.core
+(ns ingestion-api.mqtt.http
   (:require [compojure.route :refer [files not-found]]
             [compojure.handler :refer [site]]
             [compojure.core :refer [defroutes GET POST DELETE ANY context]]

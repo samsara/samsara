@@ -1,7 +1,8 @@
 (ns ingestion-api.mqtt.service.publish
-  (:require [ingestion-api.mqtt.domain.publish :refer [bytes->mqtt-publish]]
-            [schema.core :as s]
-            [samsara.utils :refer [from-json]]))
+  (:require [ingestion-api.events :refer [send!]]
+            [ingestion-api.mqtt.domain.publish :refer [bytes->mqtt-publish]]
+            [samsara.utils :refer [from-json]]
+            [schema.core :as s]))
 
 
 (def publish-schema
@@ -26,7 +27,5 @@
   (let [{:keys [request error]} (parse-request req-bytes)]
     (when error
       (throw (ex-info "Invalid publish message received:" error)))
-    ;; TODO: send to kafka
-    (println "Received @ " (:topic request)
-             " Message: " (from-json (:payload request)))
+    (send! [(from-json (:payload request))])
     nil))

@@ -1,4 +1,3 @@
-
 (ns scratch
   (:require [cheshire.core :refer :all]
             [clojurewerkz.machine-head.client :as mh]))
@@ -74,6 +73,3 @@
     (mh/publish conn "topic/events" event 0)))
 
 (publish (generate-string event))
-
-
-
