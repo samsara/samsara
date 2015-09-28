@@ -1,5 +1,5 @@
-(ns mqtt.service.publish
-  (:require [mqtt.domain.publish :refer [bytes->mqtt-publish]]
+(ns ingestion-api.mqtt.service.publish
+  (:require [ingestion-api.mqtt.domain.publish :refer [bytes->mqtt-publish]]
             [schema.core :as s]
             [cheshire.core :as json]))
 

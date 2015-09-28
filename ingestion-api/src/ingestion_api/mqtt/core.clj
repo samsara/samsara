@@ -1,12 +1,12 @@
-(ns mqtt.core
+(ns ingestion-api.mqtt.core
   (:use [compojure.route :only [files not-found]]
         [compojure.handler :only [site]] ; form, query params decode; cookie; session, etc
         [compojure.core :only [defroutes GET POST DELETE ANY context]]
         [clojure.string :only [split trim lower-case]]
         org.httpkit.server)
   (:use [clojurewerkz.machine-head.conversion :as conv])
-  (:require [mqtt.handler :as handler])
-  (:require [mqtt.tcp :as tcp])
+  (:require [ingestion-api.mqtt.handler :as handler])
+  (:require [ingestion-api.mqtt.tcp :as tcp])
   (:import [org.httpkit.server AsyncChannel])
   (:gen-class))
 

@@ -1,8 +1,8 @@
-(ns mqtt.domain.publish
+(ns ingestion-api.mqtt.domain.publish
   (:require [gloss.core :as gloss]
             [gloss.core.codecs :as codec]
             [gloss.io :as glossio]
-            [mqtt.domain.util :refer :all]))
+            [ingestion-api.mqtt.domain.util :refer :all]))
 ;; MQTT Publish
 
 (defn- get-remaining-length

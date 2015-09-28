@@ -1,9 +1,9 @@
-(ns mqtt.handler
+(ns ingestion-api.mqtt.handler
   (:use org.httpkit.server)
-  (:require [mqtt.service.connect :refer [connect]]
-            [mqtt.service.publish :refer [publish]]
-            [mqtt.service.ping    :refer [pingreq]]
-            [mqtt.domain.util     :refer [get-cp-type get-mqtt-message-type to-byte-array]]))
+  (:require [ingestion-api.mqtt.service.connect :refer [connect]]
+            [ingestion-api.mqtt.service.publish :refer [publish]]
+            [ingestion-api.mqtt.service.ping    :refer [pingreq]]
+            [ingestion-api.mqtt.domain.util     :refer [get-cp-type get-mqtt-message-type to-byte-array]]))
 
 ;;MQTT Message handler.
 ;;The plan is to not support too much of the protocol, so

@@ -1,8 +1,8 @@
-(ns mqtt.domain.connect
+(ns ingestion-api.mqtt.domain.connect
   (:require [gloss.core :as gloss]
             [gloss.core.codecs :as codec]
             [gloss.io :as glossio]
-            [mqtt.domain.util :refer :all]))
+            [ingestion-api.mqtt.domain.util :refer :all]))
 ;; MQTT Connect
 
 ;; This is the order in which the connect

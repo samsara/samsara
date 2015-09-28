@@ -1,4 +1,4 @@
-(ns mqtt.domain.util
+(ns ingestion-api.mqtt.domain.util
   (:require [clojure.math.numeric-tower :refer [abs]]))
 
 ;; Utility methods for domain namespaces

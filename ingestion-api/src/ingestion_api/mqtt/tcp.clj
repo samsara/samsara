@@ -1,9 +1,9 @@
-(ns mqtt.tcp
+(ns ingestion-api.mqtt.tcp
   (:require [clojurewerkz.machine-head.client :as mh]
             [manifold.stream :as s]
             [manifold.deferred :as d]
-            [mqtt.domain.connack :as connack]
-            [mqtt.handler :as mqtt]
+            [ingestion-api.mqtt.domain.connack :as connack]
+            [ingestion-api.mqtt.handler :as mqtt]
             [aleph.tcp :as tcp]))
 
 ;;;;;;;;; TCP Server

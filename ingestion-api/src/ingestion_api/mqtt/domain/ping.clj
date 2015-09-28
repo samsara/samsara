@@ -1,5 +1,5 @@
-(ns mqtt.domain.ping
-  (:require [mqtt.domain.util :refer [to-byte-array]]))
+(ns ingestion-api.mqtt.domain.ping
+  (:require [ingestion-api.mqtt.domain.util :refer [to-byte-array]]))
 
 ;; PINGREQ is a simple message with only CP set.
 ;; We shouldnt have to decode at all. Just react

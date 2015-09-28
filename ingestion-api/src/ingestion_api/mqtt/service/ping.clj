@@ -1,5 +1,5 @@
-(ns mqtt.service.ping
-  (:require [mqtt.domain.ping :refer [mqtt-pingresp->bytes]]))
+(ns ingestion-api.mqtt.service.ping
+  (:require [ingestion-api.mqtt.domain.ping :refer [mqtt-pingresp->bytes]]))
 
 (defn pingreq
   "Handles PINGREQ"

@@ -1,6 +1,6 @@
-(ns mqtt.service.connect
-  (:require [mqtt.domain.connect :refer [bytes->mqtt-connect]]
-            [mqtt.domain.connack :refer [mqtt-connack->bytes]]
+(ns ingestion-api.mqtt.service.connect
+  (:require [ingestion-api.mqtt.domain.connect :refer [bytes->mqtt-connect]]
+            [ingestion-api.mqtt.domain.connack :refer [mqtt-connack->bytes]]
             [schema.core :as s]))
 
 ;;; The Service will take an MQTT message as map

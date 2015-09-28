@@ -1,8 +1,8 @@
-(ns mqtt.domain.connack
+(ns ingestion-api.mqtt.domain.connack
   (:require [gloss.core :as gloss]
             [gloss.core.codecs :as codec]
             [gloss.io :as glossio]
-            [mqtt.domain.util :refer :all]))
+            [ingestion-api.mqtt.domain.util :refer :all]))
 ;;CONNACK
 
 ;; Codec for the CONNACK message.
