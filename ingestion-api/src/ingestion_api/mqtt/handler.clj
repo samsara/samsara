@@ -1,5 +1,4 @@
 (ns ingestion-api.mqtt.handler
-  (:use org.httpkit.server)
   (:require [ingestion-api.mqtt.service.connect :refer [connect]]
             [ingestion-api.mqtt.service.publish :refer [publish]]
             [ingestion-api.mqtt.service.ping    :refer [pingreq]]

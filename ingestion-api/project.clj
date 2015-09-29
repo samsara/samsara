@@ -7,7 +7,6 @@
                  [samsara/samsara-utils "0.3.0"]
                  [aleph "0.4.0"]
                  [gloss "0.2.5"]
-                 [http-kit "2.1.19"]
                  [ring/ring-devel "1.4.0"]
                  [ring/ring-core "1.4.0"]
                  [ring/ring-json "0.4.0"]

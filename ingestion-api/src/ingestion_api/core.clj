@@ -2,7 +2,7 @@
   (:require [ingestion-api.mqtt.tcp :refer [start-tcp-server]]
             [samsara.trackit :refer [set-base-metrics-name! start-reporting!]])
   (:require [clojure.tools.cli :refer [parse-opts]])
-  (:require [org.httpkit.server :refer [run-server]])
+  (:require [aleph.http :refer [start-server]])
   (:require [taoensso.timbre :as log])
   (:require [clojure.java.io :as io])
   (:require [ring.middleware.reload :as reload])
@@ -184,7 +184,7 @@ DESCRIPTION
            {{:keys [port auto-reload] :as server} :server
               mqtt :mqtt :as config} (init! config-file)]
        ;; starting server
-       (run-server (if auto-reload (reload/wrap-reload #'app) app) server)
+       (start-server (if auto-reload (reload/wrap-reload #'app) app) server)
        (log/info "Samsara Ingestion-API listening on port: " port)
        ;; warn when auto-reload is enabled
        (when auto-reload
