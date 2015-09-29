@@ -1,4 +1,4 @@
-(defproject samsara-core "0.3.0"
+(defproject samsara/samsara-core "0.4.0-SNAPSHOT"
   :description "Event stream processing pipeline"
 
   :url "https://samsara.github.com/"
@@ -12,8 +12,8 @@
                  [org.apache.samza/samza-api        "0.9.1"]
                  [org.apache.samza/samza-kafka_2.10 "0.9.1"]
                  [samsara/moebius "0.2.0"]
-                 [samsara/samsara-utils "0.3.0"]
-                 [samsara/trackit "0.2.0"]
+                 [samsara/samsara-utils "0.4.0"]
+                 [samsara/trackit "0.2.1"]
                  [com.taoensso/timbre "3.4.0"]
                  [org.clojure/tools.cli "0.3.1"]
                  [digest "1.4.4"]

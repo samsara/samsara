@@ -1,9 +1,11 @@
 (ns samsara-core.main
   (:require [samsara-core.samza :as samza])
+  (:require [samsara.utils :refer [stoppable-thread]])
   (:require [clojure.string :as s])
   (:require [clojure.java.io :as io])
   (:require [taoensso.timbre :as log])
-  (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!]])
+  (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!
+                                     get-metric]])
   (:require [clojure.tools.cli :refer [parse-opts]])
   (:require [clojure.tools.nrepl.server :as nrepl]
             [cider.nrepl :as cider])
@@ -26,6 +28,10 @@
    ;; metrics trackings
    :tracking
    {:enabled false :type :console}
+
+   ;; display console progress
+   :console-progress
+   {:enabled true :display-every 3000}
 
    ;; logging
    :log
@@ -150,6 +156,32 @@ DESCRIPTION
 
 
 
+(defn show-console-progress!
+  [config]
+  (if (-> config :console-progress :enabled)
+    (let [topic (-> config :topics :input-topic)
+          metric (str "pipeline." topic ".in.size")
+          sleep-time (-> config :console-progress :display-every)]
+      (stoppable-thread
+       "Console progress stats."
+       (fn [{:keys [last-time last-count]
+            :or   {last-time  (System/nanoTime)
+                   last-count 0} :as data}]
+
+         (let [time'  (System/nanoTime)
+               count' (get (get-metric metric) :total 0)
+               processed (- count' last-count)
+               rate (double (/ processed (/ (- time' last-time) 1000000000)))]
+
+           (when data
+             (log/info (format "Processed %5d events at %5.0f/s" processed rate)))
+
+           {:last-time time' :last-count count'}))
+       :with-state true
+       :sleep-time sleep-time))
+    (fn [])))
+
+
 (defn- init-tracking!
   "Initialises the metrics tracking system"
   [{enabled :enabled :as cfg}]
@@ -182,6 +214,16 @@ DESCRIPTION
     (log/info "nREPL disabled...!")))
 
 
+(defn start-processing! [config-file]
+  (let [{{:keys [input-topic output-topic]} :topics :as config} (init! config-file)]
+    ;; starting nrepl
+    (start-nrepl! (:nrepl config))
+    ;; starting server
+    (samza/start! config)
+    (log/info "Samsara CORE processing started: " input-topic "->" output-topic)
+    (show-console-progress! config)))
+
+
 (defn -main
  [& args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
@@ -191,14 +233,9 @@ DESCRIPTION
      errors                     (do (help! errors) (exit! 1))
 
      :default
-     (let [_ (println (headline))
-           {config-file :config} options
-           {{:keys [input-topic output-topic]} :topics :as config} (init! config-file)]
-       ;; starting nrepl
-       (start-nrepl! (:nrepl config))
-       ;; starting server
-       (samza/start! config)
-       (log/info "Samsara CORE processing started: " input-topic "->" output-topic)))))
+     (do
+       (println (headline))
+       (start-processing! (:config options))))))
 
 
 
