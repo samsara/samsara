@@ -1,6 +1,7 @@
 (ns samsara-core.samza
   (:refer-clojure :exclude [var-get var-set])
   (:require [clojure.string :as s]
+            [clojure.string :as str]
             [taoensso.timbre :as log])
   (:require [samsara-core.core :as core])
   (:require [moebius.kv :as kv])
@@ -237,7 +238,7 @@
         ;; emitting the output
         (doseq [[oStream oKey oMessage] all-output]
           ;; TODO: remove this and remove the INPUT: one as well
-          (println "OUTPUT[" oStream "/" oKey "]:" oMessage)
+          ;;(println "OUTPUT[" oStream "/" oKey "]:" oMessage)
           (.send collector (OutgoingMessageEnvelope.
                             (topic->stream oStream) oKey oMessage )))
 
@@ -254,9 +255,22 @@
                         (topic->stream (str stream "-errors")) partition message)))))
 
 
+(defn create-core-processor [config]
+  (let [factory (or (-> config :topics :processor-factory)
+                   "samsara-core.core/make-samsara-processor")
+        [fns ff] (s/split factory #"/")]
+    ;; requiring the namespace
+    (require (symbol fns))
+    (let [proc-factory (resolve (symbol fns ff))]
+      (println proc-factory)
+      (if proc-factory
+        ;; creating the moebius function
+        (proc-factory config)
+        (throw (ex-info (str "factory '" factory "' not found.") config))))))
+
 
 (defn init-pipeline! [config]
-  (alter-var-root #'*pipeline*     (constantly (core/make-samsara-processor config)))
+  (alter-var-root #'*pipeline*     (constantly (create-core-processor config)))
   (alter-var-root #'*raw-pipeline* (constantly (make-raw-pipeline config)))
   (alter-var-root #'*config*       (constantly config))
   (alter-var-root #'*store*        (constantly (thread-local (kv/make-in-memory-kvstore))))

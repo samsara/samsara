@@ -30,7 +30,7 @@ public class SamsaraSystem implements StreamTask {
 
 
     public SamsaraSystem(){
-        System.out.println("(*) Initializing SamsaraSystem for Samza");
+        System.out.println("(*) Initializing SamsaraSystem for Samza:" + Thread.currentThread().getName());
         IFn require = Clojure.var("clojure.core", "require");
         require.invoke(Clojure.read("samsara-core.samza"));
         samzaProcess = Clojure.var("samsara-core.samza", "samza-process");
@@ -46,7 +46,7 @@ public class SamsaraSystem implements StreamTask {
         String stream    = envelope.getSystemStreamPartition()
                                    .getSystemStream().getStream();
 
-        System.out.println("INPUT:[" + stream +"/"+ partition + "]:" + message);
+        //System.out.println("INPUT:[" + stream +"/"+ partition + "]:" + message);
 
         if( ! "".equals(message.trim()) ){
             samzaProcess.invoke( envelope, collector, coordinator,

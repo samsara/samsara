@@ -57,9 +57,10 @@
 (defn make-samsara-pipeline [config]
   (pipeline
    inject-kibana-timestamp
-   is-timestamp-reliable
+   ;;is-timestamp-reliable
    inject-id
-   event-sequencer))
+   ;;event-sequencer
+   ))
 
 
 
