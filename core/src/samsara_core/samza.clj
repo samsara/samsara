@@ -216,11 +216,14 @@
   [^IncomingMessageEnvelope envelope,
    ^MessageCollector collector,
    ^TaskCoordinator coordinator
-   ^String stream
-   ^String partition
-   ^String message]
+   ^String  stream
+   ^Integer partition
+   ^String  key
+   ^String  message]
 
   (try
+    ;; TODO: a more generic stream dispatch function is required
+    ;; in order to support more streams of different types.
     (if (= stream (kvstore-topic!))
       ;; messages for the kvstore are dispatched directly to the restore function
       ;; and this function doesn't emit anything
@@ -228,23 +231,24 @@
       ;; other messages are processed by the normal pipeline, however here
       ;; we need to emit the state messages as well.
 
-      ;; this ugly stuff works because *store* is thread-local
-      (let [state (var-get *store*)
-            [new-state rich-events] (pipeline state message)
-            txlog     (kv/tx-log new-state)
-            txlog-msg (tx-log->messages txlog)
-            all-output (concat txlog-msg rich-events)]
+      (when ((-> *config* :topics :input-partitions) partition)
+        ;; this ugly stuff works because *store* is thread-local
+        (let [state (var-get *store*)
+              [new-state rich-events] (pipeline state message)
+              txlog     (kv/tx-log new-state)
+              txlog-msg (tx-log->messages txlog)
+              all-output (concat txlog-msg rich-events)]
 
-        ;; emitting the output
-        (doseq [[oStream oKey oMessage] all-output]
-          ;; TODO: remove this and remove the INPUT: one as well
-          ;;(println "OUTPUT[" oStream "/" oKey "]:" oMessage)
-          (.send collector (OutgoingMessageEnvelope.
-                            (topic->stream oStream) oKey oMessage )))
+          ;; emitting the output
+          (doseq [[oStream oKey oMessage] all-output]
+            ;; TODO: remove this and remove the INPUT: one as well
+            ;;(println "OUTPUT[" oStream "/" oKey "]:" oMessage)
+            (.send collector (OutgoingMessageEnvelope.
+                              (topic->stream oStream) oKey oMessage )))
 
-        ;; flushing tx-log
-        (let [new-state' (kv/flush-tx-log new-state txlog)]
-          (var-set *store* new-state'))))
+          ;; flushing tx-log
+          (let [new-state' (kv/flush-tx-log new-state txlog)]
+            (var-set *store* new-state')))))
     ;;
     ;; ERROR Handling
     ;;
@@ -252,7 +256,7 @@
       (log/warn x "Error processing message from [" stream "]:" message)
       (track-rate (str "pipeline." stream ".errors"))
       (.send collector (OutgoingMessageEnvelope.
-                        (topic->stream (str stream "-errors")) partition message)))))
+                        (topic->stream (str stream "-errors")) key message)))))
 
 
 (defn create-core-processor [config]

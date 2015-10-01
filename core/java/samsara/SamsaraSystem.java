@@ -41,16 +41,18 @@ public class SamsaraSystem implements StreamTask {
                         MessageCollector collector,
                         TaskCoordinator coordinator) {
 
-        String message   = (String) envelope.getMessage();
-        String partition = (String) envelope.getKey();
-        String stream    = envelope.getSystemStreamPartition()
-                                   .getSystemStream().getStream();
+        String  message   = (String) envelope.getMessage();
+        String  key       = (String) envelope.getKey();
+        Integer partition = envelope.getSystemStreamPartition()
+                                    .getPartition().getPartitionId();
+        String  stream    = envelope.getSystemStreamPartition()
+                                    .getSystemStream().getStream();
 
-        //System.out.println("INPUT:[" + stream +"/"+ partition + "]:" + message);
+        //System.out.println("INPUT:[" + stream +"/"+ key + "]:" + message);
 
         if( ! "".equals(message.trim()) ){
             samzaProcess.invoke( envelope, collector, coordinator,
-                                 stream, partition, message);
+                                 stream, partition, key, message);
         }
     }
 }

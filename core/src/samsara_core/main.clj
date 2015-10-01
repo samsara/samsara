@@ -16,6 +16,7 @@
   {:topics
    {:job-name "Samsara"
     :input-topic "ingestion"
+    :input-partitions :all
     ;; :kvstore-topic "ingestion-kv"
     :output-topic "events"
     :output-topic-partition-fn :sourceId
@@ -136,9 +137,13 @@ DESCRIPTION
   and apply the default values."
   [config-file]
   (->> (io/file config-file)
-      slurp
-      read-string
-      (merge-with merge DEFAULT-CONFIG)))
+       slurp
+       read-string
+       (merge-with merge DEFAULT-CONFIG)
+       ((fn [cfg]
+          (if (= :all (-> cfg :topics :input-partitions))
+            (assoc-in  cfg [:topics :input-partitions] identity)
+            (update-in cfg [:topics :input-partitions] (partial into #{})))))))
 
 
 (defn- init-log!
