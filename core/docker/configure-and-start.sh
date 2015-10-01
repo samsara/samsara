@@ -8,6 +8,7 @@
 export HOSTNAME=${HOSTNAME:-"samsara-core"}
 export JOB_NAME=${JOB_NAME:-"Samsara"}
 export INPUT_TOPIC=${INPUT_TOPIC:-"ingestion"}
+export INPUT_PARTITIONS=${INPUT_PARTITIONS:-":all"}
 export OUTPUT_TOPIC=${OUTPUT_TOPIC:-"events"}
 export OFFSET_RESET=${OFFSET_RESET:-":smallest"}
 export TRACKING_ENABLED=${TRACKING_ENABLED:-false}

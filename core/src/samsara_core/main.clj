@@ -220,12 +220,15 @@ DESCRIPTION
 
 
 (defn start-processing! [config-file]
-  (let [{{:keys [input-topic output-topic]} :topics :as config} (init! config-file)]
+  (let [{{:keys [input-topic input-partitions output-topic]}
+         :topics :as config} (init! config-file)
+         input-partitions (if (= input-partitions identity) :all input-partitions)]
     ;; starting nrepl
     (start-nrepl! (:nrepl config))
     ;; starting server
     (samza/start! config)
-    (log/info "Samsara CORE processing started: " input-topic "->" output-topic)
+    (log/info "Samsara CORE processing started: " input-topic
+              "/" input-partitions "->" output-topic)
     (show-console-progress! config)))
 
 
