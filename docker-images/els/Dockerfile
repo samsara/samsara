@@ -5,7 +5,7 @@ MAINTAINER Samsara's team (https://github.com/samsara/samsara-docker-images)
 #
 # Kafka installation
 #
-ENV ELS_VERSION 1.5.2
+ENV ELS_VERSION 1.6.2
 
 
 RUN wget -nv "https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-${ELS_VERSION}.deb" -O /tmp/els.deb && \
@@ -22,10 +22,10 @@ ADD ./elasticsearch.yml.min  /etc/elasticsearch/elasticsearch.yml
 RUN /usr/share/elasticsearch/bin/plugin -install royrusso/elasticsearch-HQ && \
     /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head && \
     /usr/share/elasticsearch/bin/plugin -install lmenezes/elasticsearch-kopf && \
-    /usr/share/elasticsearch/bin/plugin -url https://github.com/grmblfrz/elasticsearch-zookeeper/releases/download/v1.4.1/elasticsearch-zookeeper-1.4.1.zip -install zookeeper
+    /usr/share/elasticsearch/bin/plugin -url https://github.com/grmblfrz/elasticsearch-zookeeper/releases/download/v1.6.1/elasticsearch-zookeeper-1.6.1.zip -install zookeeper
 
 ADD ./elasticsearch.yml.tmpl  /etc/elasticsearch/elasticsearch.yml.tmpl
-ADD ./els-supervisor.conf /etc/supervisor/conf.d/els-supervisor.conf
+ADD ./els-supervisor.conf.tmpl /etc/supervisor/conf.d/els-supervisor.conf.tmpl
 ADD ./configure-and-start.sh /configure-and-start.sh
 
 # expose client port, peer port and supervisord port

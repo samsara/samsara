@@ -1,7 +1,7 @@
 [program:els]
 process_name=els
 command=/usr/share/elasticsearch/bin/elasticsearch --default.config=/etc/elasticsearch/elasticsearch.yml --default.path.home=/usr/share/elasticsearch --default.path.logs=/logs --default.path.data=/data/els/data --default.path.work=/data/els/work --default.path.conf=/etc/elasticsearch
-environment = ES_MAX_MEM="2g",
+environment = ES_HEAP_SIZE="%%ELS_HEAP_SIZE%%"
 stdout_logfile = /logs/els-server.out
 stderr_logfile = /logs/els-server.out
 redirect_stderr=true

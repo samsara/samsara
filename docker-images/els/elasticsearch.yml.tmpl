@@ -12,8 +12,7 @@ http.port: 9200
 http.publish_host: %%IP%%
 transport.tcp.port: 9300
 transport.publish_host: %%IP%%
-# TODO: maybe need to get boxtype from labels??
-node.box_type : standard
+node.box_type : %%ELS_NODE_TYPE%%
 
 threadpool:
     bulk:
