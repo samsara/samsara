@@ -15,7 +15,7 @@ echo '                    OS update and tools installation'
 echo '------------------------------------------------------------------'
 apt-get update
 apt-get upgrade -y
-apt-get install -y wget curl byobu htop bmon iftop sysstat netcat-openbsd telnet
+apt-get install -y wget curl byobu htop bmon iftop sysstat netcat-openbsd telnet ntp
 echo 'ENABLED="true"' | tee /etc/default/sysstat
 
 
