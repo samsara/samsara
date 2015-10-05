@@ -27,6 +27,7 @@
         "type": "shell",
         "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} {{ .Path }} {{user `docker_image_spark_worker`}}",
         "scripts": [
+            "scripts/ephemeral-data-volumes.sh",
             "scripts/spark-worker.sh"
         ]
     }]
