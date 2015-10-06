@@ -20,10 +20,14 @@
   EventsQueueingBackend
 
   (send [_ events]
-    (doseq [e events]
-      (if pretty?
-        (pprint e)
-        (println e)))))
+    (println
+     ;; to avoid multi-thread
+     ;; data interleave
+     (with-out-str
+       (doseq [e events]
+         (if pretty?
+           (pprint e)
+           (println e)))))))
 
 
 (defn make-console-backend
