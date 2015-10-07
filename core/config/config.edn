@@ -1,7 +1,16 @@
-{:topics
+{:streams
+ [{:id           :ingestion
+   :input-topic  "ingestion"
+   :state        :partitioned
+   :output-topic "events"}
+
+  {:id          :dim1
+   :input-topic "dimension1"
+   :state       :global
+   :bootstrap   true}]
+
+ :job
  {:job-name "Samsara"
-  :input-topic "ingestion"
-  :output-topic "events"
   ;; a CSV list of hosts and ports (and optional path)
   :zookeepers "127.0.0.1:2181"
   ;; a CSV list of host and ports of kafka brokers
