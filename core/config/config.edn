@@ -4,7 +4,7 @@
    :state        :partitioned
    :output-topic "events"}
 
-  {:id          :dim1
+  #_{:id          :dim1
    :input-topic "dimension1"
    :state       :global
    :bootstrap   true}]

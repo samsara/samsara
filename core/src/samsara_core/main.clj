@@ -1,7 +1,7 @@
 (ns samsara-core.main
-  (:require [samsara-core.samza :as samza])
+  (:require [samsara-core.samza :as samza]
+            [samsara-core.kernel :as kern])
   (:require [samsara.utils :refer [stoppable-thread]])
-  (:require [clojure.string :as s])
   (:require [clojure.java.io :as io])
   (:require [taoensso.timbre :as log])
   (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!
@@ -13,13 +13,11 @@
 
 
 (def DEFAULT-CONFIG
-  {:topics
+  {
+   :job
    {:job-name "Samsara"
-    :input-topic "ingestion"
-    :input-partitions :all
-    ;; :kvstore-topic "ingestion-kv"
     :output-topic "events"
-    :output-topic-partition-fn :sourceId
+
     ;; a CSV list of hosts and ports (and optional path)
     :zookeepers "127.0.0.1:2181"
     ;; a CSV list of host and ports of kafka brokers
@@ -140,10 +138,7 @@ DESCRIPTION
        slurp
        read-string
        (merge-with merge DEFAULT-CONFIG)
-       ((fn [cfg]
-          (if (= :all (-> cfg :topics :input-partitions))
-            (assoc-in  cfg [:topics :input-partitions] identity)
-            (update-in cfg [:topics :input-partitions] (partial into #{})))))))
+       (kern/normalize-stream-config)))
 
 
 (defn- init-log!
@@ -204,7 +199,7 @@ DESCRIPTION
 
     (init-log!      (-> config :log))
     (init-tracking! (-> config :tracking))
-    (samza/init-pipeline! config)
+    (kern/init-pipeline! config)
 
     config))
 
@@ -266,11 +261,11 @@ DESCRIPTION
   ;; process the event
   ;; input:  [state  [events]]
   ;; output: [state' [events']]
-  (samza/*pipeline* (moebius.kv/make-in-memory-kvstore) [e1])
+  (kern/*pipeline* (moebius.kv/make-in-memory-kvstore) [e1])
 
   ;; process the event in its raw format
   ;; input:  [state  json-event-as-string]
   ;; output: [state' [[destination-topic partition-key json-event'-as-string]]
   (def e1s (samsara.utils/to-json e1))
-  (samza/*raw-pipeline* (moebius.kv/make-in-memory-kvstore) e1s)
+  (kern/*raw-pipeline* (moebius.kv/make-in-memory-kvstore) e1s)
   )

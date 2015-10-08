@@ -59,7 +59,7 @@
    inject-kibana-timestamp
    ;;is-timestamp-reliable
    inject-id
-   ;;event-sequencer
+   event-sequencer
    ))
 
 

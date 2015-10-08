@@ -17,13 +17,13 @@
 
 
 (def ^:const DEFAULT-STREAM-CFG
-  {:partitions   :all
-
-   :state        :none
-   :format       :json
-   :processor    "samsara-core.core/make-samsara-processor"
-   :processor-type :samsara
-   :bootstrap    false})
+  {:input-partitions          :all
+   :state                     :none
+   :format                    :json
+   :processor                 "samsara-core.core/make-samsara-processor"
+   :processor-type            :samsara
+   :bootstrap                 false
+   :output-topic-partition-fn :sourceId})
 
 
 (defn- config-state-topic
@@ -33,18 +33,21 @@
     cfg))
 
 (defn- config-partitions
-  [{:keys [partitions] :as cfg}]
-  (if (= :all partitions)
-    (assoc cfg :partitions (constantly true))
-    (assoc cfg :partitions (set partitions))))
+  [{:keys [input-partitions] :as cfg}]
+  (if (= :all input-partitions)
+    (assoc cfg :input-partitions (constantly true))
+    (assoc cfg :input-partitions (set input-partitions))))
 
-(defn config-stream
+(defn- config-stream
   [stream-cfg]
   (->> stream-cfg
     (merge DEFAULT-STREAM-CFG)
     config-state-topic
     config-partitions))
 
+
+(defn normalize-stream-config [config]
+  (update config :streams (partial mapv config-stream)))
 
 ;;
 ;; Utility classes to handle per thread local state

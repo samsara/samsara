@@ -1,5 +1,6 @@
 (ns samsara-core.samza
-  (:require [samsara-core.kernel :as kern]
+  (:require [clojure.string :as str]
+            [samsara-core.kernel :as kern]
             [where.core :refer [where]])
   (:import org.apache.samza.config.MapConfig
            org.apache.samza.job.JobRunner
@@ -18,7 +19,7 @@
 
         inputs (->> (concat primary-topics state-topics)
                     (map (partial str "kafka."))
-                    (s/join ","))
+                    (str/join ","))
 
         config-overrides (into {} (map (fn [[k v]] [(str (name k)) (str v)]) samza-overrides))
 
