@@ -74,11 +74,11 @@
 
 (defn- output-collector [collector]
   (fn [all-output]
-    (doseq [[oStream oKey oMessage] all-output]
+    (doseq [[stream key message] all-output]
       ;; TODO: remove this and remove the INPUT: one as well
-      ;;(println "OUTPUT[" oStream "/" oKey "]:" oMessage)
+      (printf "OUTPUT[%s//%s] : %s\n" stream key message)
       (.send collector (OutgoingMessageEnvelope.
-                        (topic->stream oStream) oKey oMessage )))))
+                        (topic->stream stream) key message )))))
 
 
 (defn samza-process

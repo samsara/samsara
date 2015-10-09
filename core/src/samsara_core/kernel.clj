@@ -84,7 +84,8 @@
 ;; distrib of msg size in / out
 ;; processing time
 (defn- make-trackers [config]
-  (let [topic (-> config :topics :input-topic)
+  ;; TODO: fix this
+  (let [topic (-> config :streams first :input-topic)
         prefix (str "pipeline." topic)
 
         track-time-name (str prefix ".overall-processing.time")
@@ -117,8 +118,9 @@
 
 
 (defn make-raw-pipeline [config]
-  (let [part-key-fn (-> config :topics :output-topic-partition-fn)
-        output-topic (constantly (-> config :topics :output-topic))
+  ;; TODO: fix this
+  (let [part-key-fn (-> config :streams first :output-topic-partition-fn)
+        output-topic (constantly (-> config :streams first :output-topic))
         {:keys [track-time-name track-pipeline-time size-in-tracker
                 size-out-tracker]} (make-trackers config)
         pipeline (track-pipeline-time *pipeline*)]
@@ -162,16 +164,16 @@
 (defn output-topic!
   "Return the name of the topic used for the output"
   []
-  (-> *config* :topics :output-topic))
+  ;; TODO: fix this
+  (-> *config* :streams first :output-topic))
 
 
 
 (defn kvstore-topic!
   "Return the name of the topic used for the K/V store"
   []
-  (or
-   (-> *config* :topics :kvstore-topic)
-   (str (-> *config* :topics :input-topic) "-kv")))
+  ;; TODO: fix this
+  (-> *config* :streams first :state-topic))
 
 
 
@@ -191,11 +193,14 @@
    name dispatches the function to the appropriate handler.
    One handler is the normal pipeline processing, the second handler
    is for the kv-store"
-  [output-collector stream partitition key message]
+  [output-collector stream partition key message]
+
+  (printf "INPUT[%s/%s/%s] : %s\n" stream partition key message)
 
   (try
     ;; filtering interesting partitions only
-    (when ((-> *config* :topics :input-partitions) partition)
+    ;; TODO: fix this
+    (when ((-> *config* :streams first :input-partitions) partition)
 
       ;; TODO: a more generic stream dispatch function is required
       ;; in order to support more streams of different types.
@@ -214,10 +219,7 @@
               all-output (concat txlog-msg rich-events)]
 
           ;; emitting the output
-          (doseq [[oStream oKey oMessage] all-output]
-            ;; TODO: remove this and remove the INPUT: one as well
-            ;;(println "OUTPUT[" oStream "/" oKey "]:" oMessage)
-            (output-collector oStream oKey oMessage))
+          (output-collector all-output)
 
           ;; flushing tx-log
           (let [new-state' (kv/flush-tx-log new-state txlog)]
@@ -228,11 +230,12 @@
     (catch Exception x
       (log/warn x "Error processing message from [" stream "]:" message)
       (track-rate (str "pipeline." stream ".errors"))
-      (output-collector (str stream "-errors") key message))))
+      (output-collector [[(str stream "-errors") key message]]))))
 
 
 (defn create-core-processor [config]
-  (let [factory (or (-> config :topics :processor-factory)
+  ;; TODO:fix this
+  (let [factory (or (-> config :streams first :processor-factory)
                    "samsara-core.core/make-samsara-processor")
         [fns ff] (str/split factory #"/")]
     ;; requiring the namespace
