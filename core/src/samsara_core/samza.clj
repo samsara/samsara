@@ -94,10 +94,12 @@
    ^String  key
    ^String  message]
 
-  (kern/process-handler
+  (kern/process-dispatch
    (output-collector collector)
    stream partition key message))
 
 
 (defn start! [{:keys [streams job] :as config}]
-  (.run (JobRunner. (MapConfig. (samza-config job streams)))))
+  (let [cfg (samza-config job streams)]
+    (display-samza-config cfg)
+    (.run (JobRunner. (MapConfig. cfg)))))

@@ -1,7 +1,8 @@
 (ns samsara-core.kernel
   (:refer-clojure :exclude [var-get var-set])
   (:require [clojure.string :as str]
-            [taoensso.timbre :as log])
+            [taoensso.timbre :as log]
+            [where.core :refer [where]])
   (:require [samsara-core.core :as core])
   (:require [moebius.kv :as kv])
   (:require [samsara.utils :refer [to-json from-json invariant]])
@@ -9,9 +10,8 @@
                                      count-tracker distribution-tracker]]))
 
 ;; runtime pipeline initialized by init-pipeline!
-(def ^:dynamic *pipeline*     nil)
-(def ^:dynamic *raw-pipeline* nil)
 (def ^:dynamic *config*       nil)
+(def ^:dynamic *dispatchers*  nil)
 (def           *store*        nil) ;; thread local only
 
 
@@ -32,18 +32,12 @@
     (assoc cfg :state-topic (str input-topic "-kv"))
     cfg))
 
-(defn- config-partitions
-  [{:keys [input-partitions] :as cfg}]
-  (if (= :all input-partitions)
-    (assoc cfg :input-partitions (constantly true))
-    (assoc cfg :input-partitions (set input-partitions))))
 
 (defn- config-stream
   [stream-cfg]
   (->> stream-cfg
     (merge DEFAULT-STREAM-CFG)
-    config-state-topic
-    config-partitions))
+    config-state-topic))
 
 
 (defn normalize-stream-config [config]
@@ -83,9 +77,8 @@
 ;; how big is msg in / out
 ;; distrib of msg size in / out
 ;; processing time
-(defn- make-trackers [config]
-  ;; TODO: fix this
-  (let [topic (-> config :streams first :input-topic)
+(defn- make-trackers [stream]
+  (let [topic (-> stream :input-topic)
         prefix (str "pipeline." topic)
 
         track-time-name (str prefix ".overall-processing.time")
@@ -116,14 +109,29 @@
      :track-pipeline-time track-pipeline-time}))
 
 
+(defn create-core-processor [stream config]
+  (let [factory (or (-> stream :processor-factory)
+                   "samsara-core.core/make-samsara-processor")
+        [fns ff] (str/split factory #"/")]
+    ;; requiring the namespace
+    (require (symbol fns))
+    (let [proc-factory (resolve (symbol fns ff))]
+      (if proc-factory
+        ;; creating the moebius function
+        (proc-factory config)
+        (throw (ex-info (str "factory '" factory "' not found.") config))))))
 
-(defn make-raw-pipeline [config]
-  ;; TODO: fix this
-  (let [part-key-fn (-> config :streams first :output-topic-partition-fn)
-        output-topic (constantly (-> config :streams first :output-topic))
-        {:keys [track-time-name track-pipeline-time size-in-tracker
-                size-out-tracker]} (make-trackers config)
-        pipeline (track-pipeline-time *pipeline*)]
+
+
+
+(defn make-raw-pipeline
+  [{:keys [output-topic-partition-fn output-topic] :as stream} config]
+  (let [{:keys [track-time-name
+                track-pipeline-time
+                size-in-tracker
+                size-out-tracker]} (make-trackers stream)
+        pipeline (track-pipeline-time (create-core-processor stream config))
+        output-topic-fn (constantly output-topic)]
     (fn [state event]
       (track-time track-time-name
                   (->> event
@@ -132,98 +140,44 @@
                        vector
                        (pipeline state) ;; -> [state [events]]
                        ((fn [[s events]]
-                           [s
-                            (->> events
-                                (map (juxt output-topic part-key-fn to-json))
+                          [s
+                           (->> events
+                                (map (juxt output-topic-fn output-topic-partition-fn to-json))
                                 (map size-out-tracker))])))))))
-
-
-
-(defn pipeline
-  "Takes an event in json format and returns a list of tuples
-  with the partition key and the event in json format
-  f(state,event) -> [new-state, List<[part-key, json-event]>]"
-  [state event]
-  (*raw-pipeline* state event))
 
 
 
 (defn kv-restore!
   "Takes an event in json format which contain an Tx-Log entry and
    it pushes the change to the running *kv-store*"
-  [^String event]
+  [stream ^String event]
   ;; this ugly stuff works because *store* is thread-local
-  (var-set *store*
-         (->> event
-              from-json
-              vector
-              (kv/restore (var-get *store*)))))
+  ;; TODO: make sure initialization adds all the streams
+  (printf "STATE[%s] : %s\n" stream event)
+  (let [kv-store (get *store* stream)]
+    (var-set kv-store
+             (->> event
+                  from-json
+                  vector
+                  (kv/restore (var-get kv-store))))))
 
 
 
-(defn output-topic!
-  "Return the name of the topic used for the output"
-  []
-  ;; TODO: fix this
-  (-> *config* :streams first :output-topic))
-
-
-
-(defn kvstore-topic!
-  "Return the name of the topic used for the K/V store"
-  []
-  ;; TODO: fix this
-  (-> *config* :streams first :state-topic))
-
-
-
-(defn- tx-log->messages
-  "Turns the tx-log into a a triplet of [topic partition-key json-data]"
-  [txlog]
-  (let [kvstore-topic (kvstore-topic!)]
-    (->> txlog
-         (map (fn [[k ver v]]
-                [kvstore-topic k (to-json [k ver v])])))))
-
-
-
-
-(defn process-handler
+(defn process-dispatch
   "Takes an event as a JSON encoded String and depending on the stream
    name dispatches the function to the appropriate handler.
    One handler is the normal pipeline processing, the second handler
    is for the kv-store"
   [output-collector stream partition key message]
 
-  (printf "INPUT[%s/%s/%s] : %s\n" stream partition key message)
-
   (try
-    ;; filtering interesting partitions only
-    ;; TODO: fix this
-    (when ((-> *config* :streams first :input-partitions) partition)
+    (if-let [dispatcher (get *dispatchers* stream)]
+      (let [{:keys [topic-filter handler]} dispatcher]
+        (when (topic-filter partition)
+          (handler output-collector stream partition key message)))
+      ;; TODO: trow error
+      (log/warn "No dispatcher found for:" stream))
 
-      ;; TODO: a more generic stream dispatch function is required
-      ;; in order to support more streams of different types.
-      (if (= stream (kvstore-topic!))
-        ;; messages for the kvstore are dispatched directly to the restore function
-        ;; and this function doesn't emit anything
-        (kv-restore! message)
-        ;; other messages are processed by the normal pipeline, however here
-        ;; we need to emit the state messages as well.
-
-        ;; this ugly stuff works because *store* is thread-local
-        (let [state (var-get *store*)
-              [new-state rich-events] (pipeline state message)
-              txlog     (kv/tx-log new-state)
-              txlog-msg (tx-log->messages txlog)
-              all-output (concat txlog-msg rich-events)]
-
-          ;; emitting the output
-          (output-collector all-output)
-
-          ;; flushing tx-log
-          (let [new-state' (kv/flush-tx-log new-state txlog)]
-            (var-set *store* new-state')))))
     ;;
     ;; ERROR Handling
     ;;
@@ -233,24 +187,127 @@
       (output-collector [[(str stream "-errors") key message]]))))
 
 
-(defn create-core-processor [config]
-  ;; TODO:fix this
-  (let [factory (or (-> config :streams first :processor-factory)
-                   "samsara-core.core/make-samsara-processor")
-        [fns ff] (str/split factory #"/")]
-    ;; requiring the namespace
-    (require (symbol fns))
-    (let [proc-factory (resolve (symbol fns ff))]
-      (println proc-factory)
-      (if proc-factory
-        ;; creating the moebius function
-        (proc-factory config)
-        (throw (ex-info (str "factory '" factory "' not found.") config))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+(defn- compile-partition-filter
+  [{:keys [input-partitions] :as cfg}]
+  (if (= :all input-partitions)
+    (constantly true)
+    (set input-partitions)))
+
+
+(defn- tx-log->formatter
+  "Return a function which turns the tx-log into a a triplet of
+
+   [topic partition-key json-data]"
+  [kvstore-topic]
+  (fn [txlog]
+    (->> txlog
+         (map (fn [[k ver v]]
+                [kvstore-topic k (to-json [k ver v])])))))
+
+
+
+
+
+(defn- compile-input-topic-handler [{:keys [state-topic] :as stream-cfg} config]
+  (let [tx-log->messages (tx-log->formatter state-topic)
+        pipeline (make-raw-pipeline stream-cfg config)]
+    (fn [output-collector stream partition key message]
+
+      (printf "INPUT[%s/%s/%s] : %s\n" stream partition key message)
+
+      ;; other messages are processed by the normal pipeline, however here
+      ;; we need to emit the state messages as well.
+
+      ;; this ugly stuff works because *store* is thread-local
+      (let [kv-state (get *store* stream)
+            state    (var-get kv-state)
+            [new-state rich-events] (pipeline state message)
+            txlog     (kv/tx-log new-state)
+            txlog-msg (tx-log->messages txlog)
+            all-output (concat txlog-msg rich-events)]
+
+        ;; emitting the output
+        (output-collector all-output)
+
+        ;; flushing tx-log
+        (let [new-state' (kv/flush-tx-log new-state txlog)]
+          (var-set kv-state new-state'))))))
+
+
+(defn- compile-input-topic-config [{:keys [input-topic] :as stream} config]
+  {input-topic {:topic-filter (compile-partition-filter stream)
+                :handler (compile-input-topic-handler stream config)}})
+
+(defn- compile-kv-state-handler [{:keys [input-topic state] :as stream}]
+  (fn [output-collector stream partition key message]
+    (kv-restore! input-topic message)))
+
+(defn- compile-state-topic-config [{:keys [state-topic state] :as stream}]
+  (when (= state :partitioned)
+    {state-topic {:topic-filter (compile-partition-filter stream)
+                  :handler (compile-kv-state-handler stream)}}))
+
+(defn- compile-stream-config
+  [stream config]
+  (merge
+   (compile-input-topic-config stream config)
+   (compile-state-topic-config stream)))
+
+
+(defn compile-config [config]
+  (->> config
+       :streams
+       (mapcat #(compile-stream-config % config))
+       (into {})))
+
+
+(defn init-stores [config]
+  (let [streams (map :input-topic (filter (where :state = :partitioned) (:streams config)))
+        _ (log/info "Initializing kv-store for the following streams: " streams)
+        local-store (constantly (thread-local (kv/make-in-memory-kvstore)))]
+    (into {} (map (juxt identity local-store) streams))))
 
 
 (defn init-pipeline! [config]
-  (alter-var-root #'*pipeline*     (constantly (create-core-processor config)))
-  (alter-var-root #'*raw-pipeline* (constantly (make-raw-pipeline config)))
+  (log/info "Initialize processors...")
   (alter-var-root #'*config*       (constantly config))
-  (alter-var-root #'*store*        (constantly (thread-local (kv/make-in-memory-kvstore))))
-  )
+  (alter-var-root #'*store*        (constantly (init-stores config)))
+  (alter-var-root #'*dispatchers*  (constantly (compile-config config))))
+
+
+
+
+(comment
+  (def config (#'samsara-core.main/read-config "./config/config.edn"))
+
+  (init-pipeline! config)
+
+  (def stream (-> config :streams first))
+
+  (defn out-> [all-output]
+    (println (with-out-str
+               (clojure.pprint/pprint all-output))))
+
+
+  (def msg "{\"publishedAt\":1444755781999,\"receivedAt\":1444755781764,\"timestamp\":1444755781000,\"sourceId\":\"3aw4sedrtcyvgbuhjkn\",\"eventName\":\"user.item.removed\",\"page\":\"orders\",\"item\":\"sku-5433\",\"action\":\"remove\"}")
+
+  (process-dispatch out-> "ingestion" 0 "ciao" msg)
+
+  ((:handler (*dispatchers* "ingestion")) out-> "ingestion" 0 "ciao" msg)
+
+  ((compile-input-topic-handler stream config) out-> "ingestion" 0 "ciao" msg)
+
+  ((tx-log->formatter "ingestion-kv") (kv/tx-log (-> (kv/make-in-memory-kvstore) (kv/set "ciao" :a 1))))
+
+  (def state (kv/make-in-memory-kvstore))
+  ((make-raw-pipeline stream config)  state msg)
+  ((create-core-processor stream config) state [(from-json msg)])
+
+  (:output-topic-partition-fn stream)
+
+)
