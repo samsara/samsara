@@ -239,18 +239,27 @@
           (var-set kv-state new-state'))))))
 
 
-(defn- compile-input-topic-config [{:keys [input-topic] :as stream} config]
-  {input-topic {:topic-filter (compile-partition-filter stream)
-                :handler (compile-input-topic-handler stream config)}})
+(defn- compile-input-topic-config [{:keys [input-topic state] :as stream} config]
+  (when (or (= state :none) (= state :partitioned))
+    {input-topic {:topic-filter (compile-partition-filter stream)
+                  :handler (compile-input-topic-handler stream config)}}))
 
 (defn- compile-kv-state-handler [{:keys [input-topic state] :as stream}]
   (fn [output-collector stream partition key message]
     (kv-restore! input-topic message)))
 
-(defn- compile-state-topic-config [{:keys [state-topic state] :as stream}]
-  (when (= state :partitioned)
+(defn- compile-state-topic-config [{:keys [state-topic state input-topic] :as stream}]
+  (cond
+
+    (= state :partitioned)
     {state-topic {:topic-filter (compile-partition-filter stream)
-                  :handler (compile-kv-state-handler stream)}}))
+                  :handler (compile-kv-state-handler stream)}}
+
+    (= state :global)
+    {input-topic {:topic-filter (compile-partition-filter stream)
+                  :handler (compile-kv-state-handler stream)}}
+    ))
+
 
 (defn- compile-stream-config
   [stream config]
@@ -267,7 +276,9 @@
 
 
 (defn init-stores [config]
-  (let [streams (map :input-topic (filter (where :state = :partitioned) (:streams config)))
+  (let [streams (map :input-topic
+                     (filter (where [:or [:state = :partitioned] [:state = :global]])
+                             (:streams config)))
         _ (log/info "Initializing kv-store for the following streams: " streams)
         local-store (constantly (thread-local (kv/make-in-memory-kvstore)))]
     (into {} (map (juxt identity local-store) streams))))
@@ -286,6 +297,8 @@
   (def config (#'samsara-core.main/read-config "./config/config.edn"))
 
   (init-pipeline! config)
+
+  (keys (compile-config config))
 
   (def stream (-> config :streams first))
 
