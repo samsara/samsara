@@ -9,6 +9,28 @@
   (:require [samsara.trackit :refer [track-time track-rate
                                      count-tracker distribution-tracker]]))
 
+;;
+;;   THIS NEED TO BE COMPLETELY RE-DESIGNED!!!!
+;;
+;; Things to keep in mind:
+;; * stream impedence format
+;;   [topic, part, key, msg] -> [state, [event]] ->
+;;   -> [topic, key, msg]
+;; * batching of messages not a single message
+;; * a processable stream will contain data
+;;   from multiple topics (ingestion, ingestion-kv)
+;;   which need to be processed in a single thread,
+;;   here there is a conflict with the idea of batching
+;;   which assume items of the same type.
+;; * should be able to support raw/untouched streams
+;;   which can be in different formats
+;; * support for global kv-state
+;; * support for stream with no output
+;; * support for orthogonal concerns such as
+;;   logging, and metrics collecting
+;; * handling of exception on a message level
+;;
+
 ;; runtime pipeline initialized by init-pipeline!
 (def ^:dynamic *config*       nil)
 (def ^:dynamic *dispatchers*  nil)
