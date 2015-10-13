@@ -17,7 +17,8 @@
                  [com.taoensso/timbre "3.4.0"]
                  [org.clojure/tools.cli "0.3.1"]
                  [samsara/trackit "0.2.0"]
-                 [org.clojure/math.numeric-tower "0.0.4"]]
+                 [org.clojure/math.numeric-tower "0.0.4"]
+                 [com.stuartsierra/component "0.3.0"]]
   :main ingestion-api.core
   :profiles {:uberjar {:aot :all}
              :dev {:dependencies [[midje "1.6.3"]
