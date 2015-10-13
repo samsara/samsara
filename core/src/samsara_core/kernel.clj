@@ -32,9 +32,10 @@
 ;;
 
 ;; runtime pipeline initialized by init-pipeline!
-(def ^:dynamic *config*       nil)
-(def ^:dynamic *dispatchers*  nil)
-(def           *store*        nil) ;; thread local only
+(def ^:dynamic *config*        nil)
+(def ^:dynamic *dispatchers*   nil)
+(def ^:dynamic *global-stores* nil) ;; thread local only
+(def ^:dynamic *stores*         nil) ;; thread local only
 
 
 
@@ -173,16 +174,30 @@
   "Takes an event in json format which contain an Tx-Log entry and
    it pushes the change to the running *kv-store*"
   [stream ^String event]
-  ;; this ugly stuff works because *store* is thread-local
+  ;; this ugly stuff works because *stores* is thread-local
   ;; TODO: make sure initialization adds all the streams
   (printf "STATE[%s] : %s\n" stream event)
-  (let [kv-store (get *store* stream)]
+  (let [kv-store (get *stores* stream)]
     (var-set kv-store
              (->> event
                   from-json
                   vector
                   (kv/restore (var-get kv-store))))))
 
+
+
+(defn global-kv-restore!
+  "Takes an event in json format which contain an Tx-Log entry and
+   it pushes the change to the running *global-stores*"
+  [stream ^String event]
+  (printf "GLOBAL[%s] : %s\n" stream event)
+  (let [txlog (->> event from-json vector)]
+    (swap! *global-stores*
+           update
+           stream
+           (fn [kvstore]
+             (kv/restore (or kvstore (kv/make-in-memory-kvstore))
+                         txlog)))))
 
 
 (defn process-dispatch
@@ -245,8 +260,8 @@
       ;; other messages are processed by the normal pipeline, however here
       ;; we need to emit the state messages as well.
 
-      ;; this ugly stuff works because *store* is thread-local
-      (let [kv-state (get *store* stream)
+      ;; this ugly stuff works because *stores* is thread-local
+      (let [kv-state (get *stores* stream)
             state    (var-get kv-state)
             [new-state rich-events] (pipeline state message)
             txlog     (kv/tx-log new-state)
@@ -270,6 +285,10 @@
   (fn [output-collector stream partition key message]
     (kv-restore! input-topic message)))
 
+(defn- compile-global-kv-state-handler [{:keys [input-topic state] :as stream}]
+  (fn [output-collector stream partition key message]
+    (global-kv-restore! input-topic message)))
+
 (defn- compile-state-topic-config [{:keys [state-topic state input-topic] :as stream}]
   (cond
 
@@ -279,7 +298,7 @@
 
     (= state :global)
     {input-topic {:topic-filter (compile-partition-filter stream)
-                  :handler (compile-kv-state-handler stream)}}
+                  :handler (compile-global-kv-state-handler stream)}}
     ))
 
 
@@ -299,7 +318,7 @@
 
 (defn init-stores [config]
   (let [streams (map :input-topic
-                     (filter (where [:or [:state = :partitioned] [:state = :global]])
+                     (filter (where [:state = :partitioned])
                              (:streams config)))
         _ (log/info "Initializing kv-store for the following streams: " streams)
         local-store (constantly (thread-local (kv/make-in-memory-kvstore)))]
@@ -308,9 +327,10 @@
 
 (defn init-pipeline! [config]
   (log/info "Initialize processors...")
-  (alter-var-root #'*config*       (constantly config))
-  (alter-var-root #'*store*        (constantly (init-stores config)))
-  (alter-var-root #'*dispatchers*  (constantly (compile-config config))))
+  (alter-var-root #'*config*        (constantly config))
+  (alter-var-root #'*stores*        (constantly (init-stores config)))
+  (alter-var-root #'*global-stores* (constantly (atom {})))
+  (alter-var-root #'*dispatchers*   (constantly (compile-config config))))
 
 
 
@@ -344,5 +364,12 @@
   ((create-core-processor stream config) state [(from-json msg)])
 
   (:output-topic-partition-fn stream)
+
+  *global-stores*
+
+  ((:handler (*dispatchers* "dimension1")) out-> "dimension1" 0 "ciao" "[\"ciao\",1,{\"a\":1}]")
+
+  (global-kv-restore! "dimension1" "[\"ciao\",1,{\"a\":1}]")
+
 
 )
