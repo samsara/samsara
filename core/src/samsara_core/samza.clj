@@ -76,7 +76,7 @@
   (fn [all-output]
     (doseq [[stream key message] all-output]
       ;; TODO: remove this and remove the INPUT: one as well
-      (printf "OUTPUT[%s//%s] : %s\n" stream key message)
+      (kern/printf-stream "OUTPUT[%s//%s] : %s\n" stream key message)
       (.send collector (OutgoingMessageEnvelope.
                         (topic->stream stream) key message )))))
 

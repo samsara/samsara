@@ -35,8 +35,13 @@
 (def ^:dynamic *config*        nil)
 (def ^:dynamic *dispatchers*   nil)
 (def ^:dynamic *global-stores* nil) ;; thread local only
-(def ^:dynamic *stores*         nil) ;; thread local only
+(def ^:dynamic *stores*        nil)
 
+(def ^:dynamic *print-streams*  false)
+
+(defmacro printf-stream [& args]
+  `(when *print-streams*
+     (printf ~@args)))
 
 
 (def ^:const DEFAULT-STREAM-CFG
@@ -175,8 +180,7 @@
    it pushes the change to the running *kv-store*"
   [stream ^String event]
   ;; this ugly stuff works because *stores* is thread-local
-  ;; TODO: make sure initialization adds all the streams
-  (printf "STATE[%s] : %s\n" stream event)
+  (printf-stream "STATE[%s] : %s\n" stream event)
   (let [kv-store (get *stores* stream)]
     (var-set kv-store
              (->> event
@@ -190,7 +194,7 @@
   "Takes an event in json format which contain an Tx-Log entry and
    it pushes the change to the running *global-stores*"
   [stream ^String event]
-  (printf "GLOBAL[%s] : %s\n" stream event)
+  (printf-stream "GLOBAL[%s] : %s\n" stream event)
   (let [txlog (->> event from-json vector)]
     (swap! *global-stores*
            update
@@ -255,7 +259,7 @@
         pipeline (make-raw-pipeline stream-cfg config)]
     (fn [output-collector stream partition key message]
 
-      (printf "INPUT[%s/%s/%s] : %s\n" stream partition key message)
+      (printf-stream "INPUT[%s/%s/%s] : %s\n" stream partition key message)
 
       ;; other messages are processed by the normal pipeline, however here
       ;; we need to emit the state messages as well.
