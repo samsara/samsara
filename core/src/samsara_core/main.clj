@@ -159,7 +159,8 @@ DESCRIPTION
 (defn show-console-progress!
   [config]
   (if (-> config :console-progress :enabled)
-    (let [topic (-> config :topics :input-topic)
+    ;; TODO: fix this: shows only one stream stats
+    (let [topic (-> config :streams first :input-topic)
           metric (str "pipeline." topic ".in.size")
           sleep-time (-> config :console-progress :display-every)]
       (stoppable-thread
@@ -215,8 +216,9 @@ DESCRIPTION
 
 
 (defn start-processing! [config-file]
-  (let [{{:keys [input-topic input-partitions output-topic]}
-         :topics :as config} (init! config-file)
+  ;; TODO: only displaying the first stream
+  (let [{[{:keys [input-topic input-partitions output-topic]}]
+         :streams :as config} (init! config-file)
          input-partitions (if (= input-partitions identity) :all input-partitions)]
     ;; starting nrepl
     (start-nrepl! (:nrepl config))
