@@ -181,12 +181,13 @@
   [stream ^String event]
   ;; this ugly stuff works because *stores* is thread-local
   (printf-stream "STATE[%s] : %s\n" stream event)
-  (let [kv-store (get *stores* stream)]
-    (var-set kv-store
-             (->> event
-                  from-json
-                  vector
-                  (kv/restore (var-get kv-store))))))
+  (track-time (str "pipeline.stores.local." stream ".restore.time")
+    (let [kv-store (get *stores* stream)]
+      (var-set kv-store
+               (->> event
+                    from-json
+                    vector
+                    (kv/restore (var-get kv-store)))))))
 
 
 
@@ -195,13 +196,14 @@
    it pushes the change to the running *global-stores*"
   [stream ^String event]
   (printf-stream "GLOBAL[%s] : %s\n" stream event)
-  (let [txlog (->> event from-json vector)]
-    (swap! *global-stores*
-           update
-           stream
-           (fn [kvstore]
-             (kv/restore (or kvstore (kv/make-in-memory-kvstore))
-                         txlog)))))
+  (track-time (str "pipeline.stores.global." stream ".restore.time")
+   (let [txlog (->> event from-json vector)]
+     (swap! *global-stores*
+            update
+            stream
+            (fn [kvstore]
+              (kv/restore (or kvstore (kv/make-in-memory-kvstore))
+                          txlog))))))
 
 
 (defn process-dispatch
