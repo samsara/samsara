@@ -1,8 +1,13 @@
-{:topics
+{:streams
+  [{:job-name "%%JOB_NAME%%"
+    :input-topic "%%INPUT_TOPIC%%"
+    :input-partitions %%INPUT_PARTITIONS%%
+    :state        :partitioned
+    :output-topic "%%OUTPUT_TOPIC%%"
+   }]
+
+ :job
   {:job-name "%%JOB_NAME%%"
-   :input-topic "%%INPUT_TOPIC%%"
-   :input-partitions %%INPUT_PARTITIONS%%
-   :output-topic "%%OUTPUT_TOPIC%%"
    ;; a CSV list of hosts and ports (and optional path)
    :zookeepers "%%ZOOKEEPER_PORT_2181_TCP_ADDR%%:%%ZOOKEEPER_PORT_2181_TCP_PORT%%"
    ;; a CSV list of host and ports of kafka brokers
