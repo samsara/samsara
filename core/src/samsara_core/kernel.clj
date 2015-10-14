@@ -29,6 +29,7 @@
 ;; * support for orthogonal concerns such as
 ;;   logging, and metrics collecting
 ;; * handling of exception on a message level
+;; * handling of the output-collector done properly
 ;;
 
 ;; runtime pipeline initialized by init-pipeline!
