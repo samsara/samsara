@@ -6,8 +6,9 @@
   (:require [samsara-core.core :as core])
   (:require [moebius.kv :as kv])
   (:require [samsara.utils :refer [to-json from-json invariant]])
-  (:require [samsara.trackit :refer [track-time track-rate
-                                     count-tracker distribution-tracker]]))
+  (:require [samsara.trackit :refer [track-time track-rate new-registry
+                                     count-tracker distribution-tracker
+                                     track-pass-count] :as trk]))
 
 ;;
 ;;   THIS NEED TO BE COMPLETELY RE-DESIGNED!!!!
@@ -44,13 +45,21 @@
   `(when *print-streams*
      (printf ~@args)))
 
+(def tmp-registry (new-registry))
+(def all-events-counter (binding [trk/*registry* tmp-registry]
+                          (count-tracker "events.all.counter")))
+
+(defn events-counter-stats []
+  (binding [trk/*registry* tmp-registry]
+    (trk/get-metric "events.all.counter")))
+
 
 (def ^:const DEFAULT-STREAM-CFG
   {:input-partitions          :all
    :state                     :none
    :format                    :json
    :processor                 "samsara-core.core/make-samsara-processor"
-   :processor-type            :samsara
+   :processor-type            :samsara-factory
    :bootstrap                 false
    :output-topic-partition-fn :sourceId})
 
@@ -214,6 +223,7 @@
    is for the kv-store"
   [output-collector stream partition key message]
 
+  (all-events-counter)
   (try
     (if-let [dispatcher (get *dispatchers* stream)]
       (let [{:keys [topic-filter handler]} dispatcher]

@@ -5,7 +5,7 @@
   (:require [clojure.java.io :as io])
   (:require [taoensso.timbre :as log])
   (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!
-                                     get-metric]])
+                                     get-metric] :as trk])
   (:require [clojure.tools.cli :refer [parse-opts]])
   (:require [clojure.tools.nrepl.server :as nrepl]
             [cider.nrepl :as cider])
@@ -159,10 +159,7 @@ DESCRIPTION
 (defn show-console-progress!
   [config]
   (if (-> config :console-progress :enabled)
-    ;; TODO: fix this: shows only one stream stats
-    (let [topic (-> config :streams first :input-topic)
-          metric (str "pipeline." topic ".in.size")
-          sleep-time (-> config :console-progress :display-every)]
+    (let [sleep-time (-> config :console-progress :display-every)]
       (stoppable-thread
        "Console progress stats."
        (fn [{:keys [last-time last-count]
@@ -170,7 +167,7 @@ DESCRIPTION
                    last-count 0} :as data}]
 
          (let [time'  (System/nanoTime)
-               count' (get (get-metric metric) :total 0)
+               count' (get (kern/events-counter-stats) :count 0)
                processed (- count' last-count)
                rate (double (/ processed (/ (- time' last-time) 1000000000)))]
 
