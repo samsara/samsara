@@ -13,7 +13,7 @@
                  [org.apache.samza/samza-kafka_2.10 "0.9.1"]
                  [samsara/moebius "0.2.0"]
                  [samsara/samsara-utils "0.4.0"]
-                 [samsara/trackit "0.2.1"]
+                 [samsara/trackit "0.2.2"]
                  [com.taoensso/timbre "3.4.0"]
                  [org.clojure/tools.cli "0.3.1"]
                  [digest "1.4.4"]

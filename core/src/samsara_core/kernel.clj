@@ -210,16 +210,20 @@
 (defn global-kv-restore!
   "Takes an event in json format which contain an Tx-Log entry and
    it pushes the change to the running *global-stores*"
-  [stream ^String event]
-  (printf-stream "GLOBAL[%s] : %s\n" stream event)
-  (track-time (str "pipeline.stores.global." stream ".restore.time")
+  [stream-id ^String event]
+  (printf-stream "GLOBAL[%s] : %s\n" stream-id event)
+  (track-time (str "pipeline.stores.global." (name stream-id) ".restore.time")
    (let [txlog (->> event from-json vector)]
      (swap! *global-stores*
             update
-            stream
+            stream-id
             (fn [kvstore]
               (kv/restore (or kvstore (kv/make-in-memory-kvstore))
                           txlog))))))
+
+
+(defn global-store [store-id]
+  (get @*global-stores* store-id))
 
 
 (defn process-dispatch
@@ -308,9 +312,9 @@
   (fn [output-collector stream partition key message]
     (kv-restore! input-topic message)))
 
-(defn- compile-global-kv-state-handler [{:keys [input-topic state] :as stream}]
+(defn- compile-global-kv-state-handler [{:keys [id state] :as stream}]
   (fn [output-collector stream partition key message]
-    (global-kv-restore! input-topic message)))
+    (global-kv-restore! id message)))
 
 (defn- compile-state-topic-config [{:keys [state-topic state input-topic] :as stream}]
   (cond
