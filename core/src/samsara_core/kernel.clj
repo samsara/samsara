@@ -147,10 +147,16 @@
      :track-pipeline-time track-pipeline-time}))
 
 
-(defn create-core-processor [stream config]
-  (let [factory (or (-> stream :processor-factory)
+(defmulti create-core-processor
+  (fn [{:keys [processor-type] :as stream} config] processor-type))
+
+
+(defmethod create-core-processor :samsara-factory
+  [{:keys [id processor] :as stream} config]
+  (let [factory (or processor
                    "samsara-core.core/make-samsara-processor")
         [fns ff] (str/split factory #"/")]
+    (log/info "Loading processor[" id "]:" factory)
     ;; requiring the namespace
     (require (symbol fns))
     (let [proc-factory (resolve (symbol fns ff))]
