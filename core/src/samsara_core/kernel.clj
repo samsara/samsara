@@ -396,7 +396,7 @@
 
   ((:handler (*dispatchers* "dimension1")) out-> "dimension1" 0 "ciao" "[\"ciao\",1,{\"a\":1}]")
 
-  (global-kv-restore! "dimension1" "[\"ciao\",1,{\"a\":1}]")
+  (global-kv-restore! :dimension1 "[\"ciao\",1,{\"a\":1}]")
 
 
 )
