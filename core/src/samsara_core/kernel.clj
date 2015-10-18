@@ -6,6 +6,7 @@
   (:require [samsara-core.core :as core])
   (:require [moebius.kv :as kv])
   (:require [samsara.utils :refer [to-json from-json invariant]])
+  (:require [samsara-core.utils :refer [load-txlog-from-file]])
   (:require [samsara.trackit :refer [track-time track-rate new-registry
                                      count-tracker distribution-tracker
                                      track-pass-count] :as trk]))
@@ -222,8 +223,21 @@
                           txlog))))))
 
 
+
 (defn global-store [store-id]
   (get @*global-stores* store-id))
+
+
+
+(defn global-store-lookup [store-id sourceId key]
+  (some-> (global-store store-id) (kv/get sourceId key)))
+
+
+
+(defn load-global-store-from-txlog-file! [keystore-id file]
+  (let [kvstore (load-txlog-from-file file)]
+    (swap! *global-stores* assoc keystore-id kvstore)))
+
 
 
 (defn process-dispatch
@@ -239,7 +253,7 @@
       (let [{:keys [topic-filter handler]} dispatcher]
         (when (topic-filter partition)
           (handler output-collector stream partition key message)))
-      ;; TODO: trow error
+      ;; TODO: throw error
       (log/warn "No dispatcher found for:" stream))
 
     ;;
