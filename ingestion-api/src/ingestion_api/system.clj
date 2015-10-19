@@ -25,11 +25,10 @@
    :tracking {:enabled false :type :console}
    })
 
-(reloaded.repl/set-init! #(ingestion-api-system DEFAULT-CONFIG))
+;(reloaded.repl/set-init! #(ingestion-api-system DEFAULT-CONFIG))
+;(go)
+;(stop)
 
-(go)
-
-(stop)
 
 
 
