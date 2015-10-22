@@ -1,22 +1,9 @@
 (ns ingestion-api.events
   (:refer-clojure :exclude [send])
   (:require [ingestion-api.backend :refer :all])
+  (:require [reloaded.repl :refer [system]])
   (:require [schema.core :as s])
   (:require [samsara.trackit :refer [track-time]]))
-
-;;
-;; This is the backend where events are send to
-;; and it is initialized by core/init! with
-;; one of the implementation of EventsQueueingBackend protocol
-;;
-(def ^:dynamic *backend* (atom nil))
-
-
-(defn send!
-  "Sends the events to the configured backend queuing system"
-  [events]
-  (track-time "ingestion.events.backend-send"
-   (send @*backend* events)))
 
 
 (def single-event-schema
@@ -61,3 +48,12 @@
   (if published
     (map #(update-in % [:publishedAt] (fn [ov] (or ov published))) events)
     events))
+
+
+(defn send!
+  [events posting-ts backend]
+  (track-time "ingestion.events.backend-send"
+              (->> events
+                   (inject-receivedAt (System/currentTimeMillis))
+                   (inject-publishedAt posting-ts)
+                   (send backend))))

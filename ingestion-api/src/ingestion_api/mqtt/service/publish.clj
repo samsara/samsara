@@ -1,8 +1,9 @@
 (ns ingestion-api.mqtt.service.publish
-  (:require [ingestion-api.events :refer [send!]]
+  (:require [ingestion-api.events :refer [send! is-invalid?]]
             [ingestion-api.mqtt.domain.publish :refer [bytes->mqtt-publish]]
             [samsara.utils :refer [from-json]]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [reloaded.repl :refer [system]]))
 
 
 (def publish-schema
@@ -12,6 +13,8 @@
    :topic        (s/eq "topic/events")
    s/Any s/Any})
 
+
+
 (defn parse-request
   "Parse and validate byte-array to mqtt-publish.
    Returns a map containing :request and :error"
@@ -20,6 +23,7 @@
         err (s/check publish-schema req)]
     {:request req :error err}))
 
+
 (defn publish
   "Handles MQTT Publish. We only handle QOS-0,
    so there is no response required. Just return nil."
@@ -27,5 +31,16 @@
   (let [{:keys [request error]} (parse-request req-bytes)]
     (when error
       (throw (ex-info "Invalid publish message received:" error)))
-    (send! [(from-json (:payload request))])
-    nil))
+    ;;Validate the event format.
+    (let [events (-> request :payload from-json)]
+      (some->> (is-invalid? events)
+               (map #(if % % "OK"))
+               doall
+               (assoc {} :errors)
+               (ex-info "Invalid event format received:")
+               throw)
+
+      (send! events
+             (System/currentTimeMillis) ;;TODO: Bad?
+             (-> system :mqtt-server :backend :backend))))
+  nil)

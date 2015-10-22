@@ -1,13 +1,15 @@
 (ns ingestion-api.components.mqtt-server
+  (:require [taoensso.timbre :as log])
   (:require [com.stuartsierra.component :as component]
             [aleph.tcp :as tcp]
             [ingestion-api.mqtt.tcp :refer [mqtt-handler]]))
 
-(defrecord MqttServer [port enabled server]
+(defrecord MqttServer [port enabled backend server]
   component/Lifecycle
 
   (start [component]
-    (if enabled
+    (when enabled
+      (log/info "Samsra MQTT listener started on port:" port)
       (if server
         component
         (->>

@@ -10,23 +10,3 @@
 
   (send [this events]
     "send the events to the backend queueing system"))
-
-
-;;
-;; This backend is for testing purposes, it just prints
-;; the events to the stdout.
-;;
-(deftype ConsoleBackend [pretty?]
-  EventsQueueingBackend
-
-  (send [_ events]
-    (doseq [e events]
-      (if pretty?
-        (pprint e)
-        (println e)))))
-
-
-(defn make-console-backend
-  "Create a console backend"
-  [{pretty? :pretty?}]
-  (ConsoleBackend. pretty?))

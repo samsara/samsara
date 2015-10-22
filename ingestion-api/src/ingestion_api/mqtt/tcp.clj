@@ -32,17 +32,3 @@
          (when result
            (s/put! s result))
          (d/recur))))))
-
-
-(defonce tcp-server (atom nil))
-
-(defn start-tcp-server
-  "Starts the TCP server at the given port"
-  [port]
-  (reset! tcp-server
-          (tcp/start-server mqtt-handler {:port port})))
-
-(defn stop-tcp-server
-  "Stops the TCP server"
-  []
-  (.close @tcp-server))

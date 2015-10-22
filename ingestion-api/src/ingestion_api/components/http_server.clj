@@ -1,4 +1,5 @@
 (ns ingestion-api.components.http-server
+  (:require [taoensso.timbre :as log])
   (:require [com.stuartsierra.component :as component]
             [ring.middleware.reload :as reload]
             [aleph.http :refer [start-server]]
@@ -7,22 +8,22 @@
 (defn wrap-app
   [auto-reload]
   (if auto-reload
-    (reload/wrap-reload #'app)
+    (do
+      (log/info "AUTO-RELOAD enabled!!! I hope you are in dev mode.")
+      (reload/wrap-reload #'app))
     app))
 
-(defrecord HttpServer [port auto-reload server]
+(defrecord HttpServer [port auto-reload backend server]
   component/Lifecycle
 
   (start [component]
-    (clojure.pprint/pprint component)
-    (if server (println "ALREADY STARTED") (println "STOPPED.."))
+    (log/info "Samsara Ingestion-API listening on port:" port)
     (if server component 
         (as-> (wrap-app auto-reload) $
           (start-server $ {:port port})
           (assoc component :server $))))
 
   (stop [component]
-    (println "stopping http >>>" (clojure.pprint/pprint component))
     (if server
       (->> component :server .close (assoc component :server))
       component)))
