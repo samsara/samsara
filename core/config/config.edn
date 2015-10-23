@@ -21,3 +21,14 @@
 
  :tracking {:enabled true :type :console
             :reporting-frequency-seconds 600}}
+
+
+;;
+;; Sample of custom bootstrap - stream
+;;
+;;{:id          :dim1
+;; :input-topic "dimension1"
+;; :state       :custom
+;; :bootstrap   true
+;; :processor   "yourns/your-processor-fn"
+;; :processor-type :raw}

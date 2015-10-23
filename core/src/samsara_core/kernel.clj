@@ -148,6 +148,18 @@
      :track-pipeline-time track-pipeline-time}))
 
 
+(defn create-function-from-name
+  [fn-ns fn-name & {:keys [is-factory? config]}]
+  ;; requiring the namespace
+  (require (symbol fn-ns))
+  (let [fn-symbol (resolve (symbol fn-ns fn-name))]
+    (if-not fn-symbol
+      (throw (ex-info (str "function '" fn-ns "/" fn-name "' not found.") {}))
+      (if is-factory?
+        (fn-symbol config)
+        fn-symbol))))
+
+
 (defmulti create-core-processor
   (fn [{:keys [processor-type] :as stream} config] processor-type))
 
@@ -158,15 +170,23 @@
                    "samsara-core.core/make-samsara-processor")
         [fns ff] (str/split factory #"/")]
     (log/info "Loading processor[" id "]:" factory)
-    ;; requiring the namespace
-    (require (symbol fns))
-    (let [proc-factory (resolve (symbol fns ff))]
-      (if proc-factory
-        ;; creating the moebius function
-        (proc-factory config)
-        (throw (ex-info (str "factory '" factory "' not found.") config))))))
+    (create-function-from-name fns ff :is-factory? true :config config)))
 
 
+
+(defmethod create-core-processor :raw
+  [{:keys [id processor] :as stream} config]
+  (let [[fns ff] (str/split processor #"/")]
+    (log/info "Loading processor[" id "]:" processor)
+    (create-function-from-name fns ff)))
+
+
+
+(defmethod create-core-processor :raw-factory
+  [{:keys [id processor] :as stream} config]
+  (let [[fns ff] (str/split processor #"/")]
+    (log/info "Loading processor[" id "]:" processor)
+    (create-function-from-name fns ff :is-factory? true :config config)))
 
 
 (defn make-raw-pipeline
@@ -326,11 +346,18 @@
   (fn [output-collector stream partition key message]
     (kv-restore! input-topic message)))
 
-(defn- compile-global-kv-state-handler [{:keys [id state] :as stream}]
+(defn- compile-global-kv-state-handler [{:keys [id] :as stream}]
   (fn [output-collector stream partition key message]
     (global-kv-restore! id message)))
 
-(defn- compile-state-topic-config [{:keys [state-topic state input-topic] :as stream}]
+;; return a fn which takes [output-collector stream partition key message]
+(defn- compile-custom-state-handler [{:keys [id] :as stream} config]
+  (create-core-processor stream config))
+
+
+(defn- compile-state-topic-config
+  [{:keys [state-topic state input-topic] :as stream}
+   config]
   (cond
 
     (= state :partitioned)
@@ -338,8 +365,12 @@
                   :handler (compile-kv-state-handler stream)}}
 
     (= state :global)
-    {input-topic {:topic-filter (compile-partition-filter stream)
+    {input-topic {:topic-filter identity
                   :handler (compile-global-kv-state-handler stream)}}
+
+    (= state :custom)
+    {input-topic {:topic-filter identity
+                  :handler (compile-custom-state-handler stream config)}}
     ))
 
 
@@ -347,7 +378,7 @@
   [stream config]
   (merge
    (compile-input-topic-config stream config)
-   (compile-state-topic-config stream)))
+   (compile-state-topic-config stream config)))
 
 
 (defn compile-config [config]
@@ -414,3 +445,7 @@
 
 
 )
+
+
+(defn dummy [a b c d msg]
+  (println msg))
