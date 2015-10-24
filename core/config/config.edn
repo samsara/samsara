@@ -24,6 +24,39 @@
 
 
 ;;
+;; Sample of stateful partitioned stream
+;;
+;; {:id           :ingestion
+;;  :input-topic  "ingestion"
+;;  :state        :partitioned
+;;  :output-topic "events"}
+
+
+;;
+;; Sample of stateful partitioned stream
+;; where you want to process only a
+;; specific set of partitions
+;;
+;; {:id           :ingestion
+;;  :input-topic  "ingestion"
+;;  :input-partitions [0 2 4]
+;;  :state        :partitioned
+;;  :output-topic "events"}
+
+
+;;
+;; Sample of stateful stream
+;; with custom pipeline
+;;
+;; {:id           :ingestion
+;;  :input-topic  "ingestion"
+;;  :state        :partitioned
+;;  :processor    "your-ns/your-samsara-processor"
+;;  :output-topic "events"}
+
+
+
+;;
 ;; Sample of custom bootstrap - stream
 ;;
 ;;{:id          :dim1
