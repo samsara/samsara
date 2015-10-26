@@ -17,8 +17,7 @@
                  [com.taoensso/timbre "3.4.0"]
                  [org.clojure/tools.cli "0.3.1"]
                  [digest "1.4.4"]
-                 [org.clojure/tools.nrepl "0.2.10"]
-                 [cider/cider-nrepl "0.9.1"]
+                 [org.clojure/tools.nrepl "0.2.11"]
                  ]
 
   :main samsara-core.main

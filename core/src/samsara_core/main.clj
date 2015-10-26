@@ -7,8 +7,7 @@
   (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!
                                      get-metric] :as trk])
   (:require [clojure.tools.cli :refer [parse-opts]])
-  (:require [clojure.tools.nrepl.server :as nrepl]
-            [cider.nrepl :as cider])
+  (:require [clojure.tools.nrepl.server :as nrepl])
   (:gen-class))
 
 
@@ -207,7 +206,7 @@ DESCRIPTION
   "Start nREPL server."
   [{:keys [enabled port] :as cfg}]
   (if enabled
-    (let [repl (nrepl/start-server :port port :handler cider/cider-nrepl-handler)]
+    (let [repl (nrepl/start-server :port port)]
       (log/info "Started nREPL on port:" port "..."))
     (log/info "nREPL disabled...!")))
 
