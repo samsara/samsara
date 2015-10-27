@@ -11,13 +11,14 @@
                  [org.slf4j/slf4j-log4j12 "1.7.12"]
                  [org.apache.samza/samza-api        "0.9.1"]
                  [org.apache.samza/samza-kafka_2.10 "0.9.1"]
-                 [samsara/moebius "0.2.0"]
+                 [samsara/moebius "0.3.0"]
                  [samsara/samsara-utils "0.4.0"]
                  [samsara/trackit "0.2.2"]
                  [com.taoensso/timbre "3.4.0"]
                  [org.clojure/tools.cli "0.3.1"]
                  [digest "1.4.4"]
                  [org.clojure/tools.nrepl "0.2.11"]
+                 [clj-kafka "0.3.2"]
                  ]
 
   :main samsara-core.main
