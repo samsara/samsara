@@ -116,9 +116,9 @@
 ;; how big is msg in / out
 ;; distrib of msg size in / out
 ;; processing time
-(defn- make-trackers [stream]
+(defn- make-trackers [job-name stream]
   (let [topic (-> stream :input-topic)
-        prefix (str "pipeline." topic)
+        prefix (str "pipeline." job-name "." topic)
 
         track-time-name (str prefix ".overall-processing.time")
         track-time-name2 (str prefix ".pipeline-processing.time")
@@ -190,11 +190,12 @@
 
 
 (defn make-raw-pipeline
-  [{:keys [output-topic-partition-fn output-topic] :as stream} config]
+  [{:keys [output-topic-partition-fn output-topic] :as stream}
+   {{:keys [job-name]} :job :as config}]
   (let [{:keys [track-time-name
                 track-pipeline-time
                 size-in-tracker
-                size-out-tracker]} (make-trackers stream)
+                size-out-tracker]} (make-trackers job-name stream)
         pipeline (track-pipeline-time (create-core-processor stream config))
         output-topic-fn (constantly output-topic)]
     (fn [state event]
@@ -218,7 +219,7 @@
   [stream ^String event]
   ;; this ugly stuff works because *stores* is thread-local
   (printf-stream "STATE[%s] : %s\n" stream event)
-  (track-time (str "pipeline.stores.local." stream ".restore.time")
+  (track-time (str "pipeline." (-> *config* :job :job-name) ".stores.local." stream ".restore.time")
     (let [kv-store (get *stores* stream)]
       (var-set kv-store
                (->> event
@@ -233,7 +234,7 @@
    it pushes the change to the running *global-stores*"
   [stream-id ^String event]
   (printf-stream "GLOBAL[%s] : %s\n" stream-id event)
-  (track-time (str "pipeline.stores.global." (name stream-id) ".restore.time")
+  (track-time (str "pipeline." (-> *config* :job :job-name) ".stores.global." (name stream-id) ".restore.time")
    (let [txlog (->> event from-json vector)]
      (swap! *global-stores*
             update
@@ -281,7 +282,7 @@
     ;;
     (catch Exception x
       (log/warn x "Error processing message from [" stream "]:" message)
-      (track-rate (str "pipeline." stream ".errors"))
+      (track-rate (str "pipeline." (-> *config* :job :job-name) "." stream ".errors"))
       (output-collector [[(str stream "-errors") key message]]))))
 
 
@@ -445,7 +446,3 @@
 
 
 )
-
-
-(defn dummy [a b c d msg]
-  (println msg))

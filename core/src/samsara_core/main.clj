@@ -129,7 +129,7 @@ DESCRIPTION
   (System/exit n))
 
 
-(defn- read-config
+(defn read-config
   "Read the user's configuration file
   and apply the default values."
   [config-file]
@@ -211,10 +211,10 @@ DESCRIPTION
     (log/info "nREPL disabled...!")))
 
 
-(defn start-processing! [config-file]
-  ;; TODO: only displaying the first stream
-  (let [{[{:keys [input-topic input-partitions output-topic]}]
-         :streams :as config} (init! config-file)
+
+(defn start-processing! [config]
+  ;; TODO: it is only displaying the first stream
+  (let [{[{:keys [input-topic input-partitions output-topic]}] :streams} config
          input-partitions (if (= input-partitions identity) :all input-partitions)]
     ;; starting nrepl
     (start-nrepl! (:nrepl config))
@@ -222,7 +222,9 @@ DESCRIPTION
     (samza/start! config)
     (log/info "Samsara CORE processing started: " input-topic
               "/" input-partitions "->" output-topic)
-    (show-console-progress! config)))
+    (show-console-progress! config)
+    ;; return the configuration
+    config))
 
 
 (defn -main
@@ -236,7 +238,7 @@ DESCRIPTION
      :default
      (do
        (println (headline))
-       (start-processing! (:config options))))))
+       (start-processing! (init! (:config options)))))))
 
 
 
