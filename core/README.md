@@ -107,20 +107,26 @@ command: `boot2docker ssh`.
 To track metrics I use [TRACKit!](https://github.com/samsara/trackit)
 and we expose the following metrics:
 
-The `<topic>` refers to the kafka topic which you are consuming, by default is `ingestion`.
+The `<job-name>` refers to the name gave in the configuration file
+to the particular job (as `(-> config :job :job-name)`). This is
+useful if multiple jobs are consuming the same topic with different
+pipelines in order to be able to distinguish them in the monitoring
+tool.
+The `<topic>` refers to the kafka topic which you are consuming, by
+default is `ingestion`.
 
 ```
 # counters to track the total size of
 # proceccesed data in bytes
 
-pipeline.<topic>.in.total-size.count
-pipeline.<topic>.out.total-size.count
+pipeline.<job-name>.<topic>.in.total-size.count
+pipeline.<job-name>.<topic>.out.total-size.count
 
 
 # Track distribution of the message size
 
-pipeline.<topic>.in.size
-pipeline.<topic>.out.size
+pipeline.<job-name>.<topic>.in.size
+pipeline.<job-name>.<topic>.out.size
 
 # for the above metrics these details are tracked
 
@@ -140,9 +146,14 @@ pipeline.<topic>.out.size
 # Tracking processing time and rate for
 # pipeline processing : internal pipeline
 # overall processing : including marshalling/unmarshalling
+# global store : time and rate to restore the state (single kv-entry)
+# local store : time and rate to restore the state (single kv-entry)
 
-pipeline.<topic>.overall-processing.time
-pipeline.<topic>.pipeline-processing.time
+
+pipeline.<job-name>.<topic>.overall-processing.time
+pipeline.<job-name>.<topic>.pipeline-processing.time
+pipeline.<job-name>.stores.global.<dimension>.restore.time
+pipeline.<job-name>.stores.local.<topic>.restore.time
 
              count = number of event processed
          mean_rate = mean rate x second
@@ -159,6 +170,7 @@ pipeline.<topic>.pipeline-processing.time
               p98 <=               ''
               p99 <=               ''
              p999 <=               ''
+
 ```
 
 These metrics can be pushed to any of the following systems: **graphite, grafana, ganglia, statsd, riemann.**

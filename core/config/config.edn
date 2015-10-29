@@ -2,12 +2,7 @@
  [{:id           :ingestion
    :input-topic  "ingestion"
    :state        :partitioned
-   :output-topic "events"}
-
-  {:id          :dim1
-   :input-topic "dimension1"
-   :state       :global
-   :bootstrap   true}]
+   :output-topic "events"}]
 
  :job
  {:job-name "Samsara"
