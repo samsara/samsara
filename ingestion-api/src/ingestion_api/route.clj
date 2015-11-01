@@ -73,9 +73,8 @@
 
 
 (def app
-  (->
-   (handler/site app-routes)
-   (wrap-json-body {:keywords? true})
-   (wrap-json-response)
-   (gzip-req-wrapper)
-   catch-all))
+  (-> app-routes
+      (wrap-json-body {:keywords? true})
+      (wrap-json-response)
+      (gzip-req-wrapper)
+      catch-all))
