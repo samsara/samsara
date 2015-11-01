@@ -43,7 +43,7 @@
                     (do
                       (track-distribution "ingestion.payload.size" (count events))
                       (send! events
-                             postingTimestamp
+                             (to-long postingTimestamp)
                              (-> system :http-server :backend :backend))
                       {:status 202
                        :body (warn-when-missing-header postingTimestamp)})))
