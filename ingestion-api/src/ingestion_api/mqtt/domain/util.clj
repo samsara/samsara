@@ -10,8 +10,9 @@
     (bit-shift-right b 4)))
 
 
-(defn to-byte-array [s]
+(defn to-byte-array
   "Converts a sequence a byte-array"
+  [s]
   (byte-array (map byte s)))
 
 (defn gloss-int-type
