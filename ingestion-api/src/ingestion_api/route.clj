@@ -1,5 +1,6 @@
 (ns ingestion-api.route
   (:require [ingestion-api.route-util :refer [gzip-req-wrapper]])
+  (:require [reloaded.repl :refer [system]])
   (:require [samsara.trackit :refer [track-distribution]])
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
@@ -41,10 +42,9 @@
                     {:status 400 :body (map #(if % % "OK") errors)}
                     (do
                       (track-distribution "ingestion.payload.size" (count events))
-                      (->> events
-                           (inject-receivedAt (System/currentTimeMillis))
-                           (inject-publishedAt (to-long postingTimestamp))
-                           send!)
+                      (send! events
+                             (to-long postingTimestamp)
+                             (-> system :http-server :backend :backend))
                       {:status 202
                        :body (warn-when-missing-header postingTimestamp)})))
 
@@ -73,9 +73,8 @@
 
 
 (def app
-  (->
-   (handler/site app-routes)
-   (wrap-json-body {:keywords? true})
-   (wrap-json-response)
-   (gzip-req-wrapper)
-   catch-all))
+  (-> app-routes
+      (wrap-json-body {:keywords? true})
+      (wrap-json-response)
+      (gzip-req-wrapper)
+      catch-all))

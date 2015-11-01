@@ -1,6 +1,5 @@
 (ns ingestion-api.backend-kafka
   (:refer-clojure :exclude [send])
-  (:require [ingestion-api.backend :refer [send]])
   (:import  [ingestion_api.backend EventsQueueingBackend])
   (:require [ingestion-api.docker :refer [docker-link-into]])
   (:require [clj-kafka.producer :as kp])

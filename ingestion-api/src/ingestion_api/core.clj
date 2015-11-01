@@ -1,21 +1,20 @@
 (ns ingestion-api.core
-  (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!]])
+  (:require [samsara.trackit :refer
+             [set-base-metrics-name! start-reporting!]])
   (:require [clojure.tools.cli :refer [parse-opts]])
-  (:require [org.httpkit.server :refer [run-server]])
+  (:require [aleph.http :refer [start-server]])
   (:require [taoensso.timbre :as log])
   (:require [clojure.java.io :as io])
   (:require [ring.middleware.reload :as reload])
-  (:require [ingestion-api.route :refer [app]]
-            [ingestion-api.events :refer [*backend*]])
-  (:require [ingestion-api.backend :refer [make-console-backend]]
-            [ingestion-api.backend-kafka :refer [make-kafka-backend make-kafka-backend-for-docker]])
+  (:require [reloaded.repl :refer [go set-init!]]
+            [ingestion-api.system :refer [ingestion-api-system]])
   (:gen-class))
-
 
 (def DEFAULT-CONFIG
   "Default configuration which will be merged with
   the user defined configuration."
   {:server {:port 9000 :auto-reload false}
+   :mqtt   {:port 10010 :enabled true}
 
    :log   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}
 
@@ -133,19 +132,6 @@ DESCRIPTION
 (log/merge-config! cfg))
 
 
-(defn- init-backend!
-  "Create the specified backend where to send the events"
-  [{:keys [type] :as cfg}]
-  (reset! *backend*
-          (case type
-            :console (make-console-backend cfg)
-            :kafka   (make-kafka-backend   cfg)
-            :kafka-docker   (make-kafka-backend-for-docker cfg)
-            (throw (RuntimeException. "Illegal backed type:" type))))
-  (log/info "Creating backend type: " type ", with config:" cfg))
-
-
-
 (defn- init-tracking!
   "Initialises the metrics tracking system"
   [{enabled :enabled :as cfg}]
@@ -161,28 +147,23 @@ DESCRIPTION
   (let [config (read-config config-file)]
 
     (init-log!      (-> config :log))
-    (init-backend!  (-> config :backend))
     (init-tracking! (-> config :tracking))
 
     config))
 
 
 (defn -main
- [& args]
+  [& args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)]
     (cond
-     (:help options)            (do (help! nil) (exit! 1))
-     (nil? (:config options))   (do (help! ["ERROR: Missing configuration."]) (exit! 1))
-     errors                     (do (help! errors) (exit! 1))
+      (:help options)            (do (help! nil) (exit! 1))
+      (nil? (:config options))   (do (help! ["ERROR: Missing configuration."]) (exit! 1))
+      errors                     (do (help! errors) (exit! 1))
 
-     :default
-     (let [_ (println (headline))
-           {config-file :config} options
-           {{:keys [port auto-reload] :as server} :server
-             :as config} (init! config-file)]
-       ;; starting server
-       (run-server (if auto-reload (reload/wrap-reload #'app) app) server)
-       (log/info "Samsara Ingestion-API listening on port: " port)
-       ;; warn when auto-reload is enabled
-       (when auto-reload
-             (log/warn "AUTO-RELOAD enabled!!! I hope you are in dev mode."))))))
+      :default
+      (let [_ (println (headline))
+            {config-file :config} options
+            config (init! config-file)]
+        (set-init! #(ingestion-api-system config))
+        ;; starting the system
+        (go)))))
