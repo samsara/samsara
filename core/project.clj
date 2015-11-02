@@ -19,7 +19,7 @@
                  [digest "1.4.4"]
                  [org.clojure/tools.nrepl "0.2.11"]
                  [clj-kafka "0.3.2"]
-                 ]
+                 [com.stuartsierra/component "0.3.0"]]
 
   :main samsara-core.main
 

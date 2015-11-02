@@ -1,10 +1,15 @@
 (ns samsara-core.kernel2
-  (:require [moebius.core :refer [where]]
+  (:require [com.stuartsierra.component :as component]
+            [moebius
+             [core :refer [where]]
+             [kv :as kv]]
             [samsara.utils :refer [from-json to-json]]))
 
-;;
-;; Kernel redesign
-;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;     ---==| S A M S A R A   K E R N E L   D I S P A T C H I N G |==----     ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (defn process
@@ -154,6 +159,150 @@
   (let [dispatcher (fn [x] {:topic (topicf x) :key (keyf x) :message x})]
     (fn [values]
       (handler (map dispatcher values)))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;               ---==| S T A T E   M A N A G E M E N T |==----               ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn thread-local
+  "Create a thread-local var"
+  [init]
+  (proxy [ThreadLocal] []
+    (initialValue [] init)))
+
+
+
+(defprotocol ILocalVar
+  (var-set [this new-val] "set the new value of a local var")
+  (var-get [this] "return the value of local var"))
+
+
+
+(extend-type ThreadLocal
+
+  ILocalVar
+  (var-set [this new-val] (.set this new-val))
+  (var-get [this] (.get this)))
+
+
+
+(defrecord SamsaraCore
+    [config            ;; normalized configuration currently used
+     dispatchers       ;; route dispatchers
+     global-stores     ;; global-stores for dimensions
+     stores]           ;; stream-local data stores (thread-locals)
+    component/Lifecycle
+
+
+  (start [{done :initialized :as this}]
+    (if-not done
+      (-> this
+          (assoc :global-stores (atom {}))
+          (assoc :stores        (thread-local (kv/make-in-memory-kvstore)))
+          (assoc :initialized   true))
+      this))
+
+
+  (stop [{done :initialized :as this}]
+    (if done
+      (-> this
+          (assoc :global-stores nil)
+          (assoc :stores        nil)
+          (assoc :initialized   false))
+      this)))
+
+
+
+(defn global-kv-restore
+  "Takes a bunch of tx-log events and restores them in the global-stores"
+  [{:keys [global-stores config] :as component} stream-id events]
+  ;; TODO: fix tracking
+  #_(printf-stream "GLOBAL[%s] : %s\n" stream-id event)
+  #_(track-time (str "pipeline."
+                     (-> *config* :job :job-name)
+                     ".stores.global." (name stream-id)
+                     ".restore.time"))
+  (swap! global-stores
+         update
+         stream-id
+         (fn [kvstore]
+           (kv/restore (or kvstore (kv/make-in-memory-kvstore))
+                       events))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;          ---==| S Y S T E M   I N I T I A L I Z A T I O N |==----          ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+(def ^:const DEFAULT-STREAM-CFG
+  {:input-partitions          :all
+   :state                     :none
+   :format                    :json
+   :processor                 "samsara-core.core/make-samsara-processor"
+   :processor-type            :samsara-factory
+   :bootstrap                 false
+   :output-topic-partition-fn :sourceId})
+
+
+
+(defn- stream-defaults
+  "Apply defaults for a stream configuration"
+  [{:keys [input-topic state-topic state processor] :as stream}]
+  (as-> stream it
+    ;; add default state-topic
+    (if (and (= :partitioned state) (not state-topic))
+      (assoc it :state-topic (str input-topic "-kv"))
+      it)
+    ;; ;; when state is global use global-kv-restore!
+    ;; (if (and (= :global state) (not processor))
+    ;;   (assoc it :processor-fn #'global-kv-restore)
+    ;;   it)
+    ;; ;; when state is global use global-kv-restore!
+    ;; (if (and (= :global state) (not processor))
+    ;;   (assoc it :processor-fn #'global-kv-restore)
+    ;;   it)
+
+    ;; merge defaults
+    (merge DEFAULT-STREAM-CFG it)))
+
+
+
+(defn- normalize-streams-with-defaults
+  "apply streams defaults"
+  [config]
+  (update config :streams
+          (partial mapv stream-defaults)))
+
+
+
+(defn make-samsara-core [config]
+  (let [cfg (normalize-streams-with-defaults config)]
+    (map->SamsaraCore {:config cfg})))
+
+
+
+(comment
+  (def config (#'samsara-core.main/read-config "./config/config.edn"))
+  (def config (read-string (slurp "./config/config.edn")))
+  )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                 ---==| * S C R A T C H   A R E A * |==----                 ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 
