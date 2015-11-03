@@ -5,6 +5,19 @@
              [kv :as kv]]
             [samsara.utils :refer [from-json to-json]]))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                           ---==| T O D O |==----                           ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; TODO: tracking needs to be reviewed
+;; TODO: display of events
+;; TODO: per message vs per batch error handling
+;;
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
 ;;     ---==| S A M S A R A   K E R N E L   D I S P A T C H I N G |==----     ;;
@@ -203,7 +216,6 @@
     (if-not done
       (-> this
           (assoc :global-stores (atom {}))
-          (assoc :stores        (thread-local (kv/make-in-memory-kvstore)))
           (assoc :initialized   true))
       this))
 
@@ -218,22 +230,32 @@
 
 
 
+(defn- kv-restore
+  "Restores the data from a txlog stream into a give kv-store.
+   If the kv-store is nil an empty in-memory is created instead."
+  [kvstore txlog-events]
+  (kv/restore (or kvstore (kv/make-in-memory-kvstore)) txlog-events))
+
+
+
 (defn global-kv-restore
   "Takes a bunch of tx-log events and restores them in the global-stores"
-  [{:keys [global-stores config] :as component} stream-id events]
-  ;; TODO: fix tracking
-  #_(printf-stream "GLOBAL[%s] : %s\n" stream-id event)
-  #_(track-time (str "pipeline."
-                     (-> *config* :job :job-name)
-                     ".stores.global." (name stream-id)
-                     ".restore.time"))
-  (swap! global-stores
-         update
-         stream-id
-         (fn [kvstore]
-           (kv/restore (or kvstore (kv/make-in-memory-kvstore))
-                       events))))
+  ([{:keys [component stream-id events]}]
+   (global-kv-restore component stream-id events))
+  ([{:keys [global-stores config] :as component} stream-id events]
+   (swap! global-stores
+          update
+          stream-id
+          kv-restore events)
+   []))
 
+
+(defn local-kv-restore
+  "Takes a bunch of tx-log events and restores them in the stream loca-stores"
+  ([{:keys [component stream-id events]}]
+   (let [kv-store (:local-store (stream-config component stream-id))]
+     (var-set kv-store
+              (kv-restore (var-get kv-store) events)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -257,20 +279,24 @@
 
 (defn- stream-defaults
   "Apply defaults for a stream configuration"
-  [{:keys [input-topic state-topic state processor] :as stream}]
+  [{:keys [input-topic state-topic state processor processor-type] :as stream}]
   (as-> stream it
     ;; add default state-topic
     (if (and (= :partitioned state) (not state-topic))
-      (assoc it :state-topic (str input-topic "-kv"))
+      (-> it
+          (assoc :state-topic (str input-topic "-kv"))
+          (assoc :local-store (thread-local (kv/make-in-memory-kvstore))))
       it)
-    ;; ;; when state is global use global-kv-restore!
-    ;; (if (and (= :global state) (not processor))
-    ;;   (assoc it :processor-fn #'global-kv-restore)
-    ;;   it)
-    ;; ;; when state is global use global-kv-restore!
-    ;; (if (and (= :global state) (not processor))
-    ;;   (assoc it :processor-fn #'global-kv-restore)
-    ;;   it)
+    ;; when state is global use global-kv-restore!
+    (if (and (= :global state) (not processor))
+      (-> it
+          (assoc :processor #'global-kv-restore)
+          (assoc :processor-type :component-stream-processor))
+      it)
+    ;; when state is global use global-kv-restore!
+    (if (and (= :global state) (not processor-type))
+      (assoc it :processor-type :component-stream-processor)
+      it)
 
     ;; merge defaults
     (merge DEFAULT-STREAM-CFG it)))
@@ -280,8 +306,14 @@
 (defn- normalize-streams-with-defaults
   "apply streams defaults"
   [config]
-  (update config :streams
-          (partial mapv stream-defaults)))
+  (-> config
+      (assoc  :priority (mapv :id (:streams config)))
+      (update :streams
+              (fn [streams]
+                (->> streams
+                     (map stream-defaults)
+                     (map (juxt :id identity))
+                     (into {}))))))
 
 
 
@@ -291,11 +323,99 @@
 
 
 
+(defn stream-config
+  "Return the configuration for the given stream"
+  [component stream-id]
+  (get-in component [:config :streams stream-id]))
+
+
 (comment
   (def config (#'samsara-core.main/read-config "./config/config.edn"))
   (def config (read-string (slurp "./config/config.edn")))
+
+
+  (normalize-streams-with-defaults config)
+
+  (def txlog
+    (doall
+     (->> (range 30)
+          (reduce (fn [kvs x]
+               (kv/set kvs
+                       (rand-nth ["d1" "d2" "d3"])
+                       (rand-nth [:k1 :k2 :k3])
+                       x))
+             (kv/make-in-memory-kvstore))
+          (kv/tx-log)
+          (map (fn [m] {:topic "vod-programme"
+                       :key   (first m)
+                       :partition 0
+                       :message (to-json m)})))))
+
+  (def cmp (component/start (make-samsara-core config)))
+
+  (-> cmp :global-stores)
+
+  (time ((dispatch-group-by
+          (build-routes-for-stream cmp :vod)) txlog))
+
   )
 
+
+;; TODO: add :string and :bytes
+(defn format-wrapper
+  [format handler]
+  (case format
+    :json   (from-json-format-wrapper handler)
+    handler))
+
+
+
+(defn component-stream-processor-wrapper
+  [component stream-id handler]
+  (fn [values]
+    (handler {:component component :stream-id stream-id :events values})))
+
+
+
+(defn- standard-stream-wrappers
+  [component stream-id handler]
+  (let [{:keys [format input-partitions]} (stream-config component stream-id)]
+    (->> handler
+         (component-stream-processor-wrapper component stream-id)
+         (message-only-wrapper)
+         (format-wrapper format)
+         (partition-filter-wrapper input-partitions))))
+
+
+
+(defn build-routes-for-stream [component stream-id]
+  (let [{:keys [input-topic state-topic state]} (stream-config component stream-id)]
+    (cond
+
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; build route for partitioned topic with no state
+      (= state :none)
+      [;; add route to handle topic data
+       [(where :topic = input-topic)
+        (standard-stream-wrappers component stream-id println)]]
+
+
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; build route for partitioned topic with partitioned state
+      (= state :partitioned)
+      [;; add route to handle kv-store
+       [(where :topic = state-topic)
+        (standard-stream-wrappers component stream-id local-kv-restore)]
+       ;; add route to handle topic data
+       [(where :topic = input-topic)
+        (standard-stream-wrappers component stream-id println)]]
+
+
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; build route for global state
+      (= state :global)
+      [[(where :topic = input-topic)
+        (standard-stream-wrappers component stream-id global-kv-restore)]])))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
