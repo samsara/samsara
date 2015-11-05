@@ -1,9 +1,15 @@
 (ns samsara-core.kernel2
-  (:require [com.stuartsierra.component :as component]
+  (:refer-clojure :exclude [var-get var-set])
+  (:require [clojure.string :as str]
+            [com.stuartsierra.component :as component]
             [moebius
-             [core :refer [where]]
+             [core :refer [where inject-if]]
              [kv :as kv]]
-            [samsara.utils :refer [from-json to-json]]))
+            [samsara.utils :refer [from-json to-json]]
+            [taoensso.timbre :as log])
+  (:require [samsara.trackit :refer [track-time track-rate new-registry
+                                     count-tracker distribution-tracker
+                                     track-pass-count] :as trk]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -15,6 +21,7 @@
 ;; TODO: tracking needs to be reviewed
 ;; TODO: display of events
 ;; TODO: per message vs per batch error handling
+;; TODO: handling of events which not match any route
 ;;
 
 
@@ -143,7 +150,7 @@
 
 (defn to-json-format-wrapper
   "a wrapper which convert the :message from a clojure data structure
-   into ajson formatted string."
+   into a json formatted string."
   [handler]
   (fn [values]
     (handler (map #(update % :message to-json) values))))
@@ -174,6 +181,15 @@
       (handler (map dispatcher values)))))
 
 
+;; TODO: add :string and :bytes
+(defn format-wrapper
+  "a wrapper which parses the :message from the appropriate format"
+  [format handler]
+  (case format
+    :json   (from-json-format-wrapper handler)
+    handler))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
@@ -202,30 +218,31 @@
   (var-set [this new-val] (.set this new-val))
   (var-get [this] (.get this)))
 
-
+(declare build-routes)
 
 (defrecord SamsaraCore
     [config            ;; normalized configuration currently used
-     dispatchers       ;; route dispatchers
+     routes            ;; route dispatchers
      global-stores     ;; global-stores for dimensions
-     stores]           ;; stream-local data stores (thread-locals)
+     output-collector]
     component/Lifecycle
 
 
-  (start [{done :initialized :as this}]
+  (start [{done :route config :config :as this}]
     (if-not done
       (-> this
-          (assoc :global-stores (atom {}))
-          (assoc :initialized   true))
+          (assoc :route (build-routes this))
+          (assoc :global-stores    (atom {}))
+          (assoc :output-collector (atom nil)))
       this))
 
 
-  (stop [{done :initialized :as this}]
+  (stop [{done :route :as this}]
     (if done
       (-> this
-          (assoc :global-stores nil)
-          (assoc :stores        nil)
-          (assoc :initialized   false))
+          (assoc :route            nil)
+          (assoc :global-stores    nil)
+          (assoc :output-collector nil))
       this)))
 
 
@@ -250,8 +267,9 @@
    []))
 
 
+
 (defn local-kv-restore
-  "Takes a bunch of tx-log events and restores them in the stream loca-stores"
+  "Takes a bunch of tx-log events and restores them in the stream local-stores"
   ([{:keys [component stream-id events]}]
    (let [kv-store (:local-store (stream-config component stream-id))]
      (var-set kv-store
@@ -280,26 +298,30 @@
 (defn- stream-defaults
   "Apply defaults for a stream configuration"
   [{:keys [input-topic state-topic state processor processor-type] :as stream}]
-  (as-> stream it
-    ;; add default state-topic
-    (if (and (= :partitioned state) (not state-topic))
-      (-> it
-          (assoc :state-topic (str input-topic "-kv"))
-          (assoc :local-store (thread-local (kv/make-in-memory-kvstore))))
-      it)
+  (as-> stream is
+
+    ;; add default state-topic configuration
+    (inject-if is (and (= :partitioned state) (not state-topic))
+               :state-topic (str input-topic "-kv"))
+
+    (inject-if is (and (= :partitioned state) (not state-topic))
+               :local-store (thread-local (kv/make-in-memory-kvstore)))
+
+
     ;; when state is global use global-kv-restore!
-    (if (and (= :global state) (not processor))
-      (-> it
-          (assoc :processor #'global-kv-restore)
-          (assoc :processor-type :component-stream-processor))
-      it)
+    (inject-if is (and (= :global state) (not processor))
+               :processor #'global-kv-restore)
+
+    (inject-if is (and (= :global state) (not processor))
+               :processor-type :component-stream-processor)
+
+
     ;; when state is global use global-kv-restore!
-    (if (and (= :global state) (not processor-type))
-      (assoc it :processor-type :component-stream-processor)
-      it)
+    (inject-if is (and (= :global state) (not processor-type))
+               :processor-type :component-stream-processor)
 
     ;; merge defaults
-    (merge DEFAULT-STREAM-CFG it)))
+    (merge DEFAULT-STREAM-CFG is)))
 
 
 
@@ -329,6 +351,186 @@
   (get-in component [:config :streams stream-id]))
 
 
+
+(defn component-stream-processor-wrapper
+  [component stream-id handler]
+  (fn [values]
+    (handler {:component component :stream-id stream-id :events values})))
+
+
+(defn- standard-stream-wrappers
+  [component stream-id handler]
+  (let [{:keys [format input-partitions]} (stream-config component stream-id)]
+    (->> handler
+         (message-only-wrapper)
+         (format-wrapper format)
+         (partition-filter-wrapper input-partitions))))
+
+
+(defn- tx-log->formatter
+  "Return a function which turns the tx-log into a a triplet of
+
+   [topic partition-key json-data]"
+  [kvstore-topic]
+  (fn [txlog]
+    (->> txlog
+         (map (fn [[k ver v]]
+                [kvstore-topic k (to-json [k ver v])])))))
+
+;; TODO: change txlog format look like events
+;; TODO: support dispatch-fn and  format fn
+(defn topic-process-wrapper [component stream-id pipeline]
+  (let [{:keys [local-store state-topic
+                output-topic-partition-fn output-topic ]
+         } (stream-config component stream-id)
+        output-collector (:output-collector component)
+        tx-log->messages (tx-log->formatter state-topic)
+        out-dispatch (fn [event] [output-topic
+                                 (output-topic-partition-fn event)
+                                 (to-json event)])]
+    (fn [events]
+      (let [state    (var-get local-store)
+            [new-state rich-events] (pipeline state events)
+            txlog     (kv/tx-log new-state)
+            txlog-msg (tx-log->messages txlog)
+            output-events (map out-dispatch events)
+            all-output (concat txlog-msg output-events)]
+
+        ;; emitting the output
+        (@output-collector all-output)
+
+        ;; flushing tx-log
+        (let [new-state' (kv/flush-tx-log new-state txlog)]
+          (var-set local-store new-state'))))))
+
+
+(defn load-function-from-name
+  ([fqn-fname]
+   (if (string? fqn-fname)
+     (let [[fns ff] (str/split fqn-fname #"/")]
+       (load-function-from-name fns ff))
+     fqn-fname))
+  ([fn-ns fn-name]
+   ;; requiring the namespace
+   (require (symbol fn-ns))
+   (let [fn-symbol (resolve (symbol fn-ns fn-name))]
+     (when-not fn-symbol
+       (throw (ex-info (str "function '" fn-ns "/" fn-name "' not found.") {})))
+     fn-symbol)))
+
+
+(defn processor-wrapper
+  ([component stream-id]
+   (let [{:keys [processor-type processor]} (stream-config component stream-id)]
+     (processor-wrapper component stream-id processor-type processor)))
+
+  ([component stream-id processor-type processor]
+   (log/debug "Initializing processor [" stream-id "/" processor-type "]:" processor)
+   (let [handler (load-function-from-name processor)]
+     (case processor-type
+       :component-stream-processor
+       (component-stream-processor-wrapper component stream-id handler)
+
+       :samsara-factory
+       (let [handler' (handler (:config component))]
+         (topic-process-wrapper component stream-id handler'))
+
+       :raw
+       handler))))
+
+
+
+(defn build-routes-for-stream [component stream-id]
+  (log/debug "Building routes for:" stream-id)
+  (let [{:keys [input-topic state-topic state]} (stream-config component stream-id)]
+    (cond
+
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; build route for partitioned topic with no state
+      (= state :none)
+      [;; add route to handle topic data
+       [(where :topic = input-topic)
+        (->> (processor-wrapper component stream-id)
+             (standard-stream-wrappers component stream-id))]]
+
+
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; build route for partitioned topic with partitioned state
+      (= state :partitioned)
+      [;; add route to handle kv-store
+       [(where :topic = state-topic)
+        (->> (processor-wrapper component stream-id
+                                :component-stream-processor local-kv-restore)
+             (standard-stream-wrappers component stream-id))]
+       ;; add route to handle topic data
+       [(where :topic = input-topic)
+        (->> (processor-wrapper component stream-id)
+             (standard-stream-wrappers component stream-id))]]
+
+
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; build route for global state
+      (= state :global)
+      [[(where :topic = input-topic)
+        (->> (processor-wrapper component stream-id)
+             (standard-stream-wrappers component stream-id))]]
+
+
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; build route for CUSTOM managed routes
+      (= state :custom)
+      [[(where :topic = input-topic)
+        (->> (processor-wrapper component stream-id)
+             (standard-stream-wrappers component stream-id))]]
+      )))
+
+
+(defn build-routes [component]
+  (mapcat (partial build-routes-for-stream component) (:priority (:config component))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                          ---==| T O O L S |==----                          ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(def all-events-counter
+  "return a function which is a counter
+   when called without argument the counter is increased
+   when called with :current-value it returns its current
+   value.
+
+      (all-events-counter) ;; increase the counter
+
+      (all-events-counter :current-value)
+      ;; => {:count 11}
+
+  "
+  (let [tmp-registry (new-registry)
+        counter (binding [trk/*registry* tmp-registry]
+                  (count-tracker "events.all.counter"))]
+    (fn
+      ([]
+       (counter))
+      ([x]
+       (case x
+         :current-value
+         (binding [trk/*registry* tmp-registry]
+           (trk/get-metric "events.all.counter"))
+         :unknown)))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                 ---==| * S C R A T C H   A R E A * |==----                 ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (comment
   (def config (#'samsara-core.main/read-config "./config/config.edn"))
   (def config (read-string (slurp "./config/config.edn")))
@@ -351,79 +553,37 @@
                        :partition 0
                        :message (to-json m)})))))
 
+  (def ingest
+    (doall
+     (->> (repeatedly
+           (fn []
+             {:timestamp (System/currentTimeMillis)
+              :eventName "test"
+              :sourceId (rand-nth ["d1" "d2" "d3"])
+              :action (rand-int 100)}))
+          (take 10)
+          (map (fn [x]
+                 {:topic "ingestion"
+                  :key   (:sourceId x)
+                  :partition 0
+                  :message x}))
+          (map #(update % :message to-json)))))
+
+  (def events (concat txlog ingest))
+
   (def cmp (component/start (make-samsara-core config)))
+  (reset! (:output-collector cmp) (fn [e] (doseq [x e] (prn "OUTPUT:" x)) ))
+
+  (build-routes cmp)
+
+  (build-routes-for-stream cmp :ingestion)
 
   (-> cmp :global-stores)
 
   (time ((dispatch-group-by
-          (build-routes-for-stream cmp :vod)) txlog))
+          (build-routes cmp)) events))
 
   )
-
-
-;; TODO: add :string and :bytes
-(defn format-wrapper
-  [format handler]
-  (case format
-    :json   (from-json-format-wrapper handler)
-    handler))
-
-
-
-(defn component-stream-processor-wrapper
-  [component stream-id handler]
-  (fn [values]
-    (handler {:component component :stream-id stream-id :events values})))
-
-
-
-(defn- standard-stream-wrappers
-  [component stream-id handler]
-  (let [{:keys [format input-partitions]} (stream-config component stream-id)]
-    (->> handler
-         (component-stream-processor-wrapper component stream-id)
-         (message-only-wrapper)
-         (format-wrapper format)
-         (partition-filter-wrapper input-partitions))))
-
-
-
-(defn build-routes-for-stream [component stream-id]
-  (let [{:keys [input-topic state-topic state]} (stream-config component stream-id)]
-    (cond
-
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-      ;; build route for partitioned topic with no state
-      (= state :none)
-      [;; add route to handle topic data
-       [(where :topic = input-topic)
-        (standard-stream-wrappers component stream-id println)]]
-
-
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-      ;; build route for partitioned topic with partitioned state
-      (= state :partitioned)
-      [;; add route to handle kv-store
-       [(where :topic = state-topic)
-        (standard-stream-wrappers component stream-id local-kv-restore)]
-       ;; add route to handle topic data
-       [(where :topic = input-topic)
-        (standard-stream-wrappers component stream-id println)]]
-
-
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-      ;; build route for global state
-      (= state :global)
-      [[(where :topic = input-topic)
-        (standard-stream-wrappers component stream-id global-kv-restore)]])))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                            ;;
-;;                 ---==| * S C R A T C H   A R E A * |==----                 ;;
-;;                                                                            ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
