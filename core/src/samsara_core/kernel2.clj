@@ -33,11 +33,9 @@
 
 
 (defn process
-  "Returns a function which takes a collection of values
-   and it applies the given handler to the values as a whole"
-  [handler]
-  (fn [values]
-    (handler values)))
+  "Apply the handler to the given values"
+  [handler values]
+  (handler values))
 
 
 
@@ -228,21 +226,21 @@
     component/Lifecycle
 
 
-  (start [{done :route config :config :as this}]
+  (start [{done :routes config :config :as this}]
     (if-not done
-      (-> this
-          (assoc :route (build-routes this))
-          (assoc :global-stores    (atom {}))
-          (assoc :output-collector (atom nil)))
+      (as-> this $
+          (assoc $ :global-stores    (atom {}))
+          (assoc $ :output-collector (atom nil))
+          (assoc $ :routes (dispatch-group-by (build-routes $))))
       this))
 
 
-  (stop [{done :route :as this}]
+  (stop [{done :routes :as this}]
     (if done
       (-> this
-          (assoc :route            nil)
-          (assoc :global-stores    nil)
-          (assoc :output-collector nil))
+          (assoc :routes            nil)
+          (assoc :global-stores     nil)
+          (assoc :output-collector  nil))
       this)))
 
 
@@ -268,6 +266,13 @@
 
 
 
+(defn stream-config
+  "Return the configuration for the given stream"
+  [component stream-id]
+  (get-in component [:config :streams stream-id]))
+
+
+
 (defn local-kv-restore
   "Takes a bunch of tx-log events and restores them in the stream local-stores"
   ([{:keys [component stream-id events]}]
@@ -284,14 +289,17 @@
 
 
 
-(def ^:const DEFAULT-STREAM-CFG
+(def DEFAULT-STREAM-CFG
   {:input-partitions          :all
    :state                     :none
    :format                    :json
    :processor                 "samsara-core.core/make-samsara-processor"
    :processor-type            :samsara-factory
    :bootstrap                 false
-   :output-topic-partition-fn :sourceId})
+   :output-topic-partition-fn :sourceId
+   ;; TODO: handle state :none in topic-wrapper
+   :local-store (thread-local (kv/make-in-memory-kvstore))
+   })
 
 
 
@@ -325,7 +333,7 @@
 
 
 
-(defn- normalize-streams-with-defaults
+(defn normalize-streams-with-defaults
   "apply streams defaults"
   [config]
   (-> config
@@ -340,15 +348,7 @@
 
 
 (defn make-samsara-core [config]
-  (let [cfg (normalize-streams-with-defaults config)]
-    (map->SamsaraCore {:config cfg})))
-
-
-
-(defn stream-config
-  "Return the configuration for the given stream"
-  [component stream-id]
-  (get-in component [:config :streams stream-id]))
+  (map->SamsaraCore {:config config}))
 
 
 
@@ -496,6 +496,12 @@
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def ^:dynamic *print-streams*  false)
+
+(defmacro printf-stream [& args]
+  `(when *print-streams*
+     (printf ~@args)))
+
 
 (def all-events-counter
   "return a function which is a counter
@@ -522,6 +528,46 @@
            (trk/get-metric "events.all.counter"))
          :unknown)))))
 
+;; TODO: remove this
+(defn events-counter-stats []
+  (all-events-counter :current-value))
+
+
+(def ^:dynamic *pipelines* nil)
+
+
+(defn init-pipeline! [config]
+  (log/info "Initialize processors...")
+  (let [cmp (component/start (make-samsara-core config))]
+    (alter-var-root #'*pipelines*
+                    (constantly
+                     (fn [output-collector stream partition key message]
+                       (reset! (:output-collector cmp) output-collector)
+                       (process (:routes cmp) [{:topic stream
+                                                :partition partition
+                                                :key key
+                                                :message message}]))))
+    cmp))
+
+
+(defn process-dispatch
+  "Takes an event as a JSON encoded String and depending on the stream
+   name dispatches the function to the appropriate handler.
+   One handler is the normal pipeline processing, the second handler
+   is for the kv-store"
+  [output-collector stream partition key message]
+
+  (all-events-counter)
+  (try
+    (*pipelines* output-collector stream partition key message)
+
+    ;;
+    ;; ERROR Handling
+    ;;
+    (catch Exception x
+      (log/warn x "Error processing message from [" stream "]:" message)
+      #_(track-rate (str "pipeline." (-> *config* :job :job-name) "." stream ".errors"))
+      (output-collector [[(str stream "-errors") key message]]))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -654,4 +700,45 @@
        ((process (dispatch-group-by dispatchers))))
 
 
+  )
+
+
+(comment
+
+  (require '[clj-kafka.producer :as kp])
+  (let [brokers "localhost:9092"
+        topic  "ingestion"
+        prodx  (kp/producer
+                {"metadata.broker.list" brokers
+                 "request.required.acks"  "-1"
+                 "producer.type" "sync"
+                 "serializer.class" "kafka.serializer.StringEncoder"
+                 "partitioner.class" "kafka.producer.DefaultPartitioner"})
+        now     (System/currentTimeMillis)
+        event   (fn [i] {:timestamp (+ now i) :eventName "test" :sourceId (str "d" i)})
+        events  (partition-all 1000 (take (* 5 1000 1000) (map event (range))))
+        ->msg   (fn [{:keys [sourceId] :as e}]
+                 (kp/message topic sourceId (to-json e)))]
+    (doseq [batch events]
+      (kp/send-messages prodx (map ->msg batch)))
+    :all-done)
+
+
+  (let [brokers "localhost:9092"
+        topic  "vod-programme"
+        prodx  (kp/producer
+                {"metadata.broker.list" brokers
+                 "request.required.acks"  "-1"
+                 "producer.type" "sync"
+                 "serializer.class" "kafka.serializer.StringEncoder"
+                 "partitioner.class" "kafka.producer.DefaultPartitioner"})
+        now     (System/currentTimeMillis)
+        kv      (kv/make-in-memory-kvstore)
+        kvx   (fn [kv i] (kv/set kv (str "d" (mod i 100)) :key i))
+        events  (partition-all 1000
+                               (kv/tx-log (reduce kvx kv (take (* 5 1000 1000) (range)))))
+        ->msg   (fn [[key :as tx]] (kp/message topic (str key) (to-json tx)))]
+    (doseq [batch events]
+      (kp/send-messages prodx (map ->msg batch)))
+    :all-done)
   )
