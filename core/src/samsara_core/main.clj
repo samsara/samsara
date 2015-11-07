@@ -1,6 +1,6 @@
 (ns samsara-core.main
   (:require [samsara-core.samza :as samza]
-            [samsara-core.kernel :as kern])
+            [samsara-core.kernel2 :as kern])
   (:require [samsara.utils :refer [stoppable-thread]])
   (:require [clojure.java.io :as io])
   (:require [taoensso.timbre :as log])
@@ -137,7 +137,7 @@ DESCRIPTION
        slurp
        read-string
        (merge-with merge DEFAULT-CONFIG)
-       (kern/normalize-stream-config)))
+       (kern/normalize-streams-with-defaults)))
 
 
 (defn- init-log!
@@ -214,13 +214,13 @@ DESCRIPTION
 
 (defn start-processing! [config]
   ;; TODO: it is only displaying the first stream
-  (let [{[{:keys [input-topic input-partitions output-topic]}] :streams} config
-         input-partitions (if (= input-partitions identity) :all input-partitions)]
+  (let [a 1 ;input-partitions (if (= input-partitions identity) :all input-partitions)
+        ]
     ;; starting nrepl
     (start-nrepl! (:nrepl config))
     ;; starting server
     (samza/start! config)
-    (log/info "Samsara CORE processing started: " input-topic
+    #_(log/info "Samsara CORE processing started: " input-topic
               "/" input-partitions "->" output-topic)
     (show-console-progress! config)
     ;; return the configuration

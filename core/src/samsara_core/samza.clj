@@ -1,6 +1,6 @@
 (ns samsara-core.samza
   (:require [clojure.string :as str]
-            [samsara-core.kernel :as kern]
+            [samsara-core.kernel2 :as kern]
             [where.core :refer [where]])
   (:import org.apache.samza.config.MapConfig
            org.apache.samza.job.JobRunner
@@ -12,7 +12,8 @@
 
 (defn samza-config [{:keys [job-name zookeepers brokers offset samza-overrides]}
                     streams]
-  (let [primary-topics (map :input-topic (filter (where :state = :partitioned) streams))
+  (let [primary-topics (map :input-topic (filter (where [:or [:state = :partitioned]
+                                                         [:state = :none]]) streams))
         state-topics (concat
                       (map :state-topic (filter (where :state = :partitioned) streams))
                       (map :input-topic (filter :bootstrap streams) streams))
@@ -99,7 +100,7 @@
    stream partition key message))
 
 
-(defn start! [{:keys [streams job] :as config}]
-  (let [cfg (samza-config job streams)]
+(defn start! [{:keys [streams priority job] :as config}]
+  (let [cfg (samza-config job (mapv #(streams %)  priority))]
     (display-samza-config cfg)
     (.run (JobRunner. (MapConfig. cfg)))))
