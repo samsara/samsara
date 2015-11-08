@@ -137,8 +137,14 @@
            (kv/set "s1" "key1" "v2")
            (kv/tx-log))
 
-       => [["s1" 1 {"key1" "v1"}]
-           ["s1" 2 {"key1" "v2"}]]
+       => (contains
+           [(contains
+             {:timestamp anything :eventName kv/EVENT-STATE-UPDATED
+              :sourceId "s1" :version 1 :value {"key1" "v1"}})
+
+            (contains
+             {:timestamp anything :eventName kv/EVENT-STATE-UPDATED
+              :sourceId "s1" :version 2 :value {"key1" "v2"}})])
 
 
 
@@ -149,9 +155,18 @@
            (kv/set "s1" "key1" nil)
            (kv/tx-log))
 
-       => [["s1" 1 {"key1" "v1"}]
-           ["s1" 2 {"key1" "v2"}]
-           ["s1" 3 {}]]
+       => (contains
+           [(contains
+             {:timestamp anything :eventName kv/EVENT-STATE-UPDATED
+              :sourceId "s1" :version 1 :value {"key1" "v1"}})
+
+            (contains
+             {:timestamp anything :eventName kv/EVENT-STATE-UPDATED
+              :sourceId "s1" :version 2 :value {"key1" "v2"}})
+
+            (contains
+             {:timestamp anything :eventName kv/EVENT-STATE-UPDATED
+              :sourceId "s1" :version 3 :value {}})])
 
 
        ;; mix instructions restore
@@ -221,7 +236,10 @@
 
              kvf (kv/flush-tx-log kv2 txlog)]
 
-         (kv/tx-log kvf) => [["s1" 4 {"key1" "v4"}]]))
+         (kv/tx-log kvf) => (just
+                             [(contains
+                               {:timestamp anything :eventName kv/EVENT-STATE-UPDATED
+                                :sourceId "s1" :version 4 :value {"key1" "v4"}})])))
 
 
 
@@ -257,12 +275,14 @@
              kv2 (-> (kv/make-in-memory-kvstore)
                      (kv/restore (kv/tx-log kv1)))]
 
-         (->> (kv/tx-log kv1)
-              (map (juxt first second))
-              (into {})) => {"s1" 3 "s2" 2}
+         (fact "tx-log version must be per sourceId"
+               (->> (kv/tx-log kv1)
+                    (map (juxt :sourceId :version))
+                    (into {})) => {"s1" 3 "s2" 2})
 
-         (->> (:data kv2)
-              :version) => {"s1" 3 "s2" 2}))
+         (fact "tx-log version must be restored as well"
+               (->> (:data kv2)
+                    :version) => {"s1" 3 "s2" 2})))
 
 
 
@@ -277,9 +297,23 @@
                      (kv/set "s1" "key1" "v3")
                      (kv/set "s2" "key2" "vC"))
 
-             txlog1 (conj (kv/tx-log kv1) ["s1" 1 {"key1" "DONT-PLAY-ME"}])
-             txlog2 (conj (kv/tx-log kv1) ["s1" 3 {"key1" "DONT-PLAY-ME"}])
-             txlog3 (conj (kv/tx-log kv1) ["s1" 4 {"key1" "PLAY-ME"}])
+             txlog1 (conj (kv/tx-log kv1) {:timestamp (System/currentTimeMillis)
+                                           :eventName kv/EVENT-STATE-UPDATED
+                                           :sourceId  "s1"
+                                           :version   1
+                                           :value     {"key1" "DONT-PLAY-ME"}})
+
+             txlog2 (conj (kv/tx-log kv1) {:timestamp (System/currentTimeMillis)
+                                           :eventName kv/EVENT-STATE-UPDATED
+                                           :sourceId  "s1"
+                                           :version   3
+                                           :value     {"key1" "DONT-PLAY-ME"}})
+
+             txlog3 (conj (kv/tx-log kv1) {:timestamp (System/currentTimeMillis)
+                                           :eventName kv/EVENT-STATE-UPDATED
+                                           :sourceId  "s1"
+                                           :version   4
+                                           :value     {"key1" "PLAY-ME"}})
              ]
 
          (fact "shouldn't replay a tx log with a smaller version value for s1/key1"

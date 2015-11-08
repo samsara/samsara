@@ -1,4 +1,4 @@
-(defproject samsara/moebius "0.3.0"
+(defproject samsara/moebius "0.4.0-SNAPSHOT"
   :description "A system to process and enrich and correlate events in realtime"
 
   :url "https://samsara.github.com/"
@@ -16,8 +16,15 @@
                  [rhizome "0.2.5"]                         ;; graphviz
                  ]
 
-  :profiles {:dev {:dependencies [[midje "1.7.0"]]
+
+  :profiles {:dev {:dependencies [[midje "1.7.0"]
+                                  [org.clojure/test.check "0.8.2"]]
                    :plugins [[lein-midje "3.1.3"]]}}
 
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
-                                   :sign-releases false}]])
+                                    :sign-releases false}]]
+
+
+  :aliases {"test-check" ["midje" ":filters" "test-check"]
+            "alltest"    ["midje"]
+            "test"       ["midje" ":filters" "-slow"]})

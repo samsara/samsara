@@ -5,6 +5,8 @@
   which relies on Clojure immutable maps."
   (:refer-clojure :exclude [set get update]))
 
+(def ^:const EVENT-STATE-UPDATED "kvstore.state.updated")
+
 ;;
 ;; TODO: force keys to string?
 ;;
@@ -109,7 +111,11 @@
          ;; add a tx-log record
          ((fn [{:keys [version tx-log snapshot] :as data}]
             (update-in data [:tx-log] conj
-                       [sourceId (version sourceId) (snapshot sourceId)]))))))
+                       {:timestamp (System/currentTimeMillis)
+                        :sourceId sourceId
+                        :eventName EVENT-STATE-UPDATED
+                        :version (version sourceId)
+                        :value (snapshot sourceId)}))))))
 
 
   (tx-log [kvstore]
@@ -122,7 +128,7 @@
 
   (restore [kvstore tx-log]
     (InMemoryKVstore.
-     (reduce (fn [state [sourceId version value]]
+     (reduce (fn [state {:keys [sourceId version value]}]
           ;; restore state only if the tx-log version is bigger
           (if (< (get-in state [:version sourceId] 0) version)
             (-> state
