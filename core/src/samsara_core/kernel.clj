@@ -1,4 +1,4 @@
-(ns samsara-core.kernel2
+(ns samsara-core.kernel
   (:refer-clojure :exclude [var-get var-set])
   (:require [samsara.trackit :refer [track-time track-rate new-registry
                                      count-tracker distribution-tracker
@@ -555,9 +555,13 @@
          :unknown)))))
 
 
-;; TODO: remove this after kernel2 migration
-(defn events-counter-stats []
-  (all-events-counter :current-value))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                           ---==| I N I T |==----                           ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (def ^:dynamic *pipelines* nil)

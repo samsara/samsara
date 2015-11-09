@@ -1,6 +1,6 @@
 (ns samsara-core.main
   (:require [samsara-core.samza :as samza]
-            [samsara-core.kernel2 :as kern])
+            [samsara-core.kernel :as kern])
   (:require [samsara.utils :refer [stoppable-thread]])
   (:require [clojure.java.io :as io])
   (:require [taoensso.timbre :as log])
@@ -166,7 +166,7 @@ DESCRIPTION
                    last-count 0} :as data}]
 
          (let [time'  (System/nanoTime)
-               count' (get (kern/events-counter-stats) :count 0)
+               count' (get (kern/all-events-counter :current-value) :count 0)
                processed (- count' last-count)
                rate (double (/ processed (/ (- time' last-time) 1000000000)))]
 

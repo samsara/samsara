@@ -1,6 +1,6 @@
 (ns samsara-core.samza
   (:require [clojure.string :as str]
-            [samsara-core.kernel2 :as kern]
+            [samsara-core.kernel :as kern]
             [where.core :refer [where]])
   (:import org.apache.samza.config.MapConfig
            org.apache.samza.job.JobRunner
