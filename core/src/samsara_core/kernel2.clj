@@ -1,16 +1,15 @@
 (ns samsara-core.kernel2
   (:refer-clojure :exclude [var-get var-set])
+  (:require [samsara.trackit :refer [track-time track-rate new-registry
+                                     count-tracker distribution-tracker
+                                     track-pass-count] :as trk])
   (:require [clojure.string :as str]
             [com.stuartsierra.component :as component]
             [moebius
-             [core :refer [where inject-if]]
+             [core :refer [inject-if where]]
              [kv :as kv]]
-            [samsara.utils :refer [from-json to-json]]
-            [taoensso.timbre :as log])
-  (:require [samsara.trackit :refer [track-time track-rate new-registry
-                                     count-tracker distribution-tracker
-                                     track-pass-count] :as trk]))
-
+            [samsara.utils :refer [from-json invariant to-json]]
+            [taoensso.timbre :as log]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
@@ -369,12 +368,36 @@
     (handler {:component component :stream-id stream-id :events values})))
 
 
+(defn pipeline-stats-wrapper [component stream-id pipeline]
+  (let [job-name (-> component :config :job :job-name)
+        prefix   (str "pipeline." job-name "." (name stream-id))
+        track-time-name2 (str prefix ".pipeline-processing.time")]
+    (fn [state events]
+      (track-time track-time-name2
+                  (pipeline state events)))))
+
+
+(defn stream-stats-wrapper [component stream-id handler]
+  (let [job-name (-> component :config :job :job-name)
+        prefix   (str "pipeline." job-name "." (name stream-id))
+        track-time-name (str prefix ".overall-processing.time")
+        total-size-in (count-tracker (str prefix ".in.total-size"))
+        dist-size-in (distribution-tracker (str prefix ".in.size"))
+        size-in-tracker (invariant #(let [sz (count %)]
+                                      (total-size-in sz)
+                                      (dist-size-in sz)))]
+    (fn [events]
+      (track-time track-time-name
+       (handler (map size-in-tracker events))))))
+
+
 (defn- standard-stream-wrappers
   [component stream-id handler]
   (let [{:keys [format input-partitions]} (stream-config component stream-id)]
     (->> handler
          (message-only-wrapper)
          (format-wrapper format)
+         (stream-stats-wrapper component stream-id)
          (partition-filter-wrapper input-partitions))))
 
 
@@ -434,8 +457,9 @@
        (component-stream-processor-wrapper component stream-id handler)
 
        :samsara-factory
-       (let [handler' (handler (:config component))]
-         (topic-process-wrapper component stream-id handler'))
+       (let [handler' (handler (:config component))
+             pipeline (pipeline-stats-wrapper component stream-id handler')]
+         (topic-process-wrapper component stream-id pipeline))
 
        :raw
        handler))))
@@ -530,7 +554,8 @@
            (trk/get-metric "events.all.counter"))
          :unknown)))))
 
-;; TODO: remove this
+
+;; TODO: remove this after kernel2 migration
 (defn events-counter-stats []
   (all-events-counter :current-value))
 
@@ -543,13 +568,33 @@
   (let [cmp (component/start (make-samsara-core config))]
     (alter-var-root #'*pipelines*
                     (constantly
-                     (fn [output-collector stream partition key message]
-                       (reset! (:output-collector cmp) output-collector)
-                       (process (:routes cmp) [{:topic stream
-                                                :partition partition
-                                                :key key
-                                                :message message}]))))
+                     (fn
+                       ([] cmp)
+                       ([output-collector stream partition key message]
+                        (reset! (:output-collector cmp) output-collector)
+                        (process (:routes cmp) [{:topic stream
+                                                 :partition partition
+                                                 :key key
+                                                 :message message}])))))
     cmp))
+
+
+
+;; TODO: this should use the stream-id instead
+(def output-collector-tracker
+  (memoize
+   (fn [job-name stream]
+     (let [prefix (str "pipeline." job-name "." stream)
+           total-size-out(count-tracker (str prefix ".out.total-size"))
+           dist-size-out (distribution-tracker (str prefix ".out.size"))
+
+           size-out-tracker (invariant #(let [sz (count (last %))]
+                                          (total-size-out sz)
+                                          (dist-size-out sz)))]
+       (fn [output-collector]
+         (fn [outputs]
+           (output-collector (map size-out-tracker outputs))))))))
+
 
 
 (defn process-dispatch
@@ -559,76 +604,20 @@
    is for the kv-store"
   [output-collector stream partition key message]
 
-  (all-events-counter)
-  (try
-    (*pipelines* output-collector stream partition key message)
+  (let [collector-tracker (output-collector-tracker
+                           (-> (*pipelines*) :config :job :job-name) stream)]
 
-    ;;
-    ;; ERROR Handling
-    ;;
-    (catch Exception x
-      (log/warn x "Error processing message from [" stream "]:" message)
-      #_(track-rate (str "pipeline." (-> *config* :job :job-name) "." stream ".errors"))
-      (output-collector [[(str stream "-errors") key message]]))))
+    (all-events-counter)
+    (try
 
+      (*pipelines* (collector-tracker output-collector)
+                   stream partition key message)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                            ;;
-;;                 ---==| * S C R A T C H   A R E A * |==----                 ;;
-;;                                                                            ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(comment
-  (def config (#'samsara-core.main/read-config "./config/config.edn"))
-  (def config (read-string (slurp "./config/config.edn")))
-
-
-  (normalize-streams-with-defaults config)
-
-  (def txlog
-    (doall
-     (->> (range 30)
-          (reduce (fn [kvs x]
-               (kv/set kvs
-                       (rand-nth ["d1" "d2" "d3"])
-                       (rand-nth [:k1 :k2 :k3])
-                       x))
-             (kv/make-in-memory-kvstore))
-          (kv/tx-log)
-          (map (fn [m] {:topic "vod-programme"
-                       :key   (first m)
-                       :partition 0
-                       :message (to-json m)})))))
-
-  (def ingest
-    (doall
-     (->> (repeatedly
-           (fn []
-             {:timestamp (System/currentTimeMillis)
-              :eventName "test"
-              :sourceId (rand-nth ["d1" "d2" "d3"])
-              :action (rand-int 100)}))
-          (take 10)
-          (map (fn [x]
-                 {:topic "ingestion"
-                  :key   (:sourceId x)
-                  :partition 0
-                  :message x}))
-          (map #(update % :message to-json)))))
-
-  (def events (concat txlog ingest))
-
-  (def cmp (component/start (make-samsara-core config)))
-  (reset! (:output-collector cmp) (fn [e] (doseq [x e] (prn "OUTPUT:" x)) ))
-
-  (build-routes cmp)
-
-  (build-routes-for-stream cmp :ingestion)
-
-  (-> cmp :global-stores)
-
-  (time ((dispatch-group-by
-          (build-routes cmp)) events))
-
-  )
+      ;;
+      ;; ERROR Handling
+      ;;
+      (catch Exception x
+        (log/warn x "Error processing message from [" stream "]:" message)
+        (track-rate (str "pipeline." (-> (*pipelines*) :config :job :job-name)
+                         "." stream ".errors"))
+        (output-collector [[(str stream "-errors") key message]])))))
