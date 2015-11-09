@@ -1,4 +1,4 @@
-(defproject samsara/moebius "0.4.0-SNAPSHOT"
+(defproject samsara/moebius "0.4.0"
   :description "A system to process and enrich and correlate events in realtime"
 
   :url "https://samsara.github.com/"
