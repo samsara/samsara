@@ -252,6 +252,16 @@
   (kv/restore (or kvstore (kv/make-in-memory-kvstore)) txlog-events))
 
 
+(defn- normalize-kvstore-events [events]
+  (map (fn [event]
+         (if (map? event)
+           event
+           {:timestamp 0 :eventName kv/EVENT-STATE-UPDATED
+            :sourceId (first event) :version (second event)
+            :value (last event)}))
+       events))
+
+
 
 (defn global-kv-restore
   "Takes a bunch of tx-log events and restores them in the global-stores"
@@ -261,7 +271,7 @@
    (swap! global-stores
           update
           stream-id
-          kv-restore events)
+          kv-restore (normalize-kvstore-events events))
    []))
 
 
@@ -278,7 +288,8 @@
   ([{:keys [component stream-id events]}]
    (let [kv-store (:local-store (stream-config component stream-id))]
      (var-set kv-store
-              (kv-restore (var-get kv-store) events)))))
+              (kv-restore (var-get kv-store)
+                          (normalize-kvstore-events events))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -367,24 +378,15 @@
          (partition-filter-wrapper input-partitions))))
 
 
-(defn- tx-log->formatter
-  "Return a function which turns the tx-log into a a triplet of
-
-   [topic partition-key json-data]"
-  [kvstore-topic]
-  (fn [txlog]
-    (->> txlog
-         (map (fn [[k ver v]]
-                [kvstore-topic k (to-json [k ver v])])))))
-
-;; TODO: change txlog format look like events
 ;; TODO: support dispatch-fn and  format fn
 (defn topic-process-wrapper [component stream-id pipeline]
   (let [{:keys [local-store state-topic
                 output-topic-partition-fn output-topic ]
          } (stream-config component stream-id)
         output-collector (:output-collector component)
-        tx-log->messages (tx-log->formatter state-topic)
+        tx-log->messages (fn [event] [state-topic
+                                     (:sourceId event)
+                                     (to-json event)])
         out-dispatch (fn [event] [output-topic
                                  (output-topic-partition-fn event)
                                  (to-json event)])]
@@ -392,7 +394,7 @@
       (let [state    (var-get local-store)
             [new-state rich-events] (pipeline state events)
             txlog     (kv/tx-log new-state)
-            txlog-msg (tx-log->messages txlog)
+            txlog-msg (map tx-log->messages txlog)
             output-events (map out-dispatch events)
             all-output (concat txlog-msg output-events)]
 
@@ -629,116 +631,4 @@
   (time ((dispatch-group-by
           (build-routes cmp)) events))
 
-  )
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defn rand-topic []
-  (rand-nth ["ingestion" "ingestion-kv" "vod-programme" "brands" "matrix"]))
-
-(defn rand-partition []
-  (rand-int 5))
-
-(defn rand-key []
-  (str "key-" (rand-int 100)))
-
-(defn rand-msg []
-  (to-json
-   {:a (rand-nth ["hi" "hola" "ciao" "sia" "czesc" "salut"])
-    :b (rand-int 100)
-    :c (rand-int 100)}))
-
-(defn rand-element []
-  {:topic     (rand-topic)
-   :partition (rand-partition)
-   :key       (rand-key)
-   :message   (rand-msg)})
-
-(defn rand-stream []
-  (repeatedly rand-element))
-
-(defonce values (take 30 (rand-stream)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(def global (atom []))
-
-(def dispatchers
-  [[(where [:or [:topic = "ingestion"] [:topic = "ingestion-kv"]])
-    (->> (dispatch-group-by
-          [[(where :topic = "ingestion-kv") (message-only-wrapper (fn [v] [{:kv v}]))]
-           [:default (message-only-wrapper
-                      (topic-dispatcher
-                       #(if (even? (:b %)) "even" "odd") :a
-                       (to-json-format-wrapper
-                        (fn [v] [{:stream v}]))))]])
-         from-json-format-wrapper
-         (partition-filter-wrapper [1 2]))
-    ]
-
-   [(where :topic = "vod-programme")
-    (fn [values]
-      (->> values
-           (map (comp from-json :message))
-           (swap! global into))
-      [])]
-
-   [(where :topic = "brands")
-    (fn [values]
-      (->> values
-           (map (comp from-json :message))
-           (swap! global into))
-      [])]
-
-   [:default (fn [v])]])
-
-(comment
-  (->> values
-       ((process (dispatch-group-by dispatchers))))
-
-
-  )
-
-
-(comment
-
-  (require '[clj-kafka.producer :as kp])
-  (let [brokers "localhost:9092"
-        topic  "ingestion"
-        prodx  (kp/producer
-                {"metadata.broker.list" brokers
-                 "request.required.acks"  "-1"
-                 "producer.type" "sync"
-                 "serializer.class" "kafka.serializer.StringEncoder"
-                 "partitioner.class" "kafka.producer.DefaultPartitioner"})
-        now     (System/currentTimeMillis)
-        event   (fn [i] {:timestamp (+ now i) :eventName "test" :sourceId (str "d" i)})
-        events  (partition-all 1000 (take (* 5 1000 1000) (map event (range))))
-        ->msg   (fn [{:keys [sourceId] :as e}]
-                 (kp/message topic sourceId (to-json e)))]
-    (doseq [batch events]
-      (kp/send-messages prodx (map ->msg batch)))
-    :all-done)
-
-
-  (let [brokers "localhost:9092"
-        topic  "vod-programme"
-        prodx  (kp/producer
-                {"metadata.broker.list" brokers
-                 "request.required.acks"  "-1"
-                 "producer.type" "sync"
-                 "serializer.class" "kafka.serializer.StringEncoder"
-                 "partitioner.class" "kafka.producer.DefaultPartitioner"})
-        now     (System/currentTimeMillis)
-        kv      (kv/make-in-memory-kvstore)
-        kvx   (fn [kv i] (kv/set kv (str "d" (mod i 100)) :key i))
-        events  (partition-all 1000
-                               (kv/tx-log (reduce kvx kv (take (* 5 1000 1000) (range)))))
-        ->msg   (fn [[key :as tx]] (kp/message topic (str key) (to-json tx)))]
-    (doseq [batch events]
-      (kp/send-messages prodx (map ->msg batch)))
-    :all-done)
   )
