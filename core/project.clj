@@ -1,4 +1,4 @@
-(defproject samsara/samsara-core "0.4.0"
+(defproject samsara/samsara-core "0.5.0-SNAPSHOT"
   :description "Event stream processing pipeline"
 
   :url "https://samsara.github.com/"
@@ -11,7 +11,7 @@
                  [org.slf4j/slf4j-log4j12 "1.7.12"]
                  [org.apache.samza/samza-api        "0.9.1"]
                  [org.apache.samza/samza-kafka_2.10 "0.9.1"]
-                 [samsara/moebius "0.3.0"]
+                 [samsara/moebius "0.4.0"]
                  [samsara/samsara-utils "0.4.0"]
                  [samsara/trackit "0.2.2"]
                  [com.taoensso/timbre "3.4.0"]
