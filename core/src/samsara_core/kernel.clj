@@ -3,6 +3,8 @@
   (:require [samsara.trackit :refer [track-time track-rate new-registry
                                      count-tracker distribution-tracker
                                      track-pass-count] :as trk])
+  (:require [samsara-core.utils :refer [load-txlog-from-file
+                                        normalize-kvstore-events]])
   (:require [clojure.string :as str]
             [com.stuartsierra.component :as component]
             [moebius
@@ -195,6 +197,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(def ^:dynamic *pipelines* nil)
+
+
 (defn thread-local
   "Create a thread-local var"
   [init]
@@ -251,16 +256,6 @@
   (kv/restore (or kvstore (kv/make-in-memory-kvstore)) txlog-events))
 
 
-(defn- normalize-kvstore-events [events]
-  (map (fn [event]
-         (if (map? event)
-           event
-           {:timestamp 0 :eventName kv/EVENT-STATE-UPDATED
-            :sourceId (first event) :version (second event)
-            :value (last event)}))
-       events))
-
-
 
 (defn global-kv-restore
   "Takes a bunch of tx-log events and restores them in the global-stores"
@@ -272,6 +267,22 @@
           stream-id
           kv-restore (normalize-kvstore-events events))
    []))
+
+
+
+(defn global-store [store-id]
+  (some-> (*pipelines*) :global-stores deref (get store-id)))
+
+
+
+(defn global-store-lookup [store-id sourceId key]
+  (some-> (global-store store-id) (kv/get sourceId key)))
+
+
+
+(defn load-global-store-from-txlog-file! [keystore-id file]
+  (let [kvstore (load-txlog-from-file file)]
+    (swap! (:global-stores (*pipelines*)) assoc keystore-id kvstore)))
 
 
 
@@ -418,7 +429,7 @@
             [new-state rich-events] (pipeline state events)
             txlog     (kv/tx-log new-state)
             txlog-msg (map tx-log->messages txlog)
-            output-events (map out-dispatch events)
+            output-events (map out-dispatch rich-events)
             all-output (concat txlog-msg output-events)]
 
         ;; emitting the output
@@ -562,9 +573,6 @@
 ;;                           ---==| I N I T |==----                           ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(def ^:dynamic *pipelines* nil)
 
 
 (defn init-pipeline! [config]

@@ -24,6 +24,22 @@
       (.write wrtr (str (to-json tx) \newline)))))
 
 
+
+(defn normalize-kvstore-events
+  "Identifies if the kvstore events are in the old format
+   [key version value] or the new event format
+   and normalizes the to the new event format."
+  [events]
+  (map (fn [event]
+         (if (map? event)
+           event
+           {:timestamp 0 :eventName kv/EVENT-STATE-UPDATED
+            :sourceId (first event) :version (second event)
+            :value (last event)}))
+       events))
+
+
+
 (defn load-txlog-from-file
   ([tx-file]
    (load-txlog-from-file (kv/make-in-memory-kvstore)  tx-file))
@@ -31,6 +47,7 @@
    (with-open [rdr (io/reader (gzip-input-stream-wrapper tx-file))]
      (->> (line-seq rdr)
           (map from-json)
+          normalize-kvstore-events
           (kv/restore kvstore)))))
 
 
@@ -45,8 +62,9 @@
                  "producer.type" "sync"
                  "serializer.class" "kafka.serializer.StringEncoder"
                  "partitioner.class" "kafka.producer.DefaultPartitioner"})]
-    (let [->msg (fn [[key :as tx]] (kp/message topic (str key) (to-json tx)))]
-      (kp/send-messages prodx (map ->msg txlog)))))
+    (let [->msg (fn [tx] (kp/message topic (:sourceId tx) (to-json tx)))]
+      (doseq [batch (partition-all 1000 (map ->msg txlog))]
+        (kp/send-messages prodx batch)))))
 
 
 
