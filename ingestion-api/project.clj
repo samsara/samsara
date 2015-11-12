@@ -18,13 +18,13 @@
                  [org.clojure/tools.cli "0.3.1"]
                  [samsara/trackit "0.2.0"]
                  [org.clojure/math.numeric-tower "0.0.4"]
-                 [com.stuartsierra/component "0.3.0"]
-                 [reloaded.repl "0.2.1"]]
+                 [com.stuartsierra/component "0.3.0"]]
   :main ingestion-api.core
   :profiles {:uberjar {:aot :all}
              :dev {:dependencies [[midje "1.6.3"]
                                   [clojurewerkz/machine_head "1.0.0-beta9"]
-                                  [clj-mqtt "0.4.1-alpha"]]
+                                  [clj-mqtt "0.4.1-alpha"]
+                                  [reloaded.repl "0.2.1"]]
                    :plugins [[lein-midje "3.1.3"]
                              [lein-bin "0.3.5"]]}}
   :jvm-opts ["-server" "-Dfile.encoding=utf-8"]
