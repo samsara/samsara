@@ -22,6 +22,7 @@ ADD ./elasticsearch.yml.min  /etc/elasticsearch/elasticsearch.yml
 RUN /usr/share/elasticsearch/bin/plugin -install royrusso/elasticsearch-HQ && \
     /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head && \
     /usr/share/elasticsearch/bin/plugin -install lmenezes/elasticsearch-kopf && \
+    /usr/share/elasticsearch/bin/plugin -install elasticsearch/elasticsearch-cloud-aws/2.6.1 && \
     /usr/share/elasticsearch/bin/plugin -url https://github.com/grmblfrz/elasticsearch-zookeeper/releases/download/v1.6.1/elasticsearch-zookeeper-1.6.1.zip -install zookeeper
 
 ADD ./elasticsearch.yml.tmpl  /etc/elasticsearch/elasticsearch.yml.tmpl
