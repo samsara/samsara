@@ -43,3 +43,20 @@ sonian.elasticsearch.zookeeper:
     settings.enabled: true
     client.host: %%ZOOKEEPER_PORT_2181_TCP_ADDR%%:%%ZOOKEEPER_PORT_2181_TCP_PORT%%
     discovery.state_publishing.enabled: true
+
+cloud:
+    aws:
+        access_key: %%AWS_ACCESS_KEY%%
+        secret_key: %%AWS_SECRET_KEY%%
+        region: %%AWS_REGION%%
+
+repositories:
+    s3:
+        bucket: %%AWS_REPOS_NAME%%
+        region: %%AWS_REGION%%
+        access_key: %%AWS_REPOS_ACCESS_KEY%%
+        secret_key: %%AWS_REPOS_SECRET_KEY%%
+        base_path: %%AWS_REPOS_BASE_PATH%%
+        compress: true
+        max_retries: 10
+
