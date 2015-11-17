@@ -1,4 +1,4 @@
-# Samsara Ingestion-API
+# Samsara Kafka
 
 A production ready installation of Apache Kafka
 
