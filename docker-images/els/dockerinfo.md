@@ -1,6 +1,6 @@
 # Samsara ElasticSearch
 
-A production ready installation of Apache ElasticSearch
+A production ready installation of Elastic's ElasticSearch
 
 Github project: [https://github.com/samsara/samsara-docker-images](https://github.com/samsara/samsara-docker-images)
 
