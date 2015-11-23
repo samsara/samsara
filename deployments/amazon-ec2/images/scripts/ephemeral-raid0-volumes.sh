@@ -6,6 +6,9 @@ if [ "$(id -u)" != "0" ] ; then
     exit $?
 fi
 
+echo "waiting for system to fully come online."
+sleep 30
+
 echo '------------------------------------------------------------------'
 echo '          ephemeral  /data and /logs volumes installation'
 echo '------------------------------------------------------------------'
