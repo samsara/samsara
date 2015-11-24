@@ -46,6 +46,14 @@ exec /usr/bin/docker run --name els \
        -e "ADV_IP=$(curl 'http://169.254.169.254/latest/meta-data/local-ipv4')" \
        -e ZOOKEEPER_PORT_2181_TCP_ADDR=zookeeper.service.consul \
        -e "ZOOKEEPER_PORT_2181_TCP_PORT=2181" \
+       -e ELS_NODE_TYPE="$(user-data ELS_NODE_TYPE)" \
+       -e AWS_ACCESS_KEY="$(user-data AWS_ACCESS_KEY)" \
+       -e AWS_SECRET_KEY="$(user-data AWS_SECRET_KEY)" \
+       -e AWS_REGION="$(user-data AWS_REGION)" \
+       -e AWS_REPOS_ACCESS_KEY="$(user-data AWS_REPOS_ACCESS_KEY)" \
+       -e AWS_REPOS_SECRET_KEY="$(user-data AWS_REPOS_SECRET_KEY)" \
+       -e AWS_REPOS_NAME="$(user-data AWS_REPOS_NAME)" \
+       -e AWS_REPOS_BASE_PATH="$(user-data AWS_REPOS_BASE_PATH)" \
        `cat /etc/samsara/images/els`
 
 pre-stop script
