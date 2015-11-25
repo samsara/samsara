@@ -744,7 +744,7 @@ resource "aws_elb" "els" {
 
     health_check {
       healthy_threshold = 3
-      unhealthy_threshold = 2
+      unhealthy_threshold = 5
       timeout = 10
       target = "HTTP:9200/"
       interval = 30
