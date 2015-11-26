@@ -383,6 +383,7 @@
           (assoc event :new-property \"a-value\"))
 
   "
+  {:style/indent 2}
   [event name & body]
   `(let [_event# ~event _name# ~name
          _names# (if (string? _name#) [_name#] _name#)]
@@ -416,6 +417,7 @@
   It implies a `:else` statement so you can't use one in yours.
 
   "
+  {:style/indent 1}
   [event & body]
   `(let [_event# ~event]
      (match [_event#]
