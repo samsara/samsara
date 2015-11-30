@@ -9,6 +9,8 @@
             [clj-time.periodic :refer [periodic-seq]]
             [clojure.core.async :as a :refer [<!! thread]]))
 
+(comment
+
 ;; Config
 (def ^:dynamic *config* nil)
 (def ^{:dynamic true :private true} !buffer! (atom nil))
@@ -201,3 +203,4 @@
       (snapshot)
       last
       second))
+)

@@ -21,9 +21,9 @@
 
 (defprotocol PRingBuffer
   "Protocol that the RingBuffer type must implement."
-  (enqueue! [this item]
+  (enqueue [this item]
     "Add an item to the Ring Buffer.")
-  (dequeue! [this items]
+  (dequeue [this items]
     "Given a list of [id events] will remove the events which are still in the Ring Buffer.")
   (snapshot [this]
     "Returns an immutable snapshot of the current state of the Ring Buffer.")
@@ -44,13 +44,13 @@
     (pr-str buffer))
 
   PRingBuffer
-  (enqueue! [this item]
+  (enqueue [this item]
     (let [id (inc counter)]
       (RingBuffer. id (into buffer [[id item]]))))
   (snapshot [this] buffer)
   (items [this]
     (map second buffer))
-  (dequeue! [this items]
+  (dequeue [this items]
     (RingBuffer. counter (drop-items buffer items)))
   )
 
