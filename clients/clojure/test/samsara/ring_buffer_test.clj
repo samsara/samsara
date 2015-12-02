@@ -112,6 +112,56 @@
           (enqueue :d)
           (enqueue :e)
           (enqueue :f)
-          (dequeue [[1 :a] [2 :a]])
+          (dequeue [[1 :a] [2 :b]])
           (snapshot)) => [[4 :d] [5 :e] [6 :f]]
+      )
+
+
+(fact "ring-buffer: dequeue can work with present ids and overran ones"
+
+      (-> (ring-buffer 3)
+          (enqueue :a)
+          (enqueue :b)
+          (enqueue :c)
+          (enqueue :d)
+          (enqueue :e)
+          (enqueue :f)
+          (dequeue [[1 :a] [2 :b] [3 :c] [4 :d] [5 :e] [6 :f]])
+          (snapshot)) => []
+      )
+
+
+
+(fact "ring-buffer: dequeue removes only consecutive ids"
+
+      (-> (ring-buffer 3)
+          (enqueue :a)
+          (enqueue :b)
+          (enqueue :c)
+          (enqueue :d)
+          (enqueue :e) ;; you can't remove :f if you don't remove :e
+          (enqueue :f)
+          (dequeue [[1 :a] [2 :b] [3 :c] [4 :d] [6 :f]])
+          (snapshot)) => [[5 :e] [6 :f]]
+      )
+
+
+
+(fact "ring-buffer: dequeue of one element in buffer of size 1"
+
+      (-> (ring-buffer 1)
+          (enqueue :a)
+          (enqueue :b)
+          (enqueue :c)
+          (enqueue :d)
+          (enqueue :e) ;; you can't remove :f if you don't remove :e
+          (enqueue :f)
+          (dequeue [[6 :f]])
+          (snapshot)) => []
+      )
+
+
+(fact "ring-buffer: you can't create a buffer of size 0"
+
+      (-> (ring-buffer 0)) =throws=> Exception
       )
