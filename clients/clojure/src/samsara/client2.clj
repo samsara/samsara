@@ -37,20 +37,17 @@
 (defn- send-events
   "Makes an HTTP request to the service endpoint specified by 'url'
    and posts the given events. If successful returns the HTTP response."
-  [url events {:keys [send-timeout-ms] :or {send-timeout-ms 30000}}]
+  [url headers body {:keys [send-timeout-ms] :or {send-timeout-ms 30000}}]
   ;; post to ingestion-api
-  (http/post (str url "/events")
+  (http/post url
              ;; set timeout
              {:socket-timeout send-timeout-ms :conn-timeout send-timeout-ms
               ;; expected response format
               :accept :json :as :json
               ;; payload format
-              :headers {"Content-Type" "application/json"
-                        ;; add pusblisjedTimestamp
-                        "X-Samsara-publishedTimestamp"
-                        (str (System/currentTimeMillis))}
+              :headers headers
               ;; events payload
-              :body (to-json events)}))
+              :body body}))
 
 
 
@@ -75,7 +72,15 @@
 
    (when-let [errors (validate-events :batch events)]
      (throw (ex-info "Invalid events found." {:validation-error errors})))
-   (send-events url events opts)))
+   (send-events (str url "/events")
+                ;; headers
+                {"Content-Type" "application/json"
+                 ;; add pusblisjedTimestamp
+                 "X-Samsara-publishedTimestamp"
+                 (str (System/currentTimeMillis))}
+                ;; body
+                (to-json events)
+                opts)))
 
 
 (comment
