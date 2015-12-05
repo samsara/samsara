@@ -68,4 +68,5 @@
 (defn ring-buffer
   "Create an empty ring buffer with the specified [capacity]."
   [capacity]
+  {:pre [(> capacity 0)]}
   (RingBuffer. 0 (rb/ring-buffer capacity)))

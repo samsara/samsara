@@ -163,5 +163,5 @@
 
 (fact "ring-buffer: you can't create a buffer of size 0"
 
-      (-> (ring-buffer 0)) =throws=> Exception
+      (-> (ring-buffer 0)) => (throws Error)
       )
