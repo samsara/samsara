@@ -73,3 +73,23 @@
 ;;                 ---==| P U B L I S H - E V E N T S |==----                 ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmacro with-mock-send-events [publish & body]
+  `(with-redefs [samsara.client2/send-events (fn [& args#] args#)]
+     (let [[~'url ~'headers ~'body ~'opts] ~publish]
+       ~@body)))
+
+
+(fact "publish-events: should post the given events to the ingestion-api"
+
+      (with-mock-send-events
+        (publish-events "http://localhost:9000/v1"
+                        [{:eventName "a" :timestamp 1 :sourceId "d1"}])
+
+        url => "http://localhost:9000/v1/events"
+
+        headers => (contains {"Content-Type" "application/json"
+                              "X-Samsara-publishedTimestamp" anything})
+
+        )
+      )

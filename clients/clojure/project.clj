@@ -18,11 +18,8 @@
 
                  ]
   :target-path "target/%s"
-  :plugins [[lein-pprint "1.1.1"]
-            [lein-midje "3.1.3"]]
+  :plugins [[lein-midje "3.2"]]
   :deploy-repositories[["clojars" {:url "https://clojars.org/repo/"
                                    :sign-releases true}]]
   :profiles {:uberjar {:aot :all}
-             :dev {
-                   :dependencies [[http-kit.fake "0.2.1"]
-                                  [midje "1.6.3"]]}})
+             :dev {:dependencies [[midje "1.8.2"]]}})

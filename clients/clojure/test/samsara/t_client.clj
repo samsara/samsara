@@ -1,13 +1,14 @@
-(ns samsara.t-client
-  (:use midje.sweet)
-  (:use org.httpkit.fake)
-  (:require [midje.util :refer [testable-privates]])
-  (:require [samsara.ring-buffer :refer :all])
-  (:require [samsara.client :refer :all]
-            [clojure.test :refer :all]
-            [org.httpkit.client :as http]))
+(ns samsara.t-client)
 
 (comment
+  (ns samsara.t-client
+    (:use midje.sweet)
+    (:use org.httpkit.fake)
+    (:require [midje.util :refer [testable-privates]])
+    (:require [samsara.ring-buffer :refer :all])
+    (:require [samsara.client :refer :all]
+              [clojure.test :refer :all]
+              [org.httpkit.client :as http]))
 
   (testable-privates samsara.client !buffer!)
 
