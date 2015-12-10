@@ -1,5 +1,5 @@
 (ns samsara.client-test
-  (:require [samsara.client2 :refer :all]
+  (:require [samsara.client :refer :all]
             [midje.sweet :refer :all]
             [samsara.utils :refer [to-json]]))
 
@@ -77,14 +77,14 @@
 
 
 (defmacro with-mock-send-events [publish & body]
-  `(with-redefs [samsara.client2/send-events (fn [& args#] args#)]
+  `(with-redefs [samsara.client/send-events (fn [& args#] args#)]
      (let [[~'url ~'headers ~'body ~'opts] ~publish]
        ~@body)))
 
 
 (fact "publish-events: should post the given events to the ingestion-api"
 
-      ;; successful post of a single event
+      ;; successful post of a single event in a batch
       (with-mock-send-events
         (publish-events "http://localhost:9000/v1"
                         [{:eventName "a" :timestamp 1 :sourceId "d1"}])
@@ -100,11 +100,19 @@
       )
 
 
-(fact "publish-events: should post the given events to the ingestion-api"
 
-      ;; successful post of a single event
+(fact "publish-events: invalid events cause exception"
+
+      ;; invalid event
       (with-mock-send-events
         (publish-events "http://localhost:9000/v1"
                         [{:invalid "event"}])
+        ) => (throws Exception)
+
+
+      ;; invalid single events not allowed
+      (with-mock-send-events
+        (publish-events "http://localhost:9000/v1"
+                        {:eventName "a" :timestamp 1 :sourceId "d1"})
         ) => (throws Exception)
       )

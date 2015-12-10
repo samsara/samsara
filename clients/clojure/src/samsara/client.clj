@@ -1,4 +1,4 @@
-(ns samsara.client2
+(ns samsara.client
   (:require [samsara.utils :refer [to-json]])
   (:require [schema.core :as s])
   (:require [clj-http.client :as http]))
