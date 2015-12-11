@@ -76,7 +76,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defmacro with-mock-send-events [publish & body]
+(defmacro with-mock-send-events
+  "creates a mock version of send-events which returns an array
+   containing the parameters which were passed to the function
+   itself. The parameters are then made available as local
+   binding for ease of test. These parameters are named:
+   `url`, `headers`, `body` and `opts`."
+  [publish & body]
   `(with-redefs [samsara.client/send-events (fn [& args#] args#)]
      (let [[~'url ~'headers ~'body ~'opts] ~publish]
        ~@body)))
