@@ -7,7 +7,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
-;;                 ---==| P U B L I S H   E V E N T S |==----                 ;;
+;;                ---==| V A L I D A T E - E V E N T S |==----                ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -88,10 +88,3 @@
                 ;; body
                 (to-json events)
                 opts)))
-
-
-(comment
-  (publish-events "http://localhost:9000/v1"
-   [{:eventName "a" :timestamp 1 :sourceId "a"}
-    {:eventName "b" :timestamp 2 :sourceId "b"}])
-  )
