@@ -98,7 +98,7 @@
         url => "http://localhost:9000/v1/events"
 
         headers => (contains {"Content-Type" "application/json"
-                              "X-Samsara-publishedTimestamp" anything})
+                              PUBLISHED-TIMESTAMP anything})
 
         body => (to-json [{:eventName "a" :timestamp 1 :sourceId "d1"}] )
 

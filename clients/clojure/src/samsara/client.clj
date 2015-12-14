@@ -3,7 +3,7 @@
   (:require [schema.core :as s])
   (:require [clj-http.client :as http]))
 
-
+(def ^:const PUBLISHED-TIMESTAMP "X-Samsara-publishedTimestamp")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
@@ -83,7 +83,7 @@
                 ;; headers
                 {"Content-Type" "application/json"
                  ;; add pusblisjedTimestamp
-                 "X-Samsara-publishedTimestamp"
+                 PUBLISHED-TIMESTAMP
                  (str (System/currentTimeMillis))}
                 ;; body
                 (to-json events)
