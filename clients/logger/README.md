@@ -10,7 +10,7 @@ Making use of the logger simply involves adding the samsara-logger jar into the 
 * Ensure that you have a Samsara-Ingestion-API rest server running
 * Grab the latest samsara-logger jar from [clojars](https://clojars.org/samsara/samsara-logger)  
   ```  
-      [samsara/samsara-logger "0.1.0-beta"]  
+      [samsara/samsara-logger "0.1.0"]  
   ```  
 
 

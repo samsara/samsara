@@ -10,7 +10,7 @@ The latest samsara-logger can be grabbed from [clojars](https://clojars.org/sams
 ### Leiningen
 Add the following to your project.clj's dependencies Vector  
 ```  
-[samsara/samsara-logger "0.1.0-beta"]  
+[samsara/samsara-logger "0.1.0"]  
 ```  
 
 ### Gradle
@@ -27,7 +27,7 @@ dependencies {
     compile 'org.apache.logging.log4j:log4j-api:2.3',  
             'org.apache.logging.log4j:log4j-core:2.3'  
 
-    runtime 'samsara:samsara-logger:0.1.0-beta'  
+    runtime 'samsara:samsara-logger:0.1.0'  
 }  
 ```
 
@@ -44,7 +44,7 @@ Add the following to your pom.xml file
 <dependency>   
   <groupId>samsara</groupId>   
   <artifactId>samsara-logger</artifactId>   
-  <version>0.1.0-beta</version>   
+  <version>0.1.0</version>   
 </dependency>   
 ```   
 
