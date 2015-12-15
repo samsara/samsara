@@ -8,7 +8,8 @@
                  [prismatic/schema "1.0.4"]
                  [clj-http "2.0.0"]
                  [amalloy/ring-buffer "1.2"]
-                 ]
+
+                 [com.stuartsierra/component "0.3.1"]]
 
   :plugins [[lein-midje "3.2"]]
   :deploy-repositories[["clojars" {:url "https://clojars.org/repo/"

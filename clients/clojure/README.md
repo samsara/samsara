@@ -14,7 +14,7 @@ your `project.clj` file.
 Load the namespace in the REPL
 
 ```clojure
-(use 'samsara.client)
+(require '[samsara.client :as samsara])
 ```
 or as part of your namespace
 
