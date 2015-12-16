@@ -3,10 +3,55 @@
             [com.stuartsierra.component :as component]
             [samsara
              [ring-buffer :refer :all]
-             [utils :refer [to-json]]]
+             [utils :refer [to-json stoppable-thread]]]
             [schema.core :as s]))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                  ---==| C O N F I G U R A T I O N |==----                  ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (def ^:const PUBLISHED-TIMESTAMP "X-Samsara-publishedTimestamp")
+
+(def ^:const DEFAULT-CONFIG
+  {
+   ;; a samsara ingestion api endpoint  "http://samsara.io/v1"
+   ;; :url  - REQUIRED
+
+   ;; the identifier of the source of these events
+   ;; :sourceId  - OPTIONAL only for record-event
+
+   ;; whether to start the publishing thread.
+   :start-publishing-thread true
+
+   ;; how often should the events being sent to samsara
+   :publish-interval 30000
+
+   ;; max size of the buffer, when buffer is full,
+   ;; older events are dropped.
+   :max-buffer-size  10000
+
+   ;; minimum number of events to that must be in the buffer
+   ;; before attempting to publish them
+   :min-buffer-size 100
+
+
+   ;; network timeout for send operaitons (in millis)
+   :send-timeout-ms  30000
+
+   ;; whether of not the payload should be compressed
+   ;; allowed values :gzip :none
+   ;; :compression :gzip
+
+   ;; add samsara client statistics events
+   ;; this helps you to understand whether the
+   ;; buffer size and publish-intervals are
+   ;; adequately configured.
+   ;; :send-client-stats true
+   })
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -108,8 +153,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defn record-event-in-buffer
-  "TODO: doc needed"
+(defn- record-event-in-buffer
+  "Normalizes and validates the event and it add it to the buffer.
+  Returns the new buffer"
   [buffer event]
 
   ;; validate events
@@ -123,16 +169,74 @@
 
 (defn- flush-buffer
   "Flushes the event buffer to samsara api."
-  [{:keys [url] :as config} buffer]
+  [{:keys [url] :as config} buffer
+   & {:keys [on-success] :or {on-success (fn [buffer events]
+                                           (dequeue buffer events))}}]
   (let [events (snapshot buffer)]
     (if (seq events)
       (try
         (publish-events url (map second events) config)
-        (dequeue buffer events)
+        (on-success buffer events)
         (catch Throwable t
           buffer))
       buffer)))
 
+
+
+(defn record-event!
+
+  "It record the given event into a local buffer to be sent
+   later at regular interval. Returns the event as it was
+   added to the buffer."
+
+  [{:keys [buffer] :as client} event]
+  {:pre [buffer]}
+  (last
+   (items
+    (swap! buffer record-event-in-buffer event))))
+
+
+
+(defn flush-buffer!
+
+  "Sends the content of the buffer to the ingestion endpoint.
+  If successful it removes the events which where sent from
+  the buffer."
+
+  [{:keys [buffer config] :as client}]
+  {:pre [buffer]}
+  (flush-buffer config @buffer
+                :on-success (fn [_ events]
+                              (swap! buffer dequeue events))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;               ---==| C L I E N T   C O M P O N E N T |==----               ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn- flush-buffer-if-ready
+  [{buffer :buffer
+    {:keys [min-buffer-size]} :config
+    :as client}]
+  (when (>= (count @buffer) min-buffer-size)
+    (flush-buffer! client)))
+
+
+(defn- background-flush-buffer-thread
+  "When the publishing-thread is active it starts a background thread
+   which at regular interval will flush the buffer.
+   It returns a function which when called it stop the thread."
+  [{{:keys [start-publishing-thread publish-interval]} :config :as client}]
+  (if start-publishing-thread
+    (stoppable-thread "Samsara-Client-Flush-Buffer"
+     (fn []
+       (flush-buffer-if-ready client))
+     :sleep-time publish-interval)
+    (fn [])))
 
 
 (defrecord SamsaraClient [config]
@@ -142,27 +246,27 @@
   (start [this]
     (if (:buffer this)
       this
-      (-> this
-          (assoc :buffer (atom (ring-buffer (:max-buffer-size config)))))))
+      (as-> this $
+        (assoc $ :buffer (atom (ring-buffer (:max-buffer-size config))))
+        (assoc $ :flush-thread (background-flush-buffer-thread $)))))
 
   (stop [this]
-    (if-not (:buffer this)
-      this
-      (-> this
-          (dissoc :buffer)))))
+    (if-let [buffer (:buffer this)]
+      (let [buf @buffer
+            flush-thread (:flush-thread this)]
+        ;; stop background thread
+        (flush-thread)
+        ;; nil buffer to avoid new events in
+        (swap! buffer (constantly nil))
+        ;; flush the current content of the buffer
+        (flush-buffer config buf)
+        ;; stop the client
+        (dissoc this :buffer))
+      this)))
 
 
 (defn samsara-client [config]
-  (SamsaraClient. config))
-
-
-(defn record-event!
-  [{:keys [buffer] :as client} event]
-  {:pre [buffer]}
-  (last
-   (items
-    (swap! buffer record-event-in-buffer event))))
-
+  (SamsaraClient. (merge DEFAULT-CONFIG config)))
 
 
 
@@ -177,10 +281,17 @@
   (flush-buffer {:url "http://localhost:9000/v1"} rb)
 
 
-  (def c (component/start (samsara-client {:max-buffer-size 3})))
+  (def c (component/start
+          (samsara-client
+           {:url "http://localhost:9000/v1"
+            :max-buffer-size 3
+            :publish-interval 3000
+            :min-buffer-size 2})))
 
-  (def k (record-event! c {:eventName "a" :timestamp 3 :sourceId "d1"}))
+  (def k (record-event! c {:eventName "a" :timestamp 2 :sourceId "d1"}))
 
+  (count @(:buffer c))
 
+  (component/stop c)
 
   )

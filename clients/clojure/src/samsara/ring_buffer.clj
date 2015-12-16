@@ -1,5 +1,6 @@
 (ns samsara.ring-buffer
-  (:require [amalloy.ring-buffer :as rb]))
+  (:require [amalloy.ring-buffer :as rb])
+  (:import  clojure.lang.Counted))
 
 
 (defn- pop-while
@@ -49,8 +50,11 @@
   (toString [this]
     (pr-str buffer))
 
-  PRingBuffer
+  Counted
+  (count [this]
+    (count buffer))
 
+  PRingBuffer
   (enqueue [this item]
     (let [id (inc counter)]
       (RingBuffer. id (into buffer [[id item]]))))
