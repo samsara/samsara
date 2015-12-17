@@ -18,7 +18,7 @@
 
 (def ^:const DEFAULT-CONFIG
   {
-   ;; a samsara ingestion api endpoint  "http://samsara.io/v1"
+   ;; a samsara ingestion api endpoint  "http://samsara.io/"
    ;; :url  - REQUIRED
 
    ;; the identifier of the source of these events
@@ -134,7 +134,7 @@
      (throw (ex-info "Invalid events found." {:validation-error errors})))
 
    ;; POST them to ingestion-api
-   (send-events (str url "/events")
+   (send-events (str url "/v1/events")
                 ;; headers
                 {"Content-Type" "application/json"
                  ;; add pusblisjedTimestamp
@@ -265,28 +265,40 @@
       this)))
 
 
-(defn samsara-client [config]
-  (SamsaraClient. (merge DEFAULT-CONFIG config)))
+(defn- sanitize-configuration
+  [{:keys [url max-buffer-size min-buffer-size publish-interval] :as config}]
+  "Checks and attempts to correct invalid configuration when possible.
+   It return a patched and valid configuration or throws an error."
+  (when-not url
+    (throw (ex-info "Missing Samsara's ingestion api endpoint url." config)))
+
+  (when (<= publish-interval 0)
+    (throw (ex-info "Invalid interval time for Samsara client." config)))
+
+  (as-> config $
+    (if (> min-buffer-size max-buffer-size)
+      (assoc $ :min-buffer-size 1) $)
+    (if (= 0 min-buffer-size)
+      (assoc $ :min-buffer-size 1) $)))
+
+
+(defn samsara-client
+  "It creates a samsara client component with the given configuration"
+  [{:keys [url] :as config}]
+  (SamsaraClient.
+   (sanitize-configuration
+    (merge DEFAULT-CONFIG config))))
 
 
 
 
 (comment
-  (def rb (ring-buffer 10))
-
-  (def rb (record-event rb {:eventName "a" :timestamp 1 :sourceId "d1"}))
-
-  (map second (snapshot rb))
-
-  (flush-buffer {:url "http://localhost:9000/v1"} rb)
-
 
   (def c (component/start
           (samsara-client
-           {:url "http://localhost:9000/v1"
+           {:url "http://localhost:9000"
             :max-buffer-size 3
-            :publish-interval 3000
-            :min-buffer-size 2})))
+            :publish-interval 3000})))
 
   (def k (record-event! c {:eventName "a" :timestamp 2 :sourceId "d1"}))
 
