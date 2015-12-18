@@ -92,7 +92,7 @@
 
       ;; successful post of a single event in a batch
       (with-mock-send-events
-        (publish-events "http://localhost:9000/v1"
+        (publish-events "http://localhost:9000"
                         [{:eventName "a" :timestamp 1 :sourceId "d1"}])
 
         url => "http://localhost:9000/v1/events"
@@ -111,14 +111,14 @@
 
       ;; invalid event
       (with-mock-send-events
-        (publish-events "http://localhost:9000/v1"
+        (publish-events "http://localhost:9000"
                         [{:invalid "event"}])
         ) => (throws Exception)
 
 
       ;; invalid single events not allowed
       (with-mock-send-events
-        (publish-events "http://localhost:9000/v1"
+        (publish-events "http://localhost:9000"
                         {:eventName "a" :timestamp 1 :sourceId "d1"})
         ) => (throws Exception)
       )
