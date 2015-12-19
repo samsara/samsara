@@ -101,14 +101,19 @@ the app restarts.
 
 ```Clojure
   {
-   ;; a samsara ingestion api endpoint  "http://samsara.io/v1"
+   ;; a samsara ingestion api endpoint  "http://samsara.io/"
    ;; :url  - REQUIRED
 
    ;; the identifier of the source of these events
-   ;; :sourceId  - REQUIRED
+   ;; :sourceId  - OPTIONAL only for record-event
+
+   ;; whether to start the publishing thread.
+   :start-publishing-thread true
 
    ;; how often should the events being sent to samsara
-   :publish-interval 60               ;seconds
+   ;; in milliseconds
+   ;; default 30s
+   :publish-interval 30000
 
    ;; max size of the buffer, when buffer is full,
    ;; older events are dropped.
@@ -116,11 +121,12 @@ the app restarts.
 
    ;; minimum number of events to that must be in the buffer
    ;; before attempting to publish them
-   ;; min-buffer-size 100
+   :min-buffer-size 100
 
 
    ;; network timeout for send operaitons (in millis)
-   :send-timeout-ms  3000
+   ;; default 30s
+   :send-timeout-ms  30000
 
    ;; whether of not the payload should be compressed
    ;; allowed values :gzip :none
@@ -131,13 +137,13 @@ the app restarts.
    ;; buffer size and publish-intervals are
    ;; adequately configured.
    ;; :send-client-stats true
-   }
+   })
 ```
 
 To set your configuration with:
 
 ```clojure
-(samsara/init! {:url "http://my.samsara.server:9000/v1"
+(samsara/init! {:url "http://my.samsara.server:9000/"
                 :sourceId "the identifier of the given source"})
 ```
 

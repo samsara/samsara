@@ -28,6 +28,8 @@
    :start-publishing-thread true
 
    ;; how often should the events being sent to samsara
+   ;; in milliseconds
+   ;; default 30s
    :publish-interval 30000
 
    ;; max size of the buffer, when buffer is full,
@@ -40,6 +42,7 @@
 
 
    ;; network timeout for send operaitons (in millis)
+   ;; default 30s
    :send-timeout-ms  30000
 
    ;; whether of not the payload should be compressed
@@ -265,6 +268,7 @@
       this)))
 
 
+
 (defn- sanitize-configuration
   [{:keys [url max-buffer-size min-buffer-size publish-interval] :as config}]
   "Checks and attempts to correct invalid configuration when possible.
@@ -280,6 +284,7 @@
       (assoc $ :min-buffer-size 1) $)
     (if (= 0 min-buffer-size)
       (assoc $ :min-buffer-size 1) $)))
+
 
 
 (defn samsara-client
