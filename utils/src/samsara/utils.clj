@@ -1,6 +1,10 @@
 (ns samsara.utils
   (:require [cheshire.core :as json])
-  (:require [taoensso.timbre :as log]))
+  (:require [taoensso.timbre :as log])
+  (:require [clojure.java.io :as io])
+  (:import [java.io ByteArrayOutputStream ByteArrayInputStream]
+           [java.util.zip GZIPInputStream GZIPOutputStream]
+           [java.nio ByteBuffer]))
 
 
 (defn to-json
@@ -143,3 +147,31 @@
       (swap! stopped (constantly true))
       (.interrupt thread)
       (log/debug "Stopping thread:" name))))
+
+
+
+(defn ^bytes gzip-string
+  "Creates a gzip representation of the given string into a byte array"
+  ([^String string]
+   (gzip-string string "utf-8"))
+  ([^String string encoding]
+   (when string
+     (with-open [out (ByteArrayOutputStream.)
+                 gzip (GZIPOutputStream. out)]
+       (do
+         (.write gzip (.getBytes string encoding))
+         (.finish gzip)
+         (.toByteArray out))))))
+
+
+
+(defn ^String ungzip-string
+  "decodes a gzip string from bytes into its original representation"
+  ([^bytes gzipped-string]
+   (ungzip-string gzipped-string "utf-8"))
+  ([^bytes gzipped-string encoding]
+   (when gzipped-string
+     (with-open [out (ByteArrayOutputStream.)
+                 in  (GZIPInputStream. (ByteArrayInputStream. gzipped-string))]
+       (io/copy in out)
+       (.toString out encoding)))))
