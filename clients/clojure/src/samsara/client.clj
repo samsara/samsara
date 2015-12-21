@@ -3,7 +3,7 @@
             [com.stuartsierra.component :as component]
             [samsara
              [ring-buffer :refer :all]
-             [utils :refer [to-json stoppable-thread]]]
+             [utils :refer [to-json stoppable-thread gzip-string]]]
             [schema.core :as s]))
 
 
@@ -47,7 +47,7 @@
 
    ;; whether of not the payload should be compressed
    ;; allowed values :gzip :none
-   ;; :compression :gzip
+   :compression :gzip
 
    ;; add samsara client statistics events
    ;; this helps you to understand whether the
@@ -124,28 +124,34 @@
    `:send-timeout-ms` (default 30000) - the time to wait for a server
        response before to time out.
 
+   `compression` (default :gzip) - whether to compress or not the
+       payload. Valid values are :gzip and :none
   "
 
   ([url events]
-   (publish-events url events {:send-timeout-ms 30000}))
+   (publish-events url events nil))
 
-  ([url events {:keys [send-timeout-ms]
-                :or {send-timeout-ms 30000} :as opts}]
+  ([url events {:keys [send-timeout-ms compression]
+                :or {send-timeout-ms 30000
+                     compression :gzip} :as opts}]
 
    ;; validate events
    (when-let [errors (validate-events :batch events)]
      (throw (ex-info "Invalid events found." {:validation-error errors})))
 
-   ;; POST them to ingestion-api
-   (send-events (str url "/v1/events")
-                ;; headers
-                {"Content-Type" "application/json"
-                 ;; add pusblisjedTimestamp
-                 PUBLISHED-TIMESTAMP
-                 (str (System/currentTimeMillis))}
-                ;; body
-                (to-json events)
-                opts)))
+   (let [encode (if (= :gzip compression) (comp gzip-string to-json) to-json)]
+
+     ;; POST them to ingestion-api
+     (send-events (str url "/v1/events")
+                  ;; headers
+                  {"Content-Type" "application/json"
+                   "Content-Encoding" (if (= :gzip compression) "gzip" "identity")
+                   ;; add pusblisjedTimestamp
+                   PUBLISHED-TIMESTAMP
+                   (str (System/currentTimeMillis))}
+                  ;; body
+                  (encode events)
+                  opts))))
 
 
 

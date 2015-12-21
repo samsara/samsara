@@ -1,7 +1,7 @@
 (ns samsara.client-test
   (:require [samsara.client :refer :all]
             [midje.sweet :refer :all]
-            [samsara.utils :refer [to-json]]))
+            [samsara.utils :refer [to-json ungzip-string]]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -88,12 +88,14 @@
        ~@body)))
 
 
-(fact "publish-events: should post the given events to the ingestion-api"
+(fact "publish-events: should post the given events to the ingestion-api
+       (no compression)"
 
       ;; successful post of a single event in a batch
       (with-mock-send-events
         (publish-events "http://localhost:9000"
-                        [{:eventName "a" :timestamp 1 :sourceId "d1"}])
+                        [{:eventName "a" :timestamp 1 :sourceId "d1"}]
+                        {:compression :none})
 
         url => "http://localhost:9000/v1/events"
 
@@ -105,6 +107,25 @@
         )
       )
 
+
+
+(fact "publish-events: should post the given events to the ingestion-api
+       by default should compress the events"
+
+      ;; successful post of a single event in a batch
+      (with-mock-send-events
+        (publish-events "http://localhost:9000"
+                        [{:eventName "a" :timestamp 1 :sourceId "d1"}])
+
+        url => "http://localhost:9000/v1/events"
+
+        headers => (contains {"Content-Type" "application/json"
+                              PUBLISHED-TIMESTAMP anything})
+
+        (ungzip-string body) =>  (to-json [{:eventName "a" :timestamp 1 :sourceId "d1"}] )
+
+        )
+      )
 
 
 (fact "publish-events: invalid events cause exception"
