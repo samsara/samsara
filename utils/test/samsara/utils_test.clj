@@ -6,7 +6,7 @@
 
 (fact "gzip string can roundtrip correctly"
 
-      (let [roundtrip       (comp ungzip-string gzip-string)
+      (let [roundtrip       (comp gunzip-string gzip-string)
             check-roundtrip (fn [x] (= x (roundtrip x)))]
 
         (check-roundtrip nil) => truthy

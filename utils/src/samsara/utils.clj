@@ -165,10 +165,10 @@
 
 
 
-(defn ^String ungzip-string
+(defn ^String gunzip-string
   "decodes a gzip string from bytes into its original representation"
   ([^bytes gzipped-string]
-   (ungzip-string gzipped-string "utf-8"))
+   (gunzip-string gzipped-string "utf-8"))
   ([^bytes gzipped-string encoding]
    (when gzipped-string
      (with-open [out (ByteArrayOutputStream.)
