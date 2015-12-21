@@ -130,7 +130,7 @@ the app restarts.
 
    ;; whether of not the payload should be compressed
    ;; allowed values :gzip :none
-   ;; :compression :gzip
+   :compression :gzip
 
    ;; add samsara client statistics events
    ;; this helps you to understand whether the
