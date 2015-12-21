@@ -4,7 +4,7 @@
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [samsara/samsara-utils "0.5.0-SNAPSHOT"]
+                 [samsara/samsara-utils "0.5.0"]
                  [prismatic/schema "1.0.4"]
                  [clj-http "2.0.0"]
                  [amalloy/ring-buffer "1.2"]

@@ -1,7 +1,7 @@
 (ns samsara.client-test
   (:require [samsara.client :refer :all]
             [midje.sweet :refer :all]
-            [samsara.utils :refer [to-json ungzip-string]]))
+            [samsara.utils :refer [to-json gunzip-string]]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -122,7 +122,7 @@
         headers => (contains {"Content-Type" "application/json"
                               PUBLISHED-TIMESTAMP anything})
 
-        (ungzip-string body) =>  (to-json [{:eventName "a" :timestamp 1 :sourceId "d1"}] )
+        (gunzip-string body) =>  (to-json [{:eventName "a" :timestamp 1 :sourceId "d1"}] )
 
         )
       )
