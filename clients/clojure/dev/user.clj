@@ -22,3 +22,36 @@
 
 
   )
+
+
+(comment
+
+  (def c (component/start
+          (samsara-client
+           {:url "http://localhost:9000"
+            :max-buffer-size 3
+            :publish-interval 3000})))
+
+  (def k (record-event! c {:eventName "a" :timestamp 2 :sourceId "d1"}))
+
+  (count @(:buffer c))
+
+  (component/stop c)
+
+  )
+
+
+
+(comment
+
+  (init! {:url "http://localhost:9000"
+          :max-buffer-size 3
+          :publish-interval 3000})
+
+  (def k1 (record-event! {:eventName "a" :timestamp 2 :sourceId "d1"}))
+
+  (count @(:buffer *samsara-client*))
+
+  (stop!)
+
+  )

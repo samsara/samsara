@@ -23,6 +23,13 @@ or as part of your namespace
 	(:require [samsara.client :as samsara]))
 ```
 
+To set your configuration with:
+
+```clojure
+(samsara/init! {:url "http://my.samsara.server:9000/"
+                :sourceId "the identifier of the given source"})
+```
+
 Now you can start to publish events to samsara.
 
 ### Publish an Event
@@ -31,7 +38,20 @@ Samsara SDK buffers events and publishes them to Ingestion API
 periodically. To record an event in the Samsara buffer do
 
 ```clojure
-(samsara/record-event {:eventName "user.logged"})
+(samsara/record-event! {:eventName "user.logged" :sourceId "device1" :timestamp 1234567890})
+```
+If the `sourceId` is not provided then the one set int the configuration will be used.
+If the `timestamp` is not provided then it will be used the current system time.
+So this mean that you can record a event just as follow:
+
+```clojure
+(samsara/record-event! {:eventName "user.logged"})
+```
+
+Additionally you can provide your own key-value pairs:
+
+```clojure
+(samsara/record-event! {:eventName "user.logged" :color "blue" :level 10})
 ```
 
 Alternatively, you can publish bulk events immediately to the
@@ -140,13 +160,22 @@ the app restarts.
    })
 ```
 
-To set your configuration with:
+## Component support
 
-```clojure
-(samsara/init! {:url "http://my.samsara.server:9000/"
-                :sourceId "the identifier of the given source"})
+This library supports Stuart Sierra Component library and provide component.
+In order to use this library as a component just add it to your system:
+
+```Clojure
+(component/system-map
+  :samsara (samsara/samsara-client configuration)
+  ,,,,)
 ```
 
+And then pass the component to the `record-event!` function.
+
+```
+(samsara/record-event! component {:eventName "user.logged"})
+```
 
 ## License
 

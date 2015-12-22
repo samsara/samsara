@@ -5,7 +5,7 @@
             [midje.util :refer [testable-privates]]
             [samsara.utils :refer [to-json gunzip-string]]))
 
-(testable-privates samsara.client record-event-in-buffer)
+(testable-privates samsara.client record-event-in-buffer flush-buffer)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -174,6 +174,14 @@
 
 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;         ---==| R E C O R D - E V E N T - I N - B U F F E R |==----         ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (fact "record-event-in-buffer: should validate the event and only when valid
        add it to the buffer"
 
@@ -193,8 +201,6 @@
       => (throws Exception)
 
       )
-
-
 
 
 
@@ -238,5 +244,41 @@
                                {:eventName "a" :timestamp 1}))
 
       => (throws Exception)
+
+      )
+
+
+(fact "record-event-in-buffer: should add the system current time is timestamp
+       is not provided."
+
+      ;; timestamp is present in the event so no override
+      (items
+       (record-event-in-buffer (ring-buffer 3)
+                               {:sourceId "d0"}
+                               {:eventName "a" :timestamp 1 :sourceId "d1"}))
+
+      => [{:eventName "a" :timestamp 1 :sourceId "d1"}]
+
+
+      ;; timestamp is NOT present in the event so use the system time
+      (first
+       (items
+        (record-event-in-buffer (ring-buffer 3)
+                                {:sourceId "d0"}
+                                {:eventName "a" :sourceId "d1"})))
+
+      => (contains {:eventName "a" :timestamp anything :sourceId "d1"})
+
+
+
+
+      ;; timestamp is NOT present in the event and sourceId
+      ;; so use the system time and the configuration
+      (first
+       (items
+        (record-event-in-buffer (ring-buffer 3)
+                                {:sourceId "d0"}
+                                {:eventName "a"})))
+      => (contains {:eventName "a" :timestamp anything :sourceId "d0"})
 
       )

@@ -6,6 +6,9 @@
              [utils :refer [to-json stoppable-thread gzip-string]]]
             [schema.core :as s]))
 
+;; optional global state
+(def ^:dynamic *samsara-client* nil)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
@@ -165,9 +168,10 @@
 (defn- record-event-in-buffer
   "Normalizes and validates the event and it add it to the buffer.
   Returns the new buffer"
-  [buffer {configId :sourceId :as config} {:keys [sourceId] :as event}]
+  [buffer {configId :sourceId :as config} {:keys [sourceId timestamp] :as event}]
 
-  (let [event (if-not sourceId (assoc event :sourceId configId) event)]
+  (let [event (if-not sourceId  (assoc event :sourceId configId) event)
+        event (if-not timestamp (assoc event :timestamp (System/currentTimeMillis)) event)]
 
     ;; validate events
     (when-let [errors (validate-events :single event)]
@@ -200,11 +204,14 @@
    later at regular interval. Returns the event as it was
    added to the buffer."
 
-  [{:keys [buffer config] :as client} event]
-  {:pre [buffer]}
-  (last
-   (items
-    (swap! buffer record-event-in-buffer config event))))
+  ([event]
+   (record-event! *samsara-client* event))
+
+  ([{:keys [buffer config] :as client} event]
+   {:pre [buffer]}
+   (last
+    (items
+     (swap! buffer record-event-in-buffer config event)))))
 
 
 
@@ -214,11 +221,14 @@
   If successful it removes the events which where sent from
   the buffer."
 
-  [{:keys [buffer config] :as client}]
-  {:pre [buffer]}
-  (flush-buffer config @buffer
-                :on-success (fn [_ events]
-                              (swap! buffer dequeue events))))
+  ([]
+   (flush-buffer! *samsara-client*))
+
+  ([{:keys [buffer config] :as client}]
+   {:pre [buffer]}
+   (flush-buffer config @buffer
+                 :on-success (fn [_ events]
+                               (swap! buffer dequeue events)))))
 
 
 
@@ -304,19 +314,20 @@
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                ---==| G L O B A L   I N S T A N C E |==----                ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(comment
+(defn init! [config]
+  (alter-var-root #'*samsara-client*
+                  (constantly (component/start
+                               (samsara-client config)))))
 
-  (def c (component/start
-          (samsara-client
-           {:url "http://localhost:9000"
-            :max-buffer-size 3
-            :publish-interval 3000})))
 
-  (def k (record-event! c {:eventName "a" :timestamp 2 :sourceId "d1"}))
-
-  (count @(:buffer c))
-
-  (component/stop c)
-
-  )
+(defn stop! []
+  (alter-var-root #'*samsara-client*
+                  (fn [old]
+                    (component/stop old)
+                    nil)))
