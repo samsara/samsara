@@ -165,14 +165,16 @@
 (defn- record-event-in-buffer
   "Normalizes and validates the event and it add it to the buffer.
   Returns the new buffer"
-  [buffer event]
+  [buffer {configId :sourceId :as config} {:keys [sourceId] :as event}]
 
-  ;; validate events
-  (when-let [errors (validate-events :single event)]
-    (throw (ex-info "Invalid events found." {:validation-error errors})))
+  (let [event (if-not sourceId (assoc event :sourceId configId) event)]
 
-  ;; add the event to the local buffer
-  (enqueue buffer event))
+    ;; validate events
+    (when-let [errors (validate-events :single event)]
+      (throw (ex-info "Invalid events found." {:validation-error errors})))
+
+    ;; add the event to the local buffer
+    (enqueue buffer event)))
 
 
 
@@ -198,11 +200,11 @@
    later at regular interval. Returns the event as it was
    added to the buffer."
 
-  [{:keys [buffer] :as client} event]
+  [{:keys [buffer config] :as client} event]
   {:pre [buffer]}
   (last
    (items
-    (swap! buffer record-event-in-buffer event))))
+    (swap! buffer record-event-in-buffer config event))))
 
 
 

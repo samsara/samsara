@@ -1,7 +1,11 @@
 (ns samsara.client-test
   (:require [samsara.client :refer :all]
+            [samsara.ring-buffer :refer :all]
             [midje.sweet :refer :all]
+            [midje.util :refer [testable-privates]]
             [samsara.utils :refer [to-json gunzip-string]]))
+
+(testable-privates samsara.client record-event-in-buffer)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -128,6 +132,30 @@
       )
 
 
+
+
+(fact "publish-events: compression gzip compression should add appropriate headers"
+
+      ;; successful post of a single event in a batch
+      (with-mock-send-events
+        (publish-events "http://localhost:9000"
+                        [{:eventName "a" :timestamp 1 :sourceId "d1"}]
+                        {:compression :gzip})
+
+        url => "http://localhost:9000/v1/events"
+
+        headers => (contains {"Content-Type" "application/json"
+                              "Content-Encoding" "gzip"
+                              PUBLISHED-TIMESTAMP anything})
+
+        opts => (contains {:compression :gzip})
+
+        (gunzip-string body) =>  (to-json [{:eventName "a" :timestamp 1 :sourceId "d1"}] )
+
+        )
+      )
+
+
 (fact "publish-events: invalid events cause exception"
 
       ;; invalid event
@@ -142,4 +170,73 @@
         (publish-events "http://localhost:9000"
                         {:eventName "a" :timestamp 1 :sourceId "d1"})
         ) => (throws Exception)
+      )
+
+
+
+(fact "record-event-in-buffer: should validate the event and only when valid
+       add it to the buffer"
+
+      ;; valid event
+      (items
+       (record-event-in-buffer (ring-buffer 3) {}
+                               {:eventName "a" :timestamp 1 :sourceId "d1"}))
+
+      => [{:eventName "a" :timestamp 1 :sourceId "d1"}]
+
+
+      ;; invalid event
+      (items
+       (record-event-in-buffer (ring-buffer 3) {}
+                               {:timestamp 1 :sourceId "d1"}))
+
+      => (throws Exception)
+
+      )
+
+
+
+
+
+(fact "record-event-in-buffer: should add the configured sourceId when not present
+      in the event"
+
+      ;; sourceId is present in the event so no override
+      (items
+       (record-event-in-buffer (ring-buffer 3)
+                               {:sourceId "d0"}
+                               {:eventName "a" :timestamp 1 :sourceId "d1"}))
+
+      => [{:eventName "a" :timestamp 1 :sourceId "d1"}]
+
+
+      ;; sourceId is present in the event so no override, not present in cfg
+      (items
+       (record-event-in-buffer (ring-buffer 3)
+                               {}
+                               {:eventName "a" :timestamp 1 :sourceId "d1"}))
+
+      => [{:eventName "a" :timestamp 1 :sourceId "d1"}]
+
+
+      ;; sourceId is NOT present in the event so use the config one
+      (items
+       (record-event-in-buffer (ring-buffer 3)
+                               {:sourceId "d0"}
+                               {:eventName "a" :timestamp 1}))
+
+      => [{:eventName "a" :timestamp 1 :sourceId "d0"}]
+
+
+
+
+      ;; sourceId is NOT present in the event and NOT present
+      ;; in the config so exception
+      (items
+       (record-event-in-buffer (ring-buffer 3)
+                               {}
+                               {:eventName "a" :timestamp 1}))
+
+      => (throws Exception)
+
       )
