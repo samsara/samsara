@@ -8,7 +8,7 @@ To use the Samasara SDK you need to add the following dependency to
 your `project.clj` file.
 
 ```clojure
-[samsara/samsara-client "0.1.4"]
+[samsara/samsara-client "0.2.0"]
 ```
 
 Load the namespace in the REPL
