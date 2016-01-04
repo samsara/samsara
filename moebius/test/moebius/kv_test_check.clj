@@ -5,15 +5,7 @@
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]))
 
-(def num-tests 100)
-
-
-;; (defspec first-element-is-min-after-sorting ;; the name of the test
-;;   num-tests
-;;   (prop/for-all [v (gen/not-empty (gen/vector gen/int))]
-;;                 (= (apply min v)
-;;                    (first (sort v)))))
-
+(def num-tests (Integer/getInteger "test-check.num-tests" 10))
 
 (def instructions-gen
   (gen/elements [:get :set :del]))
@@ -60,6 +52,7 @@
   (kv/del store s k))
 
 
+
 (fact "restore should recreate the exact state of the source" :test-check :slow
       (tc/quick-check
        num-tests
@@ -71,7 +64,8 @@
       => (contains {:result true}))
 
 
-(fact "write on a particular key should hold just the last value" :test-check :slow
+
+(fact "writes on a particular key should hold just the last value" :test-check :slow
       (tc/quick-check
        num-tests
        (prop/for-all
@@ -86,6 +80,3 @@
               [o s k v]  (last ops)]
           (= (kv/get k1 s k) (if (= o :del) nil v)))))
       => (contains {:result true}))
-
-
-;;(def num-tests 15)
