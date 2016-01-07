@@ -27,7 +27,7 @@ Samsara-logger's SLF4J implementation can be configured via the following proper
 |SAMSARA_API_URL      | SAMSARA_API_URL | none/nothing  | The address of the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api), which is generally in the form ``http://<hostname>:<port>/v1``. If this isn't set a warning is printed once|  
 |SAMSARA_SOURCE_ID    | SAMSARA_SOURCE_ID | <hostname>-<main/top-level class>-processid | This value will be used as the source id for all logs sent to samsara. The source id will be used internally by samsara to ensure linearability and to aid scalable processing. If setting this please read [this](https://github.com/samsara/samsara-clj-sdk#sourceid) on how to choose a good source id. |   
 |SAMSARA_LOG_TO_CONSOLE|SAMSARA_LOG_TO_CONSOLE| true    | This determines whether log messages are printed to the console |   
-|SAMSARA_PUBLISH_INTERVAL|SAMSARA_PUBLISH_INTERVAL| 60  | This is in seconds and indicates how often the logger will send buffered log messages to the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api). **WARNING** SETTING THIS TO A LOW VALUE RISKS OVERLOADING THE INGESTION API! |    
+|SAMSARA_PUBLISH_INTERVAL|SAMSARA_PUBLISH_INTERVAL| 30  | This is in milliseconds and indicates how often the logger will send buffered log messages to the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api). **WARNING** SETTING THIS TO A LOW VALUE RISKS OVERLOADING THE INGESTION API! |    
 
 **The Java System properties takes precedence over the Environment variables**   
 
@@ -74,7 +74,7 @@ The following table shows all the available configurable properties for SamsaraA
 |apiUrl      |none/nothing  | The address of the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api), which is generally in the form ``http://<hostname>:<port>/v1``. If this isn't set a warning is printed once|  
 |sourceId    | <hostname>-<main/top-level class>-processid | This value will be used as the source id for all logs sent to samsara. The source id will be used internally by samsara to ensure linearability and to aid scalable processing. If setting this please read [this](https://github.com/samsara/samsara-clj-sdk#sourceid) on how to choose a good source id. |   
 |logToConsole | true    | This determines whether log messages are printed to the console |   
-|publishInterval | 60  | This is in seconds and indicates how often the logger will send buffered log messages to the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api). **WARNING** SETTING THIS TO A LOW VALUE RISKS OVERLOADING THE INGESTION API! |    
+|publishInterval | 30  | This is in milliseconds and indicates how often the logger will send buffered log messages to the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api). **WARNING** SETTING THIS TO A LOW VALUE RISKS OVERLOADING THE INGESTION API! |    
 
 A Simple Example Application can be seen [here](./examples/log4j2/README.md)  
 
