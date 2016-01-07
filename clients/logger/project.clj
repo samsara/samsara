@@ -1,4 +1,4 @@
-(defproject samsara/samsara-logger "0.1.0"
+(defproject samsara/samsara-logger "0.1.1"
   :description "A logging interface for sending logs as events to samsara"
   :url "https://github.com/samsara/samsara-logger"
   :license {:name "Apache License V2"
