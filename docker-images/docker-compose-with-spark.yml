@@ -1,0 +1,173 @@
+#
+# Zookeeper
+#
+zookeeper:
+  image: samsara/zookeeper
+  ports:
+    - "2181:2181"
+    - "15001:15000"
+  environment:
+    ZK_SERVER_ID: 1
+  volumes:
+    - /tmp/logs/zk1:/logs
+    - /tmp/data/zk1:/data
+
+#
+# Kafka
+#
+kafka:
+  image: samsara/kafka
+  ports:
+    - "9092:9092"
+    - "15002:15000"
+  links:
+    - zookeeper:zookeeper
+  environment:
+    KAFKA_BROKER_ID: 1
+  volumes:
+    - /tmp/logs/kafka1:/logs
+    - /tmp/data/kafka1:/data
+
+#
+# Spark-master
+#
+sparkmaster:
+  image: samsara/spark-master
+  ports:
+    - "7077:7077"
+    - "8080:8080"
+    - "15007:15000"
+  links:
+    - zookeeper:zookeeper
+  volumes:
+    - /tmp/logs/spark-master:/logs
+    - /tmp/data/spark-master:/data
+
+#
+# Spark-worker
+#
+sparkworker:
+  image: samsara/spark-worker
+  ports:
+    - "7078:7078"
+    - "8081:8081"
+    - "15008:15000"
+  links:
+    - sparkmaster:spark-master
+  volumes:
+    - /tmp/logs/spark-worker:/logs
+    - /tmp/data/spark-worker:/data
+
+#
+# Samsara Ingestion API
+#
+ingestion:
+  image: samsara/ingestion-api
+  links:
+    - kafka:kafka
+    - monitoring:riemann
+  ports:
+    - "9000:9000"
+    - "15003:15000"
+  environment:
+    OUTPUT_TOPIC: "ingestion"
+    TRACKING_ENABLED: "true"
+  volumes:
+    - /tmp/logs/ingestion-api:/logs
+
+#
+# Samsara CORE
+#
+core:
+  image: samsara/samsara-core
+  links:
+    - kafka:kafka
+    - zookeeper:zookeeper
+    - monitoring:riemann
+  ports:
+    - "15010:15000"
+  environment:
+    TRACKING_ENABLED: "true"
+    SINGLE_BROKER: "true"
+  volumes:
+    - /tmp/logs/core:/logs
+
+
+#
+# ElasticSearch
+#
+elasticsearch:
+  image: samsara/elasticsearch
+  links:
+    - zookeeper:zookeeper
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+    - "15004:15000"
+  volumes:
+    - /tmp/logs/els:/logs
+    - /tmp/data/els:/data
+
+#
+# Kibana
+#
+kibana:
+  image: samsara/kibana
+  links:
+    - elasticsearch:elasticsearch
+  ports:
+    - "8000:8000"
+    - "15005:15000"
+  volumes:
+    - /tmp/logs/kibana:/logs
+
+#
+# Samsara Qanal
+#
+qanal:
+  image: samsara/qanal
+  links:
+    - zookeeper:zookeeper
+    - elasticsearch:els
+    - monitoring:riemann
+  ports:
+    - "15006:15000"
+  environment:
+    TRACKING_ENABLED: "true"
+    KAFKA_TOPICS_SPEC: |
+      { :topic "events" :partitions :all :type :plain
+        :indexing {:strategy :simple :index "events" :doc-type "events" :id-field "id"}}
+  volumes:
+    - /tmp/logs/qanal1:/logs
+
+#
+# Monitoring
+#
+monitoring:
+  image: samsara/monitoring
+  ports:
+    - "15000:80"
+    - "5555:5555"
+    - "5556:5556"
+    - "8083:8083"
+    - "8086:8086"
+  environment:
+    HTTP_USER: admin
+    HTTP_PASS: samsara
+  volumes:
+    - /tmp/logs/monitoring:/logs
+    - /tmp/data/monitoring:/data
+
+
+#
+# Bootstrap
+#
+bootstrap:
+  image: samsara/kafka
+  links:
+    - zookeeper:zookeeper
+    - kafka:kafka
+    - elasticsearch:elasticsearch
+  command: bash -c "curl -sSL 'https://raw.githubusercontent.com/samsara/samsara-docker-images/master/bootstrap/bootstrap.sh' | bash"
+  volumes:
+    - /tmp/logs/bootstrap:/logs
