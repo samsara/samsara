@@ -1,0 +1,35 @@
+id: core
+kind: ReplicationController
+apiVersion: v1beta1
+desiredState:
+  replicas: 1
+  replicaSelector:
+    name: core
+  podTemplate:
+    desiredState:
+      manifest:
+        version: v1beta1
+        id: core
+        containers:
+          - name: core
+            image: samsara/samsara-core
+            cpu: 1000
+            ports:
+              - name: supervisord
+                containerPort: 15000
+            env:
+              - name: INPUT_TOPIC
+                value: "ingestion"
+              - name: OUTPUT_TOPIC
+                value: "events"
+              - name: TRACKING_ENABLED
+                value: "true"
+            volumeMounts:
+              - name: logs
+                mountPath: /logs
+        volumes:
+          - name: logs
+            source:
+              emptyDir: {}
+    labels:
+      name: qanal

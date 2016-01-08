@@ -1,0 +1,30 @@
+id: kibana
+kind: ReplicationController
+apiVersion: v1beta1
+desiredState:
+  replicas: 1
+  replicaSelector:
+    name: kibana
+  podTemplate:
+    desiredState:
+      manifest:
+        version: v1beta1
+        id: kibana
+        containers:
+          - name: kibana
+            image: samsara/kibana
+            cpu: 1000
+            ports:
+              - name: supervisord
+                containerPort: 15000
+              - name: kibana
+                containerPort: 8000
+            volumeMounts:
+              - name: logs
+                mountPath: /logs
+        volumes:
+          - name: logs
+            source:
+              emptyDir: {}
+    labels:
+      name: kibana

@@ -1,0 +1,7 @@
+id: kafka
+kind: Service
+apiVersion: v1beta1
+port: 9092
+containerPort: 9092
+selector:
+  name: kafka

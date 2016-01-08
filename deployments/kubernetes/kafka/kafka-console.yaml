@@ -1,0 +1,21 @@
+id: kafka-console
+kind: ReplicationController
+apiVersion: v1beta1
+desiredState:
+  replicas: 0
+  replicaSelector:
+    name: kafka-console
+  podTemplate:
+    desiredState:
+      manifest:
+        version: v1beta1
+        id: kafka-console
+        containers:
+          - name: kafka-console
+            image: samsara/kafka:0.8.2.1
+            command:
+              - "/bin/nc"
+              - "-kl"
+              - "12345"
+    labels:
+      name: kafka-console

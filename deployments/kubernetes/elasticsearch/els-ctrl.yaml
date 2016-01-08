@@ -1,0 +1,37 @@
+id: elasticsearch
+kind: ReplicationController
+apiVersion: v1beta1
+desiredState:
+  replicas: 1
+  replicaSelector:
+    name: elasticsearch
+  podTemplate:
+    desiredState:
+      manifest:
+        version: v1beta1
+        id: elasticsearch
+        containers:
+          - name: elasticsearch
+            image: samsara/elasticsearch
+            cpu: 1000
+            ports:
+              - name: supervisord
+                containerPort: 15000
+              - name: elasticsearch
+                containerPort: 9200
+              - name: peer
+                containerPort: 9300
+            volumeMounts:
+              - name: logs
+                mountPath: /logs
+              - name: data
+                mountPath: /data
+        volumes:
+          - name: logs
+            source:
+              emptyDir: {}
+          - name: data
+            source:
+              emptyDir: {}
+    labels:
+      name: elasticsearch
