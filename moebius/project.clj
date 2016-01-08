@@ -1,7 +1,7 @@
-(defproject samsara/moebius "0.4.0"
+(defproject samsara/moebius (-> "../samsara.version" slurp .trim)
   :description "A system to process and enrich and correlate events in realtime"
 
-  :url "https://samsara.github.com/"
+  :url "https://samsara.github.com/samsara/moebius"
 
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
