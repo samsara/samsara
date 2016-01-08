@@ -1,0 +1,6 @@
+{:server {:port 9000 :auto-reload true}
+   :backend {:type :console :pretty? true}
+   ;;:backend {:type :kafka :topic "ingestion" :metadata.broker.list "192.168.59.103:49154"}
+   ;;:backend {:type :kafka-docker :topic "ingestion" :docker {:link "kafka.*" :port "9092" :to "metadata.broker.list"} }
+
+}

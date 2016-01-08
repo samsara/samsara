@@ -1,0 +1,238 @@
+swagger: '2.0'
+
+info:
+  version: "0.1.0"
+  title: Samsara Ingestion APIs
+  description: |
+    This specification is for the Ingestion API. Not all paths will be
+    reachable from the client as many handlers are for internal use only.
+    Those one with the `internal` tag will be available only from the internal
+    network setup and will be used for service management purposes.
+
+
+schemes:
+  - http
+
+basePath: /v1
+
+produces:
+  - application/json
+
+consumes:
+  - application/json
+
+paths:
+  /events:
+    post:
+
+      summary: |
+        Send client generated events to `Samsara` processing pipeline
+        The content has to be an array of valid events.
+
+      description: |
+        This handler is responsible for ingesting data coming for the clients
+        services and devices. It should validate the payload received, and inject
+        an additional attribute `receivedAt` with the system timestamp (in millis)
+        on every event, and the `publishedAt` with the timestamp (in millis)
+        received from the header `X-Samsara-publishedTimestamp`.
+
+        Finally it is responsible to forwards individual events received to
+        the back end queueing system which can be one of **Apache Kafka**,
+        **Amazon Kinesis**, **Azure EventsHub** or the **stdout** console
+        (for testing purposes).
+
+        The key part of the API is to ensure that only valid events are accepted
+        and once we give a successful reponse we need to be able to guarantee
+        that these events will be persisted and then processed.
+
+        **Optionally** the client can send a GZIP'd payload by providing
+        the header **Content-Encoding: gzip**. the API should be able
+        to handle both compressed and uncompressed data and select the
+        right handler on a per request basis.
+        *This request returns an empty body* check the status codes for more info.
+        
+        If the `X-Samsara-publishedTimestamp` is missing a the payload is accepted,
+        but a warning message is returnted.
+        
+        Example of a plain JSON payload:
+        
+        ```
+        cat <<EOF | curl -i -H "Content-Type: application/json" \
+                        -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
+                        -XPOST "http://localhost:9000/v1/events" -d @-
+        [
+          {
+            "timestamp": $(date +%s000),
+            "sourceId": "3aw4sedrtcyvgbuhjkn",
+            "eventName": "user.item.added",
+            "page": "orders",
+            "item": "sku-1234"
+          }, {
+            "timestamp": $(date +%s000),
+            "sourceId": "3aw4sedrtcyvgbuhjkn",
+            "eventName": "user.item.removed",
+            "page": "orders",
+            "item": "sku-5433",
+            "action": "remove"
+          }
+        ]
+        EOF
+        ```
+        
+        Example of a GZIP JSON payload:
+        
+        ```
+        cat <<EOF | gzip | curl -i -H "Content-Type: application/json" \
+                                -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
+                                -H "Content-Encoding: gzip" \
+                                -XPOST "http://localhost:9000/v1/events" \
+                                --data-binary @-
+        [
+          {
+            "timestamp": $(date +%s000),
+            "sourceId": "3aw4sedrtcyvgbuhjkn",
+            "eventName": "user.item.added",
+            "page": "orders",
+            "item": "sku-1234"
+          }, {
+            "timestamp": $(date +%s000),
+            "sourceId": "3aw4sedrtcyvgbuhjkn",
+            "eventName": "user.item.removed",
+            "page": "orders",
+            "item": "sku-5433",
+            "action": "remove"
+          }
+        ]
+        EOF
+        ```
+
+
+      produces:
+        - application/json
+
+      consumes:
+        - application/json
+
+      parameters:
+
+        - name: Content-Encoding
+          in: header
+          description: The payload can be compressed with `gzip`
+          required: false
+          type: string
+
+        - name: events
+          in: body
+          description: Array of events
+          required: true
+          schema:
+            $ref: "#/definitions/Events"
+
+      responses:
+
+        202:
+          description: The payload is valid and accepted
+
+        400:
+          description: Bad request. The payload is not a valid set of events.
+
+
+  /api-status:
+    get:
+
+      summary: This is the proble url used by the load-balancer for healthcheck.
+
+      description: |
+        This should return the state of the interal status flag which
+        is controlled by `PUT /api-status`.
+        By default the status should healthy and online (HTTP 200).
+
+        Example:
+        
+        ```
+        curl -i -XGET "http://localhost:9000/v1/api-status"
+        
+        { "status": "online" }
+        ```
+
+      responses:
+        200:
+          description: The service is healthy and online
+          examples:
+            application/json: { "status": "online" }
+
+        503:
+          description: The service is offline
+          examples:
+            application/json: { "status": "offline" }
+
+    put:
+
+      summary: This internal path is used to set the service offline for maintenance reason.
+
+      description: |
+        This should control and internal 'status' flag. When set to 'offline'
+        the `GET /api-status` request should return a `503` response.
+        If flipped back to 'online' then `GET /api-status`
+        should return `200` as normal.
+
+        Example:
+        
+        ```
+        curl -i -H "Content-Type: application/json" \
+             -XPUT "http://localhost:9000/v1/api-status" \
+             -d '{ "status": "offline" }'
+        ```
+
+      parameters:
+        - in: body
+          name: status
+          description: Either `online` or `offline`
+          required: true
+          schema:
+            properties:
+              status: 
+                type: string
+                enum:
+                  - online
+                  - offline
+
+      responses:
+        200:
+          description: The change has been accepted.
+        400:
+          description: The request is invalid.
+
+definitions:
+
+  Events:
+    type: array
+    items:
+      $ref: "#/definitions/Event"
+
+  Event:
+    description: |
+      The baisc structure of an event is made of only three properties
+      `timestamp`, `sourceId` and `eventName`. However the api
+      should be able to accept any additional 'facet'.
+
+    properties:
+
+      timestamp:
+        type: integer
+        format: int64
+        description: Is the time of the event in milliseconds from EPOC.
+
+      eventName:
+        type: string
+        description: |
+          Is the name of the event. Typically a namespaced action terminating
+          in Past simple. Valid examples are 'user.clicked',
+          or 'app.module.load.failed'.
+
+      sourceId:
+        type: string
+        description: |
+          A unique identifier of the event source with high cardinality.
+          It is important that this is a high cardinality value to ensure
+          a uniform spreading of the load and avoid hotspots.

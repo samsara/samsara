@@ -1,0 +1,12 @@
+{
+ :server  {:port 9000 :auto-reload false}
+
+ :backend {:type :kafka-docker :topic "%%OUTPUT_TOPIC%%"
+           :docker {:link "kafka.*" :port "9092" :to "metadata.broker.list"} }
+
+ :tracking {:enabled %%TRACKING_ENABLED%% :type :riemann
+            :host "%%RIEMANN_PORT_5555_TCP_ADDR%%"
+            :port %%RIEMANN_PORT_5555_TCP_PORT%%
+            :prefix "samsara.ingestion.%%HOSTNAME%%" }
+
+}
