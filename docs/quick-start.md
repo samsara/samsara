@@ -15,7 +15,7 @@ It setup a fully running cluster with all components but without
 fault tolerance.
 
 Please make sure you have latest [`docker`](https://docs.docker.com/)
-and [`docker-composed`](https://docs.docker.com/compose/install/)
+and [`docker-compose`](https://docs.docker.com/compose/install/)
 installed.
 
 ```bash
