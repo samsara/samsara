@@ -3,24 +3,18 @@
   (:require [ip-geoloc.core :as geo]))
 
 (def cfg
-  {:db-file "/tmp/GeoLite2-City.mmdb"})
+  {:database-file "/tmp/GeoLite2-City.mmdb"})
 
 
-(def ^:dynamic *provider* nil)
-
-
-(defn init-provider [file]
-  (geo/init-provider :max-mind2 file))
-
-
-(defn init-provider! [file]
-  (alter-var-root #'*provider* (constantly (init-provider file))))
+(defn init-provider! [cfg]
+  (geo/init-provider! cfg)
+  (geo/start-provider!))
 
 
 (defenrich ip-geo-locate [{:keys [clientIp] :as event}]
   (when clientIp
     (let [{:keys [city country latitude longitude]}
-          (geo/geo-lookup provider clientIp)]
+          (geo/geo-lookup clientIp)]
       (-> event
           (inject-as :city      city)
           (inject-as :country   country)
@@ -30,7 +24,7 @@
 
 (comment
 
-  (init-provider! (:db-file cfg))
+  (init-provider! cfg)
 
   (geo/geo-lookup provider "8.8.8.8")
   )
