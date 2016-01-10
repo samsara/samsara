@@ -24,15 +24,17 @@ Samsara-logger's SLF4J implementation can be configured via the following proper
 
 |Environment Variable | Java System Property | Default Value | Description |     
 |---------------------|-----------------|---------------|-------------|
-|SAMSARA_API_URL      | SAMSARA_API_URL | none/nothing  | The address of the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api), which is generally in the form ``http://<hostname>:<port>/v1``. If this isn't set a warning is printed once|  
+|SAMSARA_API_URL      | SAMSARA_API_URL | none/nothing  | The address of the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api), which is generally in the form ``http://<hostname>:<port>``. If this isn't set a warning is printed once|  
 |SAMSARA_SOURCE_ID    | SAMSARA_SOURCE_ID | <hostname>-<main/top-level class>-processid | This value will be used as the source id for all logs sent to samsara. The source id will be used internally by samsara to ensure linearability and to aid scalable processing. If setting this please read [this](https://github.com/samsara/samsara-clj-sdk#sourceid) on how to choose a good source id. |   
 |SAMSARA_LOG_TO_CONSOLE|SAMSARA_LOG_TO_CONSOLE| true    | This determines whether log messages are printed to the console |   
-|SAMSARA_PUBLISH_INTERVAL|SAMSARA_PUBLISH_INTERVAL| 30  | This is in milliseconds and indicates how often the logger will send buffered log messages to the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api). **WARNING** SETTING THIS TO A LOW VALUE RISKS OVERLOADING THE INGESTION API! |    
+|SAMSARA_PUBLISH_INTERVAL|SAMSARA_PUBLISH_INTERVAL| 30000  | This is in milliseconds and indicates how often the logger will send buffered log messages to the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api). **WARNING** SETTING THIS TO A LOW VALUE RISKS OVERLOADING THE INGESTION API! |    
+|SAMSARA_MIN_BUFFER_SIZE|SAMSARA_MIN_BUFFER_SIZE| 1  | This determines the minimum number of buffered log messages that is sent to the  [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api) |    
+|SAMSARA_MAX_BUFFER_SIZE|SAMSARA_MAX_BUFFER_SIZE| 10000  | This determines the maximum number of buffered log messages that is sent to the  [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api), older log messages are **DROPPED** |    
 
 **The Java System properties takes precedence over the Environment variables**   
 
-For example if the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api) is running locally on port 9000, you'll need to set the environment variable to `http://localhost:9000/v1`   
-i.e ``export SAMSARA_API_URL=http://localhost:9000/v1``
+For example if the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api) is running locally on port 9000, you'll need to set the environment variable to `http://localhost:9000`   
+i.e ``export SAMSARA_API_URL=http://localhost:9000``
 
 A Simple Example Application can be seen [here](./examples/slf4j/README.md)  
 
@@ -49,7 +51,7 @@ An example of a log4j2.xml for samsara-logger follows
 <Configuration status="WARN" packages="samsara.log4j2">  
   <Appenders>  
   
-    <SamsaraAppender name="Samsara" apiUrl="http://localhost:9000/v1">  
+    <SamsaraAppender name="Samsara" apiUrl="http://localhost:9000">  
     </SamsaraAppender>  
   
   </Appenders>  
@@ -71,10 +73,12 @@ The following table shows all the available configurable properties for SamsaraA
 
 |SamsaraAppender Property | Default Value | Description |
 |-------------------------|---------------|-------------|
-|apiUrl      |none/nothing  | The address of the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api), which is generally in the form ``http://<hostname>:<port>/v1``. If this isn't set a warning is printed once|  
+|apiUrl      |none/nothing  | The address of the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api), which is generally in the form ``http://<hostname>:<port>``. If this isn't set a warning is printed once|  
 |sourceId    | <hostname>-<main/top-level class>-processid | This value will be used as the source id for all logs sent to samsara. The source id will be used internally by samsara to ensure linearability and to aid scalable processing. If setting this please read [this](https://github.com/samsara/samsara-clj-sdk#sourceid) on how to choose a good source id. |   
 |logToConsole | true    | This determines whether log messages are printed to the console |   
-|publishInterval | 30  | This is in milliseconds and indicates how often the logger will send buffered log messages to the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api). **WARNING** SETTING THIS TO A LOW VALUE RISKS OVERLOADING THE INGESTION API! |    
+|publishInterval | 30000  | This is in milliseconds and indicates how often the logger will send buffered log messages to the [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api). **WARNING** SETTING THIS TO A LOW VALUE RISKS OVERLOADING THE INGESTION API! |    
+|minBufferSize | 1  | This determines the minimum number of buffered log messages that is sent to the  [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api) |    
+|maxBufferSize | 10000  | This determines the maximum number of buffered log messages that is sent to the  [Samsara-Ingestion-API](https://github.com/samsara/samsara-ingestion-api), older log messages are **DROPPED** |    
 
 A Simple Example Application can be seen [here](./examples/log4j2/README.md)  
 

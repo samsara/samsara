@@ -2,10 +2,12 @@
 <Configuration status="WARN" packages="samsara.log4j2">
   <Appenders>
 
-    <SamsaraAppender name="Samsara" apiUrl="http://localhost:9000/v1" 
+    <SamsaraAppender name="Samsara" apiUrl="http://localhost:9000" 
 				    sourceId="ChooseAGoodID"
 				    logToConsole="true"
-                                    publishInterval="60">
+            publishInterval="30000"
+            minBufferSize="1"
+            maxBufferSize="10000">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </SamsaraAppender>
 

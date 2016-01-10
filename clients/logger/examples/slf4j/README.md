@@ -55,6 +55,6 @@ Add the following to your pom.xml file
   - Run it (in console/dev mode) ``./target/ingestion-api -c ./config/config.edn``  
 
 ### Run the Example
-  - In another console, in this directory (examples/slf4j), set the environment variable ``export SAMSARA_API_URL=http://localhost:9000/v1``  
+  - In another console, in this directory (examples/slf4j), set the environment variable ``export SAMSARA_API_URL=http://localhost:9000``  
   - Then run the example ``gradle clean run``   
 
