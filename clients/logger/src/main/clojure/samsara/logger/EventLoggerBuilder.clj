@@ -9,12 +9,20 @@
                         [getApiUrl [] String]
                         [setSourceId [String] Object]
                         [getSourceId [] String]
-                        [setPublishInterval [Integer] Object]
-                        [getPublishInterval [] Integer]
+                        [setPublishInterval [Long] Object]
+                        [getPublishInterval [] Long]
+                        [setMinBufferSize [Long] Object]
+                        [getMinBufferSize [] Long]
+                        [setMaxBufferSize [Long] Object]
+                        [getMaxBufferSize [] Long]
                         [build [] samsara.logger.EventLogger]
                         [sendToSamsara [] Boolean]]))
 
-(def ^:private default-conf cli/DEFAULT-CONFIG)
+(def ^:private default-overrides {:publish-interval 30000
+                                  :min-buffer-size 1
+                                  :max-buffer-size 10000})
+
+(def ^:private default-conf (merge cli/DEFAULT-CONFIG default-overrides))
 
 (defn- -init []
   [[] (atom default-conf)])
@@ -33,12 +41,26 @@
 (defn -getSourceId [this]
   (:sourceId @(.state this)))
 
-(defn -setPublishInterval [this ^Integer interval]
+(defn -setPublishInterval [this ^Long interval]
   (swap! (.state this) assoc :publish-interval interval)
   this)
 
 (defn -getPublishInterval [this]
   (:publish-interval @(.state this)))
+
+(defn -setMinBufferSize [this ^Long min-size]
+  (swap! (.state this) assoc :min-buffer-size min-size)
+  this)
+
+(defn -getMinBufferSize [this]
+  (:min-buffer-size @(.state this)))
+
+(defn -setMaxBufferSize [this ^Long max-size]
+  (swap! (.state this) assoc :max-buffer-size max-size)
+  this)
+
+(defn -getMaxBufferSize [this]
+  (:max-buffer-size @(.state this)))
 
 (defn -build [this]
   (EventLogger. @(.state this)))

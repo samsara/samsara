@@ -20,7 +20,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
 
     private static EventLogger eventLogger;
     private static AtomicBoolean warnOnce = new AtomicBoolean(false);
-    private static AtomicBoolean printToConsole = new AtomicBoolean(false);
+    private static AtomicBoolean printToConsole = new AtomicBoolean(true);
     private static AtomicBoolean sendToSamsara = new AtomicBoolean(true);
 
     static
@@ -36,27 +36,31 @@ public class SamsaraLogger extends MarkerIgnoringBase
         String sourceId = System.getenv("SAMSARA_SOURCE_ID");
         String logToConsole = System.getenv("SAMSARA_LOG_TO_CONSOLE");
         String publishInterval = System.getenv("SAMSARA_PUBLISH_INTERVAL");
+        String minBufferSize = System.getenv("SAMSARA_MIN_BUFFER_SIZE");
+        String maxBufferSize = System.getenv("SAMSARA_MAX_BUFFER_SIZE");
 
         apiUrl = System.getProperty("SAMSARA_API_URL", apiUrl);
         sourceId = System.getProperty("SAMSARA_SOURCE_ID", sourceId);
         logToConsole = System.getProperty("SAMSARA_LOG_TO_CONSOLE", logToConsole);
         publishInterval = System.getProperty("SAMSARA_PUBLISH_INTERVAL", publishInterval);
-        Integer publishIntervalInt = (publishInterval == null ? null : new Integer(publishInterval));
+        minBufferSize = System.getProperty("SAMSARA_MIN_BUFFER_SIZE", minBufferSize);
+        maxBufferSize = System.getProperty("SAMSARA_MAX_BUFFER_SIZE", maxBufferSize);
+        Long publishIntervalLong = (publishInterval == null ? null : new Long(publishInterval));
+        Long minBufferSizeLong = (minBufferSize == null ? null : new Long(minBufferSize));
+        Long maxBufferSizeLong = (maxBufferSize == null ? null : new Long(maxBufferSize));
 
         EventLoggerBuilder builder = new EventLoggerBuilder();
         builder = (apiUrl == null ? builder : (EventLoggerBuilder)builder.setApiUrl(apiUrl));
         builder = (sourceId == null ? builder : (EventLoggerBuilder)builder.setSourceId(sourceId));
-        builder = (publishIntervalInt == null ? builder : (EventLoggerBuilder)builder.setPublishInterval(publishIntervalInt));
+        builder = (publishIntervalLong == null ? builder : (EventLoggerBuilder)builder.setPublishInterval(publishIntervalLong));
+        builder = (minBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMinBufferSize(minBufferSizeLong));
+        builder = (maxBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMaxBufferSize(maxBufferSizeLong));
 
         eventLogger = builder.build();
 
         if(logToConsole != null)
         {
             printToConsole.set(new Boolean(logToConsole));
-        }
-        else
-        {
-            printToConsole.set(true);
         }
 
         if(!builder.sendToSamsara())
