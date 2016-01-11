@@ -25,13 +25,16 @@ public class SamsaraAppender extends AbstractAppender
     private AtomicBoolean printToConsole = new AtomicBoolean(true);
     private AtomicBoolean sendToSamsara = new AtomicBoolean(true);
 
-    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, EventLoggerBuilder builder, boolean logToConsole, boolean ignoreExceptions) 
+    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, EventLoggerBuilder builder, String logToConsole, boolean ignoreExceptions) 
     {
         super(name, filter, layout, ignoreExceptions);
 
         eventLogger = builder.build();
 
-        printToConsole.set(logToConsole);
+        if(logToConsole != null)
+        {
+            printToConsole.set(Boolean.parseBoolean(logToConsole));
+        }
 
         if(!builder.sendToSamsara())
         {
@@ -46,10 +49,10 @@ public class SamsaraAppender extends AbstractAppender
     public static SamsaraAppender createAppender(@PluginAttribute("name") String name,
                                                  @PluginAttribute("apiUrl") String apiUrl,
                                                  @PluginAttribute("sourceId") String sourceId,
-                                                 @PluginAttribute(value="publishInterval", defaultLong=0L) Long publishInterval, 
-                                                 @PluginAttribute(value="minBufferSize", defaultLong=0L) Long minBufferSize, 
-                                                 @PluginAttribute(value="maxBufferSize", defaultLong=0L) Long maxBufferSize, 
-                                                 @PluginAttribute(value="logToConsole", defaultBoolean=true) boolean logToConsole,
+                                                 @PluginAttribute("publishInterval") String publishInterval,
+                                                 @PluginAttribute("minBufferSize") String minBufferSize,
+                                                 @PluginAttribute("maxBufferSize") String maxBufferSize,
+                                                 @PluginAttribute("logToConsole") String logToConsole,
                                                  @PluginAttribute("ignoreExceptions") boolean ignoreExceptions,
                                                  @PluginElement("Layout") Layout<? extends Serializable> layout,
                                                  @PluginElement("Filter") Filter filter)
@@ -65,12 +68,16 @@ public class SamsaraAppender extends AbstractAppender
             layout = PatternLayout.createDefaultLayout();
         }
 
+        Long publishIntervalLong = (publishInterval == null ? null : Long.parseLong(publishInterval));
+        Long minBufferSizeLong = (minBufferSize == null ? null : Long.parseLong(minBufferSize));
+        Long maxBufferSizeLong = (maxBufferSize == null ? null : Long.parseLong(maxBufferSize));
+
         EventLoggerBuilder builder = new EventLoggerBuilder();
-        builder = (apiUrl == null || apiUrl.isEmpty() ? builder : (EventLoggerBuilder)builder.setApiUrl(apiUrl));
-        builder = (sourceId == null || sourceId.isEmpty() ? builder : (EventLoggerBuilder)builder.setSourceId(sourceId));
-        builder = (publishInterval == 0L ? builder : (EventLoggerBuilder)builder.setPublishInterval(publishInterval));
-        builder = (minBufferSize == 0L ? builder : (EventLoggerBuilder)builder.setMinBufferSize(minBufferSize));
-        builder = (maxBufferSize == 0L ? builder : (EventLoggerBuilder)builder.setMaxBufferSize(maxBufferSize));
+        builder = (apiUrl == null ? builder : (EventLoggerBuilder)builder.setApiUrl(apiUrl));
+        builder = (sourceId == null ? builder : (EventLoggerBuilder)builder.setSourceId(sourceId));
+        builder = (publishIntervalLong == null ? builder : (EventLoggerBuilder)builder.setPublishInterval(publishIntervalLong));
+        builder = (minBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMinBufferSize(minBufferSizeLong));
+        builder = (maxBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMaxBufferSize(maxBufferSizeLong));
 
         return new SamsaraAppender(name, filter, layout, builder, logToConsole, ignoreExceptions);
     }

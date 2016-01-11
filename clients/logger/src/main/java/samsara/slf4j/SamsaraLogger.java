@@ -45,9 +45,10 @@ public class SamsaraLogger extends MarkerIgnoringBase
         publishInterval = System.getProperty("SAMSARA_PUBLISH_INTERVAL", publishInterval);
         minBufferSize = System.getProperty("SAMSARA_MIN_BUFFER_SIZE", minBufferSize);
         maxBufferSize = System.getProperty("SAMSARA_MAX_BUFFER_SIZE", maxBufferSize);
-        Long publishIntervalLong = (publishInterval == null ? null : new Long(publishInterval));
-        Long minBufferSizeLong = (minBufferSize == null ? null : new Long(minBufferSize));
-        Long maxBufferSizeLong = (maxBufferSize == null ? null : new Long(maxBufferSize));
+
+        Long publishIntervalLong = (publishInterval == null ? null : Long.parseLong(publishInterval));
+        Long minBufferSizeLong = (minBufferSize == null ? null : Long.parseLong(minBufferSize));
+        Long maxBufferSizeLong = (maxBufferSize == null ? null : Long.parseLong(maxBufferSize));
 
         EventLoggerBuilder builder = new EventLoggerBuilder();
         builder = (apiUrl == null ? builder : (EventLoggerBuilder)builder.setApiUrl(apiUrl));
@@ -60,7 +61,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
 
         if(logToConsole != null)
         {
-            printToConsole.set(new Boolean(logToConsole));
+            printToConsole.set(Boolean.parseBoolean(logToConsole));
         }
 
         if(!builder.sendToSamsara())
