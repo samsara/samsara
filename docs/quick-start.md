@@ -56,25 +56,67 @@ Data paths and logs are mounted on `/tmp/data` and `/tmp/logs` respectively.
 
 **NOTE:** for **boot2docker** these paths will reside in the VM not on the host.
 
+Next try pushing a few events: 
 
-Every container will expose the port `15000` for the `supervisord` admin console.
-here a full list of ports
+**NOTE:** again if you are running on Mac the host will be your docker
+vm (typically **192.168.59.103**)
+
+``` bash
+cat <<EOF | curl -i -H "Content-Type: application/json" \
+                -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
+                -XPOST "http://localhost:9000/v1/events" -d @-
+[
+  {
+    "timestamp": $(date +%s000),
+    "sourceId": "3aw4sedrtcyvgbuhjkn",
+    "eventName": "user.item.added",
+    "page": "orders",
+    "item": "sku-1234"
+  }, {
+    "timestamp": $(date +%s000),
+    "sourceId": "3aw4sedrtcyvgbuhjkn",
+    "eventName": "user.item.removed",
+    "page": "orders",
+    "item": "sku-5433",
+    "action": "remove"
+  }
+]
+EOF
+```
+
+A successful output will look like:
+
+``` bash
+HTTP/1.1 202 Accepted
+Content-Length: 0
+Server: http-kit
+Date: Mon, 11 Jan 2016 06:54:10 GMT
 
 ```
-               Name                              Command               State                                    Ports
---------------------------------------------------------------------------------------------------------------------------------------------
-samsaradockerimages_elasticsearch_1   /bin/sh -c /configure-and- ...   Up      0.0.0.0:15004->15000/tcp, 0.0.0.0:9200->9200/tcp, 0.0.0.0:9300->9300/tcp
-samsaradockerimages_grafana_1         /run.sh                          Up      0.0.0.0:15000->80/tcp
-samsaradockerimages_influxdb_1        /run.sh                          Up      0.0.0.0:8083->8083/tcp, 8084/tcp, 0.0.0.0:8086->8086/tcp
-samsaradockerimages_ingestion_1       /bin/sh -c /configure-and- ...   Up      0.0.0.0:15003->15000/tcp, 0.0.0.0:9000->9000/tcp
-samsaradockerimages_kafka_1           /bin/sh -c /configure-and- ...   Up      0.0.0.0:15002->15000/tcp, 0.0.0.0:9092->9092/tcp
-samsaradockerimages_kibana_1          /bin/sh -c /configure-and- ...   Up      0.0.0.0:15005->15000/tcp, 0.0.0.0:8000->8000/tcp
-samsaradockerimages_qanal_1           /bin/sh -c /configure-and- ...   Up      0.0.0.0:15006->15000/tcp
-samsaradockerimages_riemann_1         /bin/sh -c /start-supervis ...   Up      0.0.0.0:5555->5555/tcp, 5555/udp, 5556/tcp
-samsaradockerimages_zookeeper_1       /bin/sh -c /configure-and- ...   Up      0.0.0.0:15001->15000/tcp, 0.0.0.0:2181->2181/tcp, 2888/tcp, 3888/tcp
-```
 
-To stop all services.
+Next you can connect to kibana and see your events:
+
+In your browser open http://localhost:8000/ (or http://192.168.59.103:8000/ for Mac).
+
+Here you will be presented with the Kibana' setup page.
+Set the following options:
+
+  * check `Index contains time-based events`
+  * enter `events*` in the `Index name or pattern` field
+  * from the drop-down `Time-field name` select `ts`
+  * Press `Create`
+
+<img src="/docs/images/kibana-setup.png" alt="Kibana setup" width="400px"/>
+
+A new page will appear showing the current mapping of the index, next
+you can click `Discover` to visualize your events. By clicking on the
+clock on the top-right corner you will be able to change the time
+range and activate an `auto-refresh` of 5-10 seconds.
+
+Now you should be able to see your events and as you push new events
+you should be able to see the new ones too.
+
+Finally, to stop all services.
 
 ```
 docker-compose kill

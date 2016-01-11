@@ -138,6 +138,6 @@ bootstrap:
     - zookeeper:zookeeper
     - kafka:kafka
     - elasticsearch:elasticsearch
-  command: bash -c "curl -sSL 'https://raw.githubusercontent.com/samsara/samsara-docker-images/master/bootstrap/bootstrap.sh' | bash"
+  command: bash -c "curl -sSL 'https://raw.githubusercontent.com/samsara/samsara/master/docker-images/bootstrap/bootstrap.sh' | bash"
   volumes:
     - /tmp/logs/bootstrap:/logs
