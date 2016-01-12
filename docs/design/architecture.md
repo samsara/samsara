@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Architecture
-subtitle: "An high level description of Samsara's components and how they play together" 
+subtitle: "An high level description of Samsara's components and how they play together"
 nav: documentation
 
 author:
@@ -25,18 +25,20 @@ out of the box will give you:
   - a real-time processing pipeline with a collection of common processing tools
   - an interactive frontend user interface to explore your data-set in real time.
 
-Contrarily to most analytics system, Samsara doesn't aggregate data during the ingestion phase.
-We leave the aggregation part at query time which gives you more flexibility on choosing
-which events need to be aggregated and how.
+Contrarily to most analytics system, Samsara doesn't aggregate data
+during the ingestion phase.  We leave the aggregation part at query
+time which gives you more flexibility on choosing which events need to
+be aggregated and how.
 
 ## Samsara's components
 
-Samsara is composed of 4 major parts: _the ingestion APIs, the real-time processing pipeline,
-the live index and query APIs, and the frontend data exploration tool_.
+Samsara is composed of 4 major parts: _the ingestion APIs, the
+real-time processing pipeline, the live index and query APIs, and the
+frontend data exploration tool_.
 
 There are several other components which are used for internal house keeping.
 
-![Overall Architecture](/img/architecture.png)
+![Overall Architecture](/docs/images/architecture.png)
 
 At the top of the stack we find the `Ingestion APIs`.
 This tier is an elastically scalable layer of RESTful web services.
@@ -90,6 +92,3 @@ When running in the cloud is always better to use the load balancers offered,
 unless you expect your traffic to have long flat lines followed by huge spikes.
 In that case it is better to run your own load balancers and we recommend
 [HAProxy](http://www.haproxy.org/).
-
-
-

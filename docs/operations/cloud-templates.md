@@ -9,7 +9,7 @@ nav: documentation
 <div class="row">
   <div class="col-sm-6 col-md-6">
     <div class="thumbnail">
-      <img src="/img/amazon-ec2.png" alt="EC2 Deployment Template for Samsara" height="100" width="260">
+      <img src="/docs/images/amazon-ec2.png" alt="EC2 Deployment Template for Samsara" height="100" width="260">
       <div class="caption">
         <center>Scripts for deployment to Amazon EC2.</center>
         <h4>&nbsp;</h4>
@@ -20,7 +20,7 @@ nav: documentation
 
   <div class="col-sm-6 col-md-6">
     <div class="thumbnail">
-      <img src="/img/amazon-ecs3.png" alt="Amazon EC2 Container service template for Samsara"  width="100">
+      <img src="/docs/images/amazon-ecs3.png" alt="Amazon EC2 Container service template for Samsara"  width="100">
       <div class="caption">
         <center>Scripts for deployment to Amazon ECS.</center>
         <h4>&nbsp;</h4>
@@ -28,12 +28,12 @@ nav: documentation
       </div>
     </div>
   </div>
-</div> 
-  
+</div>
+
 <div class="row">
   <div class="col-sm-6 col-md-6">
     <div class="thumbnail">
-      <img src="/img/kubernetes.png" alt="Kubernetes Template for Samsara"  width="100">
+      <img src="/docs/images/kubernetes.png" alt="Kubernetes Template for Samsara"  width="100">
       <div class="caption">
         <center>Scripts for deployment using Kubernetes.</center>
         <h4>&nbsp;</h4>
@@ -44,7 +44,7 @@ nav: documentation
 
   <div class="col-sm-6 col-md-6">
     <div class="thumbnail">
-      <img src="/img/docker.png" alt="Docker Template for Samsara"  width="110">
+      <img src="/docs/images/docker.png" alt="Docker Template for Samsara"  width="110">
       <div class="caption">
         <center>Scripts for bare-bones Docker based deployment.</center>
         <h4>&nbsp;</h4>
@@ -54,4 +54,3 @@ nav: documentation
   </div>
 
 </div>
- 
