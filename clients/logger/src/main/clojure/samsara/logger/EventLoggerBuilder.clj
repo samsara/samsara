@@ -18,7 +18,7 @@
                         [build [] samsara.logger.EventLogger]
                         [sendToSamsara [] Boolean]]))
 
-(def ^:private default-overrides {:publish-interval 30000
+(def ^:private default-overrides {:publish-interval 5000
                                   :min-buffer-size 1
                                   :max-buffer-size 10000})
 
