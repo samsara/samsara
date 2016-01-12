@@ -22,9 +22,9 @@ cd $BASE/clients/clojure
 lein do clean, check, jar, install
 
 ## build clients/logger
-## banner Logger client
-## cd $BASE/clients/logger
-## lein do clean, check, jar, install
+banner Logger client
+cd $BASE/clients/logger
+lein do clean, check, jar, install
 
 
 ## build ingestion-api
