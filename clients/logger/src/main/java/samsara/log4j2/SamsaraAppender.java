@@ -52,6 +52,7 @@ public class SamsaraAppender extends AbstractAppender
                                                  @PluginAttribute("publishInterval") String publishInterval,
                                                  @PluginAttribute("minBufferSize") String minBufferSize,
                                                  @PluginAttribute("maxBufferSize") String maxBufferSize,
+                                                 @PluginAttribute("compression") String compression,
                                                  @PluginAttribute("logToConsole") String logToConsole,
                                                  @PluginAttribute("ignoreExceptions") boolean ignoreExceptions,
                                                  @PluginElement("Layout") Layout<? extends Serializable> layout,
@@ -78,6 +79,7 @@ public class SamsaraAppender extends AbstractAppender
         builder = (publishIntervalLong == null ? builder : (EventLoggerBuilder)builder.setPublishInterval(publishIntervalLong));
         builder = (minBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMinBufferSize(minBufferSizeLong));
         builder = (maxBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMaxBufferSize(maxBufferSizeLong));
+        builder = (compression == null ? builder : (EventLoggerBuilder)builder.setCompression(compression));
 
         return new SamsaraAppender(name, filter, layout, builder, logToConsole, ignoreExceptions);
     }

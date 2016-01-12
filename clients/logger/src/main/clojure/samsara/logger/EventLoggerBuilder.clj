@@ -15,14 +15,24 @@
                         [getMinBufferSize [] Long]
                         [setMaxBufferSize [Long] Object]
                         [getMaxBufferSize [] Long]
+                        [setCompression [String] Object]
                         [build [] samsara.logger.EventLogger]
                         [sendToSamsara [] Boolean]]))
 
 (def ^:private default-overrides {:publish-interval 5000
                                   :min-buffer-size 1
-                                  :max-buffer-size 10000})
+                                  :max-buffer-size 10000
+                                  :compression :gzip})
+
+(def ^:private known-compression-types #{:none :gzip})
 
 (def ^:private default-conf (merge cli/DEFAULT-CONFIG default-overrides))
+
+(defn- str->compress-type [s]
+  (-> s
+      clojure.string/lower-case
+      keyword
+      known-compression-types))
 
 (defn- -init []
   [[] (atom default-conf)])
@@ -61,6 +71,16 @@
 
 (defn -getMaxBufferSize [this]
   (:max-buffer-size @(.state this)))
+
+(defn -setCompression[this ^String s]
+  (if-let [compress-type (str->compress-type s)]
+    (swap! (.state this) assoc :compression compress-type)
+    (binding [*out* *err*]
+      (println "WARNING! Unknown compression type [" s
+               "] Defaulting compression type to ["
+               (name (:compression @(.state this)))
+               "]")))
+  this)
 
 (defn -build [this]
   (EventLogger. @(.state this)))
