@@ -31,26 +31,29 @@
                        Level/ERROR :error
                        Level/FATAL :fatal})
 
-(def ^:private hostname (try
-                          (.getCanonicalHostName (InetAddress/getLocalHost))
-                          (catch UnknownHostException uhe
-                            "UnknownHost")))
+(defn- hostname []
+  (try
+    (.getCanonicalHostName (InetAddress/getLocalHost))
+    (catch UnknownHostException uhe
+      "UnknownHost")))
 
-(def ^:private init-class (-> (Thread/currentThread)
-                              (.getStackTrace)
-                              last
-                              (.getClassName)))
+(defn- init-class []
+  (-> (Thread/currentThread)
+      (.getStackTrace)
+      last
+      (.getClassName)))
 
-(def ^:private pid (-> (ManagementFactory/getRuntimeMXBean)
-                       (.getName)
-                       (.split "@")
-                       first))
+(defn- pid []
+  (-> (ManagementFactory/getRuntimeMXBean)
+      (.getName)
+      (.split "@")
+      first))
 
-(def ^:private default-app-id (str hostname "-" init-class "-" pid ))
+(def ^:private default-app-id
+  (memoize  #(str (hostname) "-" (init-class) "-" (pid) )))
 
 (def ^:private default-source-id 
-  (memoize (fn []
-             (-> (java.util.UUID/randomUUID) (.toString)))))
+  (memoize #(-> (java.util.UUID/randomUUID) (.toString))))
 
 
 (defn- log->samsara-event [{:keys [sourceId appId] :as conf}
@@ -58,7 +61,7 @@
                            {:keys [timestamp eventName] :as log}]
 
   (let [sourceId (or sourceId (default-source-id))
-        appId (or appId default-app-id)
+        appId (or appId (default-app-id))
         timestamp (or timestamp (System/currentTimeMillis))
         eventName (or eventName "UnknownLogEvent")
         optional-confs (select-keys conf [:serviceName])]
