@@ -8,7 +8,8 @@
             publishInterval="5000"
             minBufferSize="1"
             maxBufferSize="10000"
-            compression="gzip">
+            compression="gzip"
+	    serviceName="ExampleService">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </SamsaraAppender>
 

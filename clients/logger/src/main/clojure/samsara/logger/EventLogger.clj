@@ -56,13 +56,15 @@
   (let [sourceId (or sourceId default-app-id)
         appId (or appId default-app-id)
         timestamp (or timestamp (System/currentTimeMillis))
-        eventName (or eventName "UnknownLogEvent")]
+        eventName (or eventName "UnknownLogEvent")
+        optional-confs (select-keys conf [:serviceName])]
 
-    (assoc log
-           :timestamp timestamp
-           :eventName eventName
-           :sourceId sourceId
-           :appId appId)))
+    (->  (assoc log
+                :timestamp timestamp
+                :eventName eventName
+                :sourceId sourceId
+                :appId appId)
+         (merge optional-confs))))
 
 
 (defn- -init [^IPersistentMap conf]

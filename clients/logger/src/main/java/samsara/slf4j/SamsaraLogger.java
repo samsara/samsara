@@ -39,6 +39,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
         String minBufferSize = System.getenv("SAMSARA_MIN_BUFFER_SIZE");
         String maxBufferSize = System.getenv("SAMSARA_MAX_BUFFER_SIZE");
         String compression = System.getenv("SAMSARA_COMPRESSION");
+        String serviceName = System.getenv("SAMSARA_SERVICE_NAME");
 
         apiUrl = System.getProperty("SAMSARA_API_URL", apiUrl);
         sourceId = System.getProperty("SAMSARA_SOURCE_ID", sourceId);
@@ -47,6 +48,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
         minBufferSize = System.getProperty("SAMSARA_MIN_BUFFER_SIZE", minBufferSize);
         maxBufferSize = System.getProperty("SAMSARA_MAX_BUFFER_SIZE", maxBufferSize);
         compression = System.getProperty("SAMSARA_COMPRESSION", compression);
+        serviceName = System.getProperty("SAMSARA_SERVICE_NAME", serviceName);
 
         Long publishIntervalLong = (publishInterval == null ? null : Long.parseLong(publishInterval));
         Long minBufferSizeLong = (minBufferSize == null ? null : Long.parseLong(minBufferSize));
@@ -59,6 +61,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
         builder = (minBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMinBufferSize(minBufferSizeLong));
         builder = (maxBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMaxBufferSize(maxBufferSizeLong));
         builder = (compression == null ? builder : (EventLoggerBuilder)builder.setCompression(compression));
+        builder = (serviceName == null ? builder : (EventLoggerBuilder)builder.setServiceName(serviceName));
 
         eventLogger = builder.build();
 

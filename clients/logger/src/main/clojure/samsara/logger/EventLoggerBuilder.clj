@@ -16,6 +16,7 @@
                         [setMaxBufferSize [Long] Object]
                         [getMaxBufferSize [] Long]
                         [setCompression [String] Object]
+                        [setServiceName [String] Object]
                         [build [] samsara.logger.EventLogger]
                         [sendToSamsara [] Boolean]]))
 
@@ -80,6 +81,10 @@
                "] Defaulting compression type to ["
                (name (:compression @(.state this)))
                "]")))
+  this)
+
+(defn -setServiceName [this ^String s]
+  (swap! (.state this) assoc :serviceName s)
   this)
 
 (defn -build [this]
