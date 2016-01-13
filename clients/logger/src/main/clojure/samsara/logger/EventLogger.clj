@@ -48,12 +48,16 @@
 
 (def ^:private default-app-id (str hostname "-" init-class "-" pid ))
 
+(def ^:private default-source-id 
+  (memoize (fn []
+             (-> (java.util.UUID/randomUUID) (.toString)))))
+
 
 (defn- log->samsara-event [{:keys [sourceId appId] :as conf}
 
                            {:keys [timestamp eventName] :as log}]
 
-  (let [sourceId (or sourceId default-app-id)
+  (let [sourceId (or sourceId (default-source-id))
         appId (or appId default-app-id)
         timestamp (or timestamp (System/currentTimeMillis))
         eventName (or eventName "UnknownLogEvent")
