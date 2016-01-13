@@ -24,6 +24,7 @@ Samsara provides clients for various languages and platforms. This will help you
 | | | | | | |
 | Clojure    | Y           | Y            | Y             | GZIP        | N           | N        |
 | iOS        | Y           | Y            | Y             | N           | Y           | Y        |
+| Logger     | Y           | Y            | Y             | GZIP        | N           | N        |
 | Android    | Coming soon | | | | | |
 | Ruby       | Coming soon | | | | | |
 | Javascript | Coming soon | | | | | |
