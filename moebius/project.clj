@@ -26,5 +26,5 @@
 
 
   :aliases {"test-check" ["midje" ":filters" "test-check"]
-            "alltest"    ["midje"]
-            "test"       ["midje" ":filters" "-slow"]})
+            "test"       ["midje"]
+            "quick-test" ["midje" ":filters" "-slow"]})

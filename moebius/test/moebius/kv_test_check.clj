@@ -5,7 +5,12 @@
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]))
 
-(def num-tests (Integer/getInteger "test-check.num-tests" 10))
+(def num-tests
+  (or
+   (Integer/getInteger "test-check.num-tests")
+   (some-> (System/getenv "TC_NUM_TESTS") Integer/parseInt)
+   10))
+
 
 (def instructions-gen
   (gen/elements [:get :set :del]))
@@ -53,7 +58,8 @@
 
 
 
-(fact "restore should recreate the exact state of the source" :test-check :slow
+(fact "restore should recreate the exact state of the source
+       (this might takes some time)" :test-check :slow
       (tc/quick-check
        num-tests
        (prop/for-all [ops operation-list-gen]
@@ -65,7 +71,8 @@
 
 
 
-(fact "writes on a particular key should hold just the last value" :test-check :slow
+(fact "writes on a particular key should hold just the last value
+       (this might takes some time)" :test-check :slow
       (tc/quick-check
        num-tests
        (prop/for-all
