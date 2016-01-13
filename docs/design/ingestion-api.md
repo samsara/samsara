@@ -7,9 +7,9 @@ nav: documentation
 
 ## Ingestion API
 
-For installation instructutions refer to the Ingestion API project in [GitHub](https://github.com/samsara/samsara/ingestion-api).
+For installation instructutions refer to the Ingestion API project in [GitHub](https://github.com/samsara/samsara/tree/master/ingestion-api).
 
-For the format of the events please refer to [Events Specification](/docs/design/events-spec).
+For the format of the events please refer to [Events Specification](/docs/design/events-spec.md).
 
 ### Available endpoints
 
