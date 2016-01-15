@@ -113,7 +113,7 @@ log.retention.check.interval.ms=300000
 
 # By default the log cleaner is disabled and the log retention policy will default to just delete segments after their retention expires.
 # If log.cleaner.enable=true is set the cleaner will be enabled and individual logs can then be marked for log compaction.
-log.cleaner.enable=false
+log.cleaner.enable=true
 
 ############################# Zookeeper #############################
 
@@ -163,3 +163,7 @@ external.kafka.statsd.port=8125
 
 # a prefix for all metrics names (empty)
 external.kafka.statsd.metrics.prefix=kafka.%%HOSTNAME%%.broker.%%KAFKA_BROKER_ID%%
+
+
+## enable topic delete
+delete.topic.enable=true

@@ -2,7 +2,7 @@
 
 A production ready installation of Apache Kafka
 
-Github project: [https://github.com/samsara/samsara-docker-images](https://github.com/samsara/samsara-docker-images)
+Github project: [https://github.com/samsara/samsara](https://github.com/samsara/samsara/tree/master/docker-images/kafka)
 
 ## Ports exposed
 
@@ -55,6 +55,7 @@ docker run -d -p 9092:9092 -p 15000:15000 \
 * `0.8.2.1`  - Kafka `0.8.2.1` ready for production installations
 * `0.8.2.1b` - Kafka `0.8.2.1`
 * `0.8.2.1c` - Kafka `0.8.2.1` with configurable advertised-ip
+* `0.8.2.1d` - Kafka `0.8.2.1` enabled compaction and topic delete
 
 
 ## Copyright & License
