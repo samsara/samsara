@@ -13,7 +13,7 @@ nav: documentation
       <div class="caption">
         <center>Scripts for deployment to Amazon EC2.</center>
         <h4>&nbsp;</h4>
-        <center><a href="https://github.com/samsara/samsara-deployments/tree/master/amazon-ec2" class="btn btn-primary" role="button">Get Started &raquo;</a></center>
+        <center><a href="https://github.com/samsara/samsara/tree/master/deployments/amazon-ec2" class="btn btn-primary" role="button">Get Started &raquo;</a></center>
       </div>
     </div>
   </div>
@@ -24,7 +24,7 @@ nav: documentation
       <div class="caption">
         <center>Scripts for deployment to Amazon ECS.</center>
         <h4>&nbsp;</h4>
-        <center><a href="https://github.com/samsara/samsara-deployments/tree/master/amazon-ecs" class="btn btn-primary" role="button">Get Started &raquo;</a></center>
+        <center><a href="https://github.com/samsara/samsara/tree/master/deployments/amazon-ecs" class="btn btn-primary" role="button">Get Started &raquo;</a></center>
       </div>
     </div>
   </div>
@@ -37,7 +37,7 @@ nav: documentation
       <div class="caption">
         <center>Scripts for deployment using Kubernetes.</center>
         <h4>&nbsp;</h4>
-        <center><a href="https://github.com/samsara/samsara-deployments/tree/master/kubernetes" class="btn btn-primary" role="button">Get Started &raquo;</a></center>
+        <center><a href="https://github.com/samsara/samsara/tree/master/deployments/kubernetes" class="btn btn-primary" role="button">Get Started &raquo;</a></center>
       </div>
     </div>
   </div>
@@ -48,7 +48,7 @@ nav: documentation
       <div class="caption">
         <center>Scripts for bare-bones Docker based deployment.</center>
         <h4>&nbsp;</h4>
-        <center><a href="https://github.com/samsara/samsara-docker-images" class="btn btn-primary" role="button">Get Started &raquo;</a></center>
+        <center><a href="https://github.com/samsara/samsara/tree/master/docker-images" class="btn btn-primary" role="button">Get Started &raquo;</a></center>
       </div>
     </div>
   </div>

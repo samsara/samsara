@@ -59,7 +59,7 @@ Samsara uses a key-value store, typically [Cassandra](http://cassandra.apache.or
 transient processing data.
 The output of Samsara is then sent into another Kafka topic ready to be indexed.
 
-[Qanal](https://github.com/samsara/qanal), our parallel indexer, takes the enriched streams
+[Qanal](https://github.com/samsara/samsara/tree/master/qanal), our parallel indexer, takes the enriched streams
 of events and store them into [ElasticSearch](http://www.elasticsearch.org/).
 
 Once available in the index, the data is immediately queryable by the frontend
