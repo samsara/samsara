@@ -163,7 +163,7 @@ To access them you can log into `boot2docker` with the following command: `boot2
 ## Available endpoints
 
 For more information about the available endpoints please refer to
-(ingestion-api documentaiton)[/docs/design/ingestion-api.md]
+[ingestion-api documentaiton](/docs/design/ingestion-api.md)
 
 ## License
 
