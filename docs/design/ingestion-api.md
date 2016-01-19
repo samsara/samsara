@@ -93,3 +93,24 @@ Where status can be one of: `online` or `offline`.
 When set to `offline` the `GET /api-status` will return `HTTP 503` as response code.
 
 This is useful for maintenance purposes to take one instance off of the loadbalancer.
+
+For obvious reasons `PUT /v1/api-status` shouldn't be made available to the open internet but only used internally to set a particular instance offine.
+
+We recommend to to use HAProxy ACL policies to set up who can access this endpoint.
+
+For example this could be allowed only from a administative network in
+the following way:
+
+```
+frontend example-frontend
+  [...]
+  acl network_allowed src 20.30.40.50 20.30.40.40
+  acl restricted_page path_beg /v1/api-status
+  block if restricted_page METH_PUT !network_allowed
+  [...]
+```
+
+This snippet will only allow the networks `20.30.40.50` and
+`20.30.40.40` to issue a `PUT /v1/api-status`.
+
+
