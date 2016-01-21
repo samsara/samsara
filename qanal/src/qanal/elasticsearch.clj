@@ -31,6 +31,19 @@
             (when id {:_id id})) }
     source ])
 
+(defn log-failed-requests 
+  "This function checks http response code of the response and
+   if not in 2XX range logs the request and response"
+  [request-item response-item]
+
+  (let [[action els-resp] (first response-item)]    ;;ELS response items are maps made of only one key-value pair
+    (when (>= (:status els-resp) 300)               ;;Http response code not in 2XX range means failure of some sort
+      (let [document (:source request-item)
+            status (:status els-resp)
+            error-msg (:error els-resp)]
+        (log/warn "FAILED Bulk request action ->" action "for document ->" document ". Response status ->" status
+                  "and error ->" error-msg)))))
+
 
 (defn bulk-index [{:keys [end-point]} messages]
   ;; TODO: connection should be cached
@@ -38,11 +51,10 @@
         ;; track interesting metrics
         _    (track-rate "qanal.els.bulk-index.docs" (count messages))
         resp (track-time "qanal.els.bulk-index.time"
-                              (esb/bulk conn (mapcat make-bulk-request messages)))]
-    ;; TODO: better error han
-    ;; maybe track num failures
+                         (esb/bulk conn (mapcat make-bulk-request messages)))]
     (when (:errors resp)
-      (log/warn "Failed to execute entire bulk index. Response->" resp))))
+      (let [resp-items (:items resp)]   ;;ELS returns response-items in the SAME order as the bulk requests
+        (dorun (map log-failed-requests messages resp-items))))))
 
 
 (comment
