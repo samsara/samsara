@@ -2,7 +2,7 @@
 # Zookeeper
 #
 zookeeper:
-  image: samsara/zookeeper
+  image: samsara/zookeeper:0.5.5.0
   ports:
     - "2181:2181"
     - "15001:15000"
@@ -16,7 +16,7 @@ zookeeper:
 # Kafka
 #
 kafka:
-  image: samsara/kafka
+  image: samsara/kafka:0.5.5.0
   ports:
     - "9092:9092"
     - "15002:15000"
@@ -32,7 +32,7 @@ kafka:
 # Spark-master
 #
 sparkmaster:
-  image: samsara/spark-master
+  image: samsara/spark-master:0.5.5.0
   ports:
     - "7077:7077"
     - "8080:8080"
@@ -47,7 +47,7 @@ sparkmaster:
 # Spark-worker
 #
 sparkworker:
-  image: samsara/spark-worker
+  image: samsara/spark-worker:0.5.5.0
   ports:
     - "7078:7078"
     - "8081:8081"
@@ -62,7 +62,7 @@ sparkworker:
 # Samsara Ingestion API
 #
 ingestion:
-  image: samsara/ingestion-api
+  image: samsara/ingestion-api:0.5.5.0
   links:
     - kafka:kafka
     - monitoring:riemann
@@ -79,7 +79,7 @@ ingestion:
 # Samsara CORE
 #
 core:
-  image: samsara/samsara-core
+  image: samsara/samsara-core:0.5.5.0
   links:
     - kafka:kafka
     - zookeeper:zookeeper
@@ -97,7 +97,7 @@ core:
 # ElasticSearch
 #
 elasticsearch:
-  image: samsara/elasticsearch
+  image: samsara/elasticsearch:0.5.5.0
   links:
     - zookeeper:zookeeper
   ports:
@@ -112,7 +112,7 @@ elasticsearch:
 # Kibana
 #
 kibana:
-  image: samsara/kibana
+  image: samsara/kibana:0.5.5.0
   links:
     - elasticsearch:elasticsearch
   ports:
@@ -125,7 +125,7 @@ kibana:
 # Samsara Qanal
 #
 qanal:
-  image: samsara/qanal
+  image: samsara/qanal:0.5.5.0
   links:
     - zookeeper:zookeeper
     - elasticsearch:els
@@ -144,7 +144,7 @@ qanal:
 # Monitoring
 #
 monitoring:
-  image: samsara/monitoring
+  image: samsara/monitoring:0.5.5.0
   ports:
     - "15000:80"
     - "5555:5555"
@@ -163,11 +163,11 @@ monitoring:
 # Bootstrap
 #
 bootstrap:
-  image: samsara/kafka
+  image: samsara/kafka:0.5.5.0
   links:
     - zookeeper:zookeeper
     - kafka:kafka
     - elasticsearch:elasticsearch
-  command: bash -c "curl -sSL 'https://raw.githubusercontent.com/samsara/samsara/master/docker-images/bootstrap/bootstrap.sh' | bash"
+  command: bash -c "curl -sSL 'https://raw.githubusercontent.com/samsara/samsara/0.5.5.0/docker-images/bootstrap/bootstrap.sh' | bash"
   volumes:
     - /tmp/logs/bootstrap:/logs

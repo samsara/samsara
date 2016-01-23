@@ -1,6 +1,10 @@
-(defproject qanal (-> "../samsara.version" slurp .trim)
+(defproject samsara/qanal (-> "../samsara.version" slurp .trim)
   :description "An Application that bulk indexes docs from Kafka to Elasticsearch"
-  :url "https://github.com/samsara/qanal"
+
+  :url "http://samsara-analytics.io/"
+
+  :scm {:name "github" :url "https://github.com/samsara/samsara/tree/master/qanal"}
+
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.7.0"]

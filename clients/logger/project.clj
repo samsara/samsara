@@ -1,6 +1,10 @@
 (defproject samsara/samsara-logger (-> "../../samsara.version" slurp .trim)
   :description "A logging interface for sending logs as events to samsara"
-  :url "https://github.com/samsara/samsara-logger"
+
+  :url "http://samsara-analytics.io/"
+
+  :scm {:name "github" :url "https://github.com/samsara/samsara/tree/master/clients/logger"}
+
   :license {:name "Apache License V2"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.7.0"]
@@ -14,12 +18,4 @@
   :test-paths ["test/main/clojure"]
 
   :prep-tasks ["compile" "javac"]
-
-  :deploy-repositories[["clojars" {:url "https://clojars.org/repo/"
-                                   :sign-releases true}]]
   )
-
-
-
-
-

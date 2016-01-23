@@ -1,7 +1,9 @@
 (defproject samsara/samsara-utils (-> "../samsara.version" slurp .trim)
   :description "Common utilities from Samsara's project"
 
-  :url "https://samsara.github.com/"
+  :url "http://samsara-analytics.io/"
+
+  :scm {:name "github" :url "https://github.com/samsara/samsara/tree/master/utils"}
 
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
@@ -13,5 +15,4 @@
   :profiles {:dev {:dependencies [[midje "1.8.2"]]
                    :plugins [[lein-midje "3.2"]]}}
 
-  :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
-                                   :sign-releases false}]])
+)

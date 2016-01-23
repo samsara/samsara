@@ -1,7 +1,9 @@
 (defproject samsara/moebius (-> "../samsara.version" slurp .trim)
   :description "A system to process and enrich and correlate events in realtime"
 
-  :url "https://samsara.github.com/samsara/moebius"
+  :url "http://samsara-analytics.io/"
+
+  :scm {:name "github" :url "https://github.com/samsara/samsara/tree/master/moebius"}
 
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
@@ -20,10 +22,6 @@
   :profiles {:dev {:dependencies [[midje "1.7.0"]
                                   [org.clojure/test.check "0.8.2"]]
                    :plugins [[lein-midje "3.1.3"]]}}
-
-  :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
-                                    :sign-releases false}]]
-
 
   :aliases {"test-check" ["midje" ":filters" "test-check"]
             "test"       ["midje"]
