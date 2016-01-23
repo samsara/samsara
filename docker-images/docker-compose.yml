@@ -2,7 +2,7 @@
 # Zookeeper
 #
 zookeeper:
-  image: samsara/zookeeper:0.5.5.0
+  image: samsara/zookeeper
   ports:
     - "2181:2181"
     - "15001:15000"
@@ -16,7 +16,7 @@ zookeeper:
 # Kafka
 #
 kafka:
-  image: samsara/kafka:0.5.5.0
+  image: samsara/kafka
   ports:
     - "9092:9092"
     - "15002:15000"
@@ -32,7 +32,7 @@ kafka:
 # Samsara Ingestion API
 #
 ingestion:
-  image: samsara/ingestion-api:0.5.5.0
+  image: samsara/ingestion-api
   links:
     - kafka:kafka
     - monitoring:riemann
@@ -49,7 +49,7 @@ ingestion:
 # Samsara CORE
 #
 core:
-  image: samsara/samsara-core:0.5.5.0
+  image: samsara/samsara-core
   links:
     - kafka:kafka
     - zookeeper:zookeeper
@@ -67,7 +67,7 @@ core:
 # ElasticSearch
 #
 elasticsearch:
-  image: samsara/elasticsearch:0.5.5.0
+  image: samsara/elasticsearch
   links:
     - zookeeper:zookeeper
   ports:
@@ -82,7 +82,7 @@ elasticsearch:
 # Kibana
 #
 kibana:
-  image: samsara/kibana:0.5.5.0
+  image: samsara/kibana
   links:
     - elasticsearch:elasticsearch
   ports:
@@ -95,7 +95,7 @@ kibana:
 # Samsara Qanal
 #
 qanal:
-  image: samsara/qanal:0.5.5.0
+  image: samsara/qanal
   links:
     - zookeeper:zookeeper
     - elasticsearch:els
@@ -114,7 +114,7 @@ qanal:
 # Monitoring
 #
 monitoring:
-  image: samsara/monitoring:0.5.5.0
+  image: samsara/monitoring
   ports:
     - "15000:80"
     - "5555:5555"
@@ -133,11 +133,11 @@ monitoring:
 # Bootstrap
 #
 bootstrap:
-  image: samsara/kafka:0.5.5.0
+  image: samsara/kafka
   links:
     - zookeeper:zookeeper
     - kafka:kafka
     - elasticsearch:elasticsearch
-  command: bash -c "curl -sSL 'https://raw.githubusercontent.com/samsara/samsara/0.5.5.0/docker-images/bootstrap/bootstrap.sh' | bash"
+  command: bash -c "curl -sSL 'https://raw.githubusercontent.com/samsara/samsara/master/docker-images/bootstrap/bootstrap.sh' | bash"
   volumes:
     - /tmp/logs/bootstrap:/logs

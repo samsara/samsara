@@ -113,6 +113,22 @@ Make sure that the [CHANGELOG](/changelog.md) file is up-to-date.
 
 ## Commit and tag
 
-Double check that all changes you made are ok for the release. Then commit and push
+Double check that all changes you made are ok for the release. Then
+commit and push.
 
 ## Post release
+
+Restore the docker compose version to latest and bootstrap to master
+
+    cd $SAMSARA/docker-images/bootstrap
+    gsed -i "/image:/s/:`cat $SAMSARA/samsara.version`//g" docker-compose.yml
+    gsed -i "/image:/s/:`cat $SAMSARA/samsara.version`//g" docker-compose-with-spark.yml
+    gsed -i "/command:.*bootstrap.sh/s/`cat $SAMSARA/samsara.version`/master/g" docker-compose.yml
+    gsed -i "/command:.*bootstrap.sh/s/`cat $SAMSARA/samsara.version`/master/g" docker-compose-with-spark.yml
+
+Bump the `samsara.version` minor release number (third digit) and
+append `-SNAPSHOT`. For example:
+
+    0.5.5.0 --becomes--> 0.5.6.0-SNAPSHOT
+
+Finally make an announcement of the new release in Slack and other channels.
