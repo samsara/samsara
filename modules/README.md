@@ -1,4 +1,4 @@
-# samsara-bultin-modules [![Circle CI](https://circleci.com/gh/samsara/samsara-builtin-modules/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara-builtin-modules/tree/master) [![Dependencies Status](http://jarkeeper.com/samsara/samsara-builtin-modules/status.png)](http://jarkeeper.com/samsara/samsara-builtin-modules)
+# samsara-bultin-modules [![Circle CI](https://circleci.com/gh/samsara/samsara-builtin-modules/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara-builtin-modules/tree/master)
 
 This projects contains Samsara's built-in modules.
 

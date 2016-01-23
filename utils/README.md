@@ -1,4 +1,4 @@
-# samsara-utils [![Dependencies Status](http://jarkeeper.com/samsara/samsara-utils/status.png)](http://jarkeeper.com/samsara/samsara-utils)
+# samsara-utils
 
 A set of common utilities for the Samsara's project.
 
