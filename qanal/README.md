@@ -3,13 +3,18 @@
 A stand alone indexer that reads messages (see Message Format below) from Kafka and bulk indexes them into a Elasticsearch Cluster.
 This program is intended as an alternative to the [Elasticsearch Kafka River Plugin] (https://github.com/endgameinc/elasticsearch-river-kafka)
 
-Tested against the Kafka-0.8.1.1 and Elasticsearch-1.4.4.
-
 ## Release Status
 Still in development, hope to do the first release real soon.
 
 ## Continous Integration
 Current build status: [![Circle CI](https://circleci.com/gh/samsara/qanal/tree/master.svg?style=shield)](https://circleci.com/gh/samsara/qanal/tree/master)
+
+Developed and tested against:
+
+  * Kafka-0.8.1.1
+  * Kafka-0.8.2.1
+  * Elasticsearch-1.4.4.
+  * Elasticsearch-1.6.2.
 
 
 ## Configuration
@@ -24,9 +29,9 @@ The following is the provided example (config/config.edn)
 {:kafka-source
   {:zookeeper-connect  "127.0.0.1:2181"
    :connect-retry      5000
-   :group-id	       "qanal"
+   :group-id           "qanal"
    :auto-offset-reset  :earliest ; Can only be earliest or latest
-   :fetch-size	       10485760	 ; size in bytes
+   :fetch-size         10485760  ; size in bytes
    }
 
  ;; a map which lists all topic and partitions to consume from
@@ -51,8 +56,8 @@ The following is the provided example (config/config.edn)
 
  :logging-options
    {:min-level :info
-    :path "qanal.log"			     ;full path name for the file
-    :max-size 15360			     ;size in bytes
+    :path "qanal.log"      ; full path name for the file
+    :max-size 15360        ; size in bytes
     :backlog 10}}
 ```
 
@@ -119,12 +124,12 @@ The messages sent to Kafka are expected to be json messages and in the
 same format as those consumed by the Elasticsearch Kafka River Plugin.
 
 ```Javascript
-	{
-		"index" : "example_index",
-		"type" : "example_type",
-		"id" : "asdkljflkasjdfasdfasdf",
-		"source" : { ..... }
-	}
+{
+    "index" : "example_index",
+    "type" : "example_type",
+    "id" : "asdkljflkasjdfasdfasdf",
+    "source" : { ..... }
+}
 ```
 
 The `id` is optional while `index` and `type` are mandatory and they
