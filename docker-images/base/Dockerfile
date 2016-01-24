@@ -1,18 +1,18 @@
-FROM ubuntu:14.10
+FROM ubuntu:15.10
 
 MAINTAINER Samsara's team (https://github.com/samsara/samsara-docker-images)
 
 RUN apt-get update
-RUN apt-get install -y wget curl
+RUN apt-get install -y wget curl bzip2 less vim netcat zip
 
 
 #
 # JDK installation
 #
 
-RUN export SJDK7="http://download.oracle.com/otn-pub/java/jdk/7u75-b13/jdk-7u75-linux-x64.tar.gz" && \
-    export SJDK8="http://download.oracle.com/otn-pub/java/jdk/8u40-b26/jdk-8u40-linux-x64.tar.gz" && \
-    export SJDK=$SJDK8 && \
+RUN export SJDK7="http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz" && \
+    export SJDK8="http://download.oracle.com/otn-pub/java/jdk/8u71-b15/jdk-8u71-linux-x64.tar.gz" && \
+    export SJDK=$SJDK7 && \
     wget --progress=dot:mega --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" $SJDK  -O /tmp/java.tgz && \
     mkdir -p /usr/lib/jvm && \
     tar zxvf /tmp/java.tgz -C /usr/lib/jvm && \
@@ -38,6 +38,11 @@ ADD ./supervisord.conf /etc/supervisor/supervisord.conf
 #
 RUN wget http://stedolan.github.io/jq/download/linux64/jq -O /usr/local/bin/jq && \
     chmod +x /usr/local/bin/jq
+
+#
+# setting the terminal to xterm
+#
+ENV TERM xterm
 
 # standard volumes
 VOLUME ["/logs"]
