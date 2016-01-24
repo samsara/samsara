@@ -24,10 +24,14 @@ docker run -d -v /tmp/logs/os:/logs samsara/base-image-jdk8
 
 ## Versions
 
-* samsara/base-image-jdk7 \| `0.5.5.0` \| `u1410-j7u75` - Ubuntu 14.10, JDK 1.7u75, supervisord, jq, os tools
-* samsara/base-image-jdk8 \| `0.5.5.0` \| `u1410-j8u40` - Ubuntu 14.10, JDK 1.8u40, supervisord, jq, os tools
-* samsara/base-image-jdk7 \| `0.5.6.0` \| `u1510-j7u79` - Ubuntu 15.10, JDK 1.7u75, supervisord, jq, os tools
-* samsara/base-image-jdk8 \| `0.5.6.0` \| `u1510-j8u71` - Ubuntu 15.10, JDK 1.8u40, supervisord, jq, os tools
+* `samsara/base-image-jdk7` \| `0.5.5.0` \| `u1410-j7u75`
+  - Ubuntu 14.10, JDK 1.7u75, supervisord, jq, os tools
+* `samsara/base-image-jdk8` \| `0.5.5.0` \| `u1410-j8u40`
+  - Ubuntu 14.10, JDK 1.8u40, supervisord, jq, os tools
+* `samsara/base-image-jdk7` \| `0.5.6.0` \| `u1510-j7u79`
+  - Ubuntu 15.10, JDK 1.7u75, supervisord, jq, os tools
+* `samsara/base-image-jdk8` \| `0.5.6.0` \| `u1510-j8u71`
+  - Ubuntu 15.10, JDK 1.8u40, supervisord, jq, os tools
 
 
 ## Copyright & License
