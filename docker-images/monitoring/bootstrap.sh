@@ -20,7 +20,7 @@ while [ "$(curl -m 1 -s -q -XGET 'http://admin:admin@localhost/api/org' >/dev/nu
     sleep 3
 done
 
-if [ "$(curl -sS "http://$1:$!@localhost/api/datasources" | grep -q samsara && echo 1)" == "1" ] ; then
+if [ "$(curl -sS "http://$1:$2@localhost/api/datasources" | grep -q samsara && echo 1)" == "1" ] ; then
     echo "datasource already present..."
 else
     echo "creating datasource..."
