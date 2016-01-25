@@ -16,3 +16,5 @@ The docker images pushed into DockerHub have been tagged as they were.
   * updated base docker image to ubuntu15.10 and new versions of JDK7/8
 
 ## version 0.5.7.0 (not released yet)
+
+  * update monitoring docker image with: Riemann-0.2.10, InfluxDB-0.9.6.1, MySQL-5.7.10, Grafana 2.6.0
