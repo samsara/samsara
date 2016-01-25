@@ -1,6 +1,6 @@
 FROM samsara/base-image-jdk8:u1410-j8u40
 
-MAINTAINER Samsara's team (https://github.com/samsara/samsara-docker-images)
+MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 
 #
 # Kafka installation

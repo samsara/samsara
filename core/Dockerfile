@@ -1,6 +1,6 @@
 FROM samsara/base-image-jdk8:u1410-j8u40
 
-MAINTAINER Samsara's team (https://github.com/samsara/samsara-core)
+MAINTAINER Samsara's team (https://github.com/samsara/samsara/core)
 
 ADD ./target/samsara-core           /opt/samsara-core/
 ADD ./config/config.edn.tmpl        /opt/samsara-core/config/config.edn.tmpl

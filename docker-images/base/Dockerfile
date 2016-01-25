@@ -1,6 +1,6 @@
 FROM ubuntu:15.10
 
-MAINTAINER Samsara's team (https://github.com/samsara/samsara-docker-images)
+MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 
 RUN apt-get update
 RUN apt-get install -y wget curl bzip2 less vim netcat zip

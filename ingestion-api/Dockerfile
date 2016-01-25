@@ -1,6 +1,6 @@
 FROM samsara/base-image-jdk8:u1410-j8u40
 
-MAINTAINER Samsara's team (https://github.com/samsara/samsara-ingestion-api)
+MAINTAINER Samsara's team (https://github.com/samsara/samsara/ingestion-api)
 
 ADD ./target/ingestion-api          /opt/ingestion-api/
 ADD ./config/config.edn.tmpl        /opt/ingestion-api/config/config.edn.tmpl

@@ -1,6 +1,6 @@
 FROM samsara/base-image-jdk8:u1510-j8u71
 
-MAINTAINER Samsara's team (https://github.com/samsara/samsara-docker-images)
+MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 
 #
 # Riemann installation

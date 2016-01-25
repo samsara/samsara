@@ -2,7 +2,7 @@
 
 A production ready installation of Elastic's ElasticSearch
 
-Github project: [https://github.com/samsara/samsara-docker-images](https://github.com/samsara/samsara-docker-images)
+Github project: [https://github.com/samsara/samsara/docker-images](https://github.com/samsara/samsara/docker-images)
 
 ## Ports exposed
 

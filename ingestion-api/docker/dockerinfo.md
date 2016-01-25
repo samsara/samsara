@@ -2,7 +2,7 @@
 
 Runs a RESTful ingestion API for the Samsara real-time analytics.
 
-Api specification available [https://github.com/samsara/samsara-ingestion-api/blob/master/spec/ingestion-api-spec.yaml](https://github.com/samsara/samsara-ingestion-api/blob/master/spec/ingestion-api-spec.yaml).
+Api specification available [https://github.com/samsara/samsara/blob/master/ingestion-api/spec/ingestion-api-spec.yaml](https://github.com/samsara/samsara/blob/master/ingestion-api/spec/ingestion-api-spec.yaml)
 
 ## Versions
 

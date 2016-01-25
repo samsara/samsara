@@ -1,6 +1,6 @@
 FROM samsara/base-image-jdk7:u1410-j7u75
 
-MAINTAINER Samsara's team (https://github.com/samsara/samsara-docker-images)
+MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 
 #
 # Zookeeper installation
