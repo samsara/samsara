@@ -55,7 +55,8 @@ RUN export GRAFANA_VERSION=2.6.0 && \
 
 ADD ./grafana-custom.ini.tmpl /opt/grafana/conf/custom.ini.tmpl
 ADD ./grafana-supervisor.conf /etc/supervisor/conf.d/grafana-supervisor.conf
-ADD ./mysql-supervisor.conf /etc/supervisor/conf.d/mysql-supervisor.conf
+ADD ./mysql-supervisor.conf   /etc/supervisor/conf.d/mysql-supervisor.conf
+ADD ./dashboards              /opt/grafana/dashboards
 
 ADD ./configure-and-start.sh /configure-and-start.sh
 

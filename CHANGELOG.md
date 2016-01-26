@@ -18,3 +18,10 @@ The docker images pushed into DockerHub have been tagged as they were.
 ## version 0.5.7.0 (not released yet)
 
   * update monitoring docker image with: Riemann-0.2.10, InfluxDB-0.9.6.1, MySQL-5.7.10, Grafana 2.6.0
+  * added default monitoring dashboards
+
+
+(NOTE: for release, delete after)
+Images to rebuild before release:
+  - monitoring
+  - core
