@@ -14,7 +14,7 @@
                  [clojurewerkz/elastisch "2.1.0"]
                  [cheshire "5.5.0"]
                  [prismatic/schema "0.4.4"]
-                 [samsara/trackit "0.2.0"]
+                 [samsara/trackit "0.3.0"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [clj-time "0.11.0"]]
   :main qanal.core

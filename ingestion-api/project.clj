@@ -20,7 +20,7 @@
                  [clj-kafka "0.2.8-0.8.1.1"]
                  [com.taoensso/timbre "3.4.0"]
                  [org.clojure/tools.cli "0.3.1"]
-                 [samsara/trackit "0.2.0"]
+                 [samsara/trackit "0.3.0"]
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [com.stuartsierra/component "0.3.0"]
                  [reloaded.repl "0.2.1"]]
