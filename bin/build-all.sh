@@ -61,6 +61,12 @@ cd $BASE/modules
 lein do clean, $TEST, jar, install
 
 
+## build core
+banner CORE
+cd $BASE/core
+lein do clean, $TEST, jar, install, bin
+
+
 ## build qanal
 banner qanal
 cd $BASE/qanal
