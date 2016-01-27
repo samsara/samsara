@@ -2,6 +2,10 @@
   :description "Event stream processing pipeline"
 
   :url "https://samsara.github.com/"
+
+  :scm {:name "github"
+        :url "https://github.com/samsara/samsara/tree/master/core"}
+
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
@@ -28,7 +32,14 @@
   :profiles {:uberjar {:aot :all}
              :dev {:dependencies [[midje "1.7.0"]]
                    :plugins [[lein-midje "3.1.3"]
-                             [lein-bin "0.3.5"]]}}
+                             [lein-bin "0.3.5"]
+                             [lein-shell "0.5.0"]]}}
+
+  :aliases {"docker"
+            ["shell" "docker" "build" "-t" "samsara/samsara-core:${:version}" "."]
+
+            "docker-latest"
+            ["shell" "docker" "build" "-t" "samsara/samsara-core" "."]}
 
   :jvm-opts ["-server" "-Dfile.encoding=utf-8"]
   :bin {:name "samsara-core" :bootclasspath false})

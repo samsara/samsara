@@ -3,12 +3,15 @@
 
   :url "http://samsara-analytics.io/"
 
-  :scm {:name "github" :url "https://github.com/samsara/samsara/tree/master/ingestion-api"}
+  :scm {:name "github"
+        :url "https://github.com/samsara/samsara/tree/master/ingestion-api"}
 
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
+
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [samsara/samsara-utils #=(clojure.string/trim #=(slurp "../samsara.version"))]
+                 [samsara/samsara-utils
+                  #=(clojure.string/trim #=(slurp "../samsara.version"))]
                  [aleph "0.4.0"]
                  [gloss "0.2.5"]
                  [ring/ring-devel "1.4.0"]
@@ -30,6 +33,14 @@
                                   [clojurewerkz/machine_head "1.0.0-beta9"]
                                   [clj-mqtt "0.4.1-alpha"]]
                    :plugins [[lein-midje "3.1.3"]
-                             [lein-bin "0.3.5"]]}}
+                             [lein-bin "0.3.5"]
+                             [lein-shell "0.5.0"]]}}
+
+  :aliases {"docker"
+            ["shell" "docker" "build" "-t" "samsara/ingestion-api:${:version}" "."]
+
+            "docker-latest"
+            ["shell" "docker" "build" "-t" "samsara/ingestion-api" "."]}
+
   :jvm-opts ["-server" "-Dfile.encoding=utf-8"]
   :bin {:name "ingestion-api" :bootclasspath false})
