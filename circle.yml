@@ -5,11 +5,11 @@ machine:
 
 test:
   override:
-    - MIDJE_COLORIZE=NONE ./bin/build-all-projects.sh test
+    - ./bin/build-test-snapshot.sh
 
 
 deployment:
   docker-hub:
     branch: master
     commands:
-      - ./bin/deploy-internal-containers.sh
+      - ./bin/publish-snapshot-containers.sh
