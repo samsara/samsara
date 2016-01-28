@@ -128,25 +128,13 @@ curl -XPUT 'http://localhost:9200/kibana' -d '{
 
 ### How To build and push docker images
 
-If you want to build and push all docker images with the right tags
+If you want to build all docker images with the right tags
 
 ```bash
 # build the images
-./build.sh
-
-# to push to docker registry
-# you need to login
-
-docker login
-
-# and finally push the images
-./push.sh
+# if no version number/tag is passed samsara.version is used
+DOCKER_OPTS=--no-cache ./build-all.sh [version-tag-here]
 ```
-
-**Please note:** that `qanal`, `ingestion-api` and `samsara-core` images are built
-within their source projects.
-Check [https://github.com/samsara](https://github.com/samsara) for
-more info.
 
 ## License
 

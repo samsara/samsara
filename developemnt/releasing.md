@@ -96,7 +96,7 @@ in the DokcerHub page.
 
 Update the docker-compose descriptor to have all images use the new version.
 
-    cd $SAMSARA/docker-images/bootstrap
+    cd $SAMSARA/docker-images
     gsed -i "/image:/s/$/:`cat $SAMSARA/samsara.version`/g" docker-compose.yml
     gsed -i "/image:/s/$/:`cat $SAMSARA/samsara.version`/g" docker-compose-with-spark.yml
 
@@ -120,7 +120,7 @@ commit and push.
 
 Restore the docker compose version to latest and bootstrap to master
 
-    cd $SAMSARA/docker-images/bootstrap
+    cd $SAMSARA/docker-images
     gsed -i "/image:/s/:`cat $SAMSARA/samsara.version`//g" docker-compose.yml
     gsed -i "/image:/s/:`cat $SAMSARA/samsara.version`//g" docker-compose-with-spark.yml
     gsed -i "/command:.*bootstrap.sh/s/`cat $SAMSARA/samsara.version`/master/g" docker-compose.yml
