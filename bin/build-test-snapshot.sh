@@ -21,8 +21,16 @@ DOCKER_OPTS=--no-cache $(dirname $0)/build-all-containers.sh $VER
 # now start a cluster using the containers just created
 $(dirname $0)/start-samsara.sh $VER &
 
+# wait for the containers to be created
+echo 'wait for the containers to be created'
+sleep 120
+
 # run a sanity check
 $(dirname $0)/cluster-sanity-check.sh
+TEST=$?
 
 # kill cluster
-#docker-compose -f $SAM/docker-images/docker-compose.yml.$VER kill
+docker-compose -f $SAM/docker-images/docker-compose.yml.$VER kill
+
+# exit code
+exit $TEST

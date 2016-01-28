@@ -24,7 +24,7 @@ function banner(){
 [ "$1" = "-test" ] && banner Samsara with tests || banner Samsara without tests
 
 # numer of test-check iterations
-export TC_NUM_TESTS=50
+export TC_NUM_TESTS=${TC_NUM_TESTS:-50}
 
 ## build utils
 banner utils
