@@ -1,12 +1,13 @@
 #!/bin/bash -e
 #
-# dockerize-all.sh builds and pushes docker images for samsara apps
+# deploy-internal-containers.sh builds and deploys internal containers
+#                               to docker hub
 
 
 export CUR=$(pwd)
 export BASE=`cd $(dirname $0)/.. && pwd`
 
-function dockerize(){
+function docker-deploy(){
     # $1 - dir
     # $2 - repo_name
     # $3 - tag
@@ -26,6 +27,6 @@ function dockerize(){
 
 
 ## build and push the internal containers
-dockerize  ingestion-api samsara/ingestion-api   snapshot
-dockerize  qanal         samsara/qanal           snapshot
-dockerize  core          samsara/samsara-core    snapshot
+docker-deploy  ingestion-api samsara/ingestion-api   snapshot
+docker-deploy  qanal         samsara/qanal           snapshot
+docker-deploy  core          samsara/samsara-core    snapshot

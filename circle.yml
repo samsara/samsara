@@ -12,4 +12,4 @@ deployment:
   docker-hub:
     branch: master
     commands:
-      - ./bin/dockerize-all.sh
+      - ./bin/deploy-internal-containers.sh
