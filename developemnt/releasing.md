@@ -15,7 +15,7 @@ Increment the version by updating the [samsara.version](/samsara.version) file.
 ## Build and test all projects
 Make sure that all projects actually build and all tests are passing:
 
-    ./bin/build-all.sh -test
+    ./bin/build-all-projects.sh -test
 
 
 ## Release the libraries to Clojars.org

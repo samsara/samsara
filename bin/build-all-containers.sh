@@ -4,16 +4,16 @@
 #
 # Usage:
 #
-#    build.sh snapshot
+#    build-all-containers.sh snapshot
 #
 # NOTE: if the version is not passed it assumes 'samsara.version'
 # to pass options to docker you can use $DOCKER_OPTS like:
 #
-#    DOCKER_OPTS=--no-cache build.sh
+#    DOCKER_OPTS=--no-cache build-all-containers.sh
 #
 
 
-BASE=$(cd $(dirname $0) && pwd)
+BASE=$(cd $(dirname $0)/../docker-images && pwd)
 SAM=$BASE/..
 VER=${1:-`cat $BASE/../samsara.version`}
 [ `uname` == "Darwin" ] && export SED=gsed || export SED=sed

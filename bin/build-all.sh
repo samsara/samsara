@@ -1,12 +1,12 @@
 #!/bin/bash -e
 #
-# build-all.sh builds all the sub projects and installs
+# build-all-projects.sh builds all the sub projects and installs
 # the artifacts into the local maven repo
 #
 # usage:
-#    ./build-all.sh
+#    ./build-all-projects.sh
 #         - builds all the projects
-#    ./build-all.sh -test
+#    ./build-all-projects.sh -test
 #         - builds and run the tests on all the projects
 
 

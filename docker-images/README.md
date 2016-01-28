@@ -130,13 +130,13 @@ curl -XPUT 'http://localhost:9200/kibana' -d '{
 
 If you want to build all docker images with the right tags.
 
-**NOTE: make sure you have previously run `../bin/build-all.sh`**
+**NOTE: make sure you have previously run `../bin/build-all-projects.sh`**
 which will build all the software components.
 
 ```bash
 # build the images
 # if no version number/tag is passed samsara.version is used
-DOCKER_OPTS=--no-cache ./build-all.sh [version-tag-here]
+DOCKER_OPTS=--no-cache ../bin/build-all-containers.sh [version-tag-here]
 ```
 
 ## License
