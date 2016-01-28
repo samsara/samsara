@@ -37,6 +37,7 @@ banner Clojure client
 cd $BASE/clients/clojure
 lein do clean, $TEST, jar, install
 
+
 ## build clients/logger
 banner Logger client
 cd $BASE/clients/logger
