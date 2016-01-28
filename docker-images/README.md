@@ -128,7 +128,10 @@ curl -XPUT 'http://localhost:9200/kibana' -d '{
 
 ### How To build and push docker images
 
-If you want to build all docker images with the right tags
+If you want to build all docker images with the right tags.
+
+**NOTE: make sure you have previously run `../bin/build-all.sh`**
+which will build all the software components.
 
 ```bash
 # build the images
