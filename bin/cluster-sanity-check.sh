@@ -31,14 +31,29 @@ function container-ip(){
     fi
 }
 
-INGEST=$(container-ip ingestion_1):9000
-ELS=$(container-ip elasticsearch_1):9200
+function wait_for {
+    echo "Checking if $1 is started."
 
+    while [ "$(nc -z -w 5 $2 $3 || echo 1)" == "1" ] ; do
+        echo "Waiting for $1 to start up..."
+        sleep 3
+    done
+}
+
+INGEST=$(container-ip ingestion_1)
+ELS=$(container-ip elasticsearch_1)
+
+wait_for ingestion-api $INGEST 9000
+wait_for elasticsearch $ELS    9200
+
+
+echo ''
+echo ''
 echo "sending event..."
 export NONCE=$RANDOM
 cat <<EOF | curl -i -H "Content-Type: application/json" \
                  -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
-                 -XPOST "http://$INGEST/v1/events" -d @-
+                 -XPOST "http://$INGEST:9000/v1/events" -d @-
 [
  {
  "timestamp": $(date +%s000),
@@ -51,10 +66,10 @@ EOF
 
 
 echo "waiting for full processing to complete"
-sleep 10
+sleep 15
 
 echo "check if event is present in the index"
-curl -sS -XGET "http://$ELS/_all/events/_search?q=nonce:+$NONCE" \
+curl -sS -XGET "http://$ELS:9200/_all/events/_search?q=nonce:+$NONCE" \
     | grep -qoE '"hits":{"total":1,' && export TEST="OK"
 
 
