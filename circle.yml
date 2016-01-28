@@ -5,7 +5,7 @@ machine:
 
 test:
   override:
-    - MIDJE_COLORIZE=NONE ./bin/build-all-projects.sh -test
+    - MIDJE_COLORIZE=NONE ./bin/build-all-projects.sh test
 
 
 deployment:
