@@ -1,0 +1,16 @@
+## Customize the test machine
+machine:
+  services:
+    - docker
+
+test:
+  override:
+    - MIDJE_COLORIZE=NONE ./bin/build-all.sh test
+
+
+deployment:
+  docker-hub:
+  branch: master
+  commands:
+    - ./bin/dockerize-all.sh
+
