@@ -10,6 +10,6 @@ test:
 
 deployment:
   docker-hub:
-  branch: master
-  commands:
-    - ./bin/dockerize-all.sh
+    branch: master
+    commands:
+      - ./bin/dockerize-all.sh
