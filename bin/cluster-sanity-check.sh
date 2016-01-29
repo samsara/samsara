@@ -65,13 +65,15 @@ cat <<EOF | curl -i -H "Content-Type: application/json" \
 EOF
 
 
-echo "waiting for full processing to complete"
-sleep 15
-
-echo "check if event is present in the index"
-curl -sS -XGET "http://$ELS:9200/_all/events/_search?q=nonce:+$NONCE" \
-    | grep -qoE '"hits":{"total":1,' && export TEST="OK"
-
+export ATTEMPT=0
+export TEST=''
+while [ "$TEST" == "" -a $ATTEMPT -le 10 ] ; do
+    export ATTEMPT=$(($ATTEMPT + 1))
+    echo "Waiting for event to appear: attempt $ATTEMPT"
+    curl -sS -XGET "http://$ELS:9200/_all/events/_search?q=nonce:+$NONCE" \
+        | grep -qoE '"hits":{"total":1,' && export TEST="OK"
+    sleep 3
+done
 
 echo ''
 echo ''

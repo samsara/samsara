@@ -4,7 +4,7 @@
 #
 
 
-docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+[ "$1" == "CI" ] && docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
 
 
 # push third-party containers

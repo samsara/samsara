@@ -14,4 +14,4 @@ deployment:
   docker-hub:
     branch: master
     commands:
-      - ./bin/publish-snapshot-containers.sh
+      - ./bin/publish-snapshot-containers.sh CI
