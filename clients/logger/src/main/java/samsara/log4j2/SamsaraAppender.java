@@ -49,6 +49,7 @@ public class SamsaraAppender extends AbstractAppender
     public static SamsaraAppender createAppender(@PluginAttribute("name") String name,
                                                  @PluginAttribute("apiUrl") String apiUrl,
                                                  @PluginAttribute("sourceId") String sourceId,
+                                                 @PluginAttribute("appId") String appId,
                                                  @PluginAttribute("publishInterval") String publishInterval,
                                                  @PluginAttribute("minBufferSize") String minBufferSize,
                                                  @PluginAttribute("maxBufferSize") String maxBufferSize,
@@ -77,6 +78,7 @@ public class SamsaraAppender extends AbstractAppender
         EventLoggerBuilder builder = new EventLoggerBuilder();
         builder = (apiUrl == null ? builder : (EventLoggerBuilder)builder.setApiUrl(apiUrl));
         builder = (sourceId == null ? builder : (EventLoggerBuilder)builder.setSourceId(sourceId));
+        builder = (appId == null ? builder : (EventLoggerBuilder)builder.setAppId(appId));
         builder = (publishIntervalLong == null ? builder : (EventLoggerBuilder)builder.setPublishInterval(publishIntervalLong));
         builder = (minBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMinBufferSize(minBufferSizeLong));
         builder = (maxBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMaxBufferSize(maxBufferSizeLong));

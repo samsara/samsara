@@ -34,6 +34,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
     {
         String apiUrl = System.getenv("SAMSARA_API_URL");
         String sourceId = System.getenv("SAMSARA_SOURCE_ID");
+        String appId = System.getenv("SAMSARA_APP_ID");
         String logToConsole = System.getenv("SAMSARA_LOG_TO_CONSOLE");
         String publishInterval = System.getenv("SAMSARA_PUBLISH_INTERVAL");
         String minBufferSize = System.getenv("SAMSARA_MIN_BUFFER_SIZE");
@@ -43,6 +44,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
 
         apiUrl = System.getProperty("SAMSARA_API_URL", apiUrl);
         sourceId = System.getProperty("SAMSARA_SOURCE_ID", sourceId);
+        appId = System.getProperty("SAMSARA_APP_ID", appId);
         logToConsole = System.getProperty("SAMSARA_LOG_TO_CONSOLE", logToConsole);
         publishInterval = System.getProperty("SAMSARA_PUBLISH_INTERVAL", publishInterval);
         minBufferSize = System.getProperty("SAMSARA_MIN_BUFFER_SIZE", minBufferSize);
@@ -57,6 +59,7 @@ public class SamsaraLogger extends MarkerIgnoringBase
         EventLoggerBuilder builder = new EventLoggerBuilder();
         builder = (apiUrl == null ? builder : (EventLoggerBuilder)builder.setApiUrl(apiUrl));
         builder = (sourceId == null ? builder : (EventLoggerBuilder)builder.setSourceId(sourceId));
+        builder = (appId == null ? builder : (EventLoggerBuilder)builder.setAppId(appId));
         builder = (publishIntervalLong == null ? builder : (EventLoggerBuilder)builder.setPublishInterval(publishIntervalLong));
         builder = (minBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMinBufferSize(minBufferSizeLong));
         builder = (maxBufferSizeLong == null ? builder : (EventLoggerBuilder)builder.setMaxBufferSize(maxBufferSizeLong));
