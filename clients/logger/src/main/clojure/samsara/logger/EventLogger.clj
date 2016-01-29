@@ -50,19 +50,25 @@
       first))
 
 (def ^:private default-app-id
-  (memoize  #(str (hostname) "-" (init-class) "-" (pid) )))
+  (delay (str (hostname) "-" (init-class) "-" (pid) )))
 
 (def ^:private default-source-id 
-  (memoize #(-> (java.util.UUID/randomUUID) (.toString))))
+  (delay (-> (java.util.UUID/randomUUID) (.toString))))
+
+
+(defn- -init [^IPersistentMap conf]
+  (let [sourceId (or (:sourceId conf) @default-source-id)
+        appId (or (:appId conf) @default-app-id)
+        updated-conf (assoc conf :sourceId sourceId :appId appId)]
+    (when-not (clojure.string/blank? (:url updated-conf))
+      (cli/init! updated-conf))
+    [[] (atom updated-conf)]))
+
 
 
 (defn- log->samsara-event [{:keys [sourceId appId] :as conf}
-
                            {:keys [timestamp eventName] :as log}]
-
-  (let [sourceId (or sourceId (default-source-id))
-        appId (or appId (default-app-id))
-        timestamp (or timestamp (System/currentTimeMillis))
+  (let [timestamp (or timestamp (System/currentTimeMillis))
         eventName (or eventName "UnknownLogEvent")
         optional-confs (select-keys conf [:serviceName])]
 
@@ -72,13 +78,6 @@
                 :sourceId sourceId
                 :appId appId)
          (merge optional-confs))))
-
-
-(defn- -init [^IPersistentMap conf]
-  (when-not (clojure.string/blank? (:url conf))
-    (cli/init! conf))
-  [[] (atom conf)])
-
 
 
 (defn- send-log [conf log]
