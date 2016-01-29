@@ -7,14 +7,7 @@
 [ "$1" == "CI" ] && docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
 
 function docker-push(){
-    ATTEMPT=0
-    until docker push $1 || [ $ATTEMPT -ge 4 ]; do
-        export ATTEMPT=$(($ATTEMPT + 1))
-        echo "Failed to push $1, retrying..."
-        sleep 10
-    done
-    [ $ATTEMPT -ge 4 ] && echo "ERROR: Failed to push $1, giving up." && exit 1
-    return 0
+    flock -x /var/lock/docker-push docker push $1
 }
 
 # push third-party containers
