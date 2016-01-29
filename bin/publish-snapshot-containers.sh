@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 #
 # it pushes the snapshot containers to docker hub
 #
@@ -14,6 +14,7 @@ function docker-push(){
         sleep 10
     done
     [ $ATTEMPT -ge 4 ] && echo "ERROR: Failed to push $1, giving up." && exit 1
+    return 0
 }
 
 # push third-party containers
