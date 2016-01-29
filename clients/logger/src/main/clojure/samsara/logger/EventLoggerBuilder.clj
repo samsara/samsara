@@ -6,16 +6,11 @@
               :state state
               :init init
               :methods [[setApiUrl [String] Object]
-                        [getApiUrl [] String]
                         [setAppId  [String] Object]
                         [setSourceId [String] Object]
-                        [getSourceId [] String]
                         [setPublishInterval [Long] Object]
-                        [getPublishInterval [] Long]
                         [setMinBufferSize [Long] Object]
-                        [getMinBufferSize [] Long]
                         [setMaxBufferSize [Long] Object]
-                        [getMaxBufferSize [] Long]
                         [setCompression [String] Object]
                         [setServiceName [String] Object]
                         [build [] samsara.logger.EventLogger]
@@ -43,9 +38,6 @@
   (swap! (.state this) assoc :url url)
   this)
 
-(defn -getApiUrl [this]
-  (:url @(.state this)))
-
 (defn -setAppId [this ^String appId]
   (swap! (.state this) assoc :appId appId)
   this)
@@ -54,29 +46,17 @@
   (swap! (.state this) assoc :sourceId sourceId)
   this)
 
-(defn -getSourceId [this]
-  (:sourceId @(.state this)))
-
 (defn -setPublishInterval [this ^Long interval]
   (swap! (.state this) assoc :publish-interval interval)
   this)
-
-(defn -getPublishInterval [this]
-  (:publish-interval @(.state this)))
 
 (defn -setMinBufferSize [this ^Long min-size]
   (swap! (.state this) assoc :min-buffer-size min-size)
   this)
 
-(defn -getMinBufferSize [this]
-  (:min-buffer-size @(.state this)))
-
 (defn -setMaxBufferSize [this ^Long max-size]
   (swap! (.state this) assoc :max-buffer-size max-size)
   this)
-
-(defn -getMaxBufferSize [this]
-  (:max-buffer-size @(.state this)))
 
 (defn -setCompression[this ^String s]
   (if-let [compress-type (str->compress-type s)]
@@ -94,8 +74,6 @@
 
 (defn -build [this]
   (EventLogger. @(.state this)))
-
-
 
 (defn -sendToSamsara [this]
   (if (clojure.string/blank? (:url @(.state this)))
