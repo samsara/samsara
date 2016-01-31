@@ -1,4 +1,4 @@
-FROM samsara/base-image-jdk8:u1510-j8u71
+FROM samsara/base-image-jdk8:a33-j8u72
 
 MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 
@@ -35,7 +35,7 @@ ADD ./influxdb-supervisor.conf /etc/supervisor/conf.d/influxdb-supervisor.conf
 # MySQL installation
 #
 RUN \
-    apt-get install -y libaio1 && \
+    apk add libaio ncurses5-libs && \
     wget --progress=dot:mega --no-check-certificate \
     http://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.10-linux-glibc2.5-x86_64.tar.gz -O - | \
     tar -zxvf - -C /opt && \

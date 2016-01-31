@@ -44,8 +44,7 @@ function docker-build(){
 
 
 # build third-party
-docker-build $BASE/base         samsara/base-image-jdk7 $VER '/export SJDK=/s/JDK[0-9]/JDK7/g'
-docker-build $BASE/base         samsara/base-image-jdk8 $VER '/export SJDK=/s/JDK[0-9]/JDK8/g'
+docker-build $BASE/base         samsara/base-image-jdk8 $VER
 docker-build $BASE/zookeeper    samsara/zookeeper       $VER
 docker-build $BASE/kafka        samsara/kafka           $VER
 docker-build $BASE/els          samsara/elasticsearch   $VER
