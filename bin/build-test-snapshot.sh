@@ -23,14 +23,15 @@ $(dirname $0)/start-samsara.sh $VER &
 
 # wait for the containers to be created
 echo 'wait for the containers to be created'
-sleep 120
+sleep 60
+
+# never mind the result of the test
+# kill cluster if test not completed within 120s
+(sleep 120 ; docker-compose -f $SAM/docker-images/docker-compose.yml.$VER kill ) &
 
 # run a sanity check
 $(dirname $0)/cluster-sanity-check.sh
 TEST=$?
-
-# kill cluster
-docker-compose -f $SAM/docker-images/docker-compose.yml.$VER kill
 
 # exit code
 exit $TEST
