@@ -23,7 +23,7 @@ $(dirname $0)/start-samsara.sh $VER &
 
 # wait for the containers to be created
 echo 'wait for the containers to be created'
-sleep 60
+sleep 80
 
 # never mind the result of the test
 # kill cluster if test not completed within 120s
