@@ -32,7 +32,6 @@ docker-push samsara/qanal:snapshot
 
 
 # push third-party containers
-docker-push samsara/base-image-jdk7:snapshot
 docker-push samsara/base-image-jdk8:snapshot
 docker-push samsara/zookeeper:snapshot
 docker-push samsara/kafka:snapshot
