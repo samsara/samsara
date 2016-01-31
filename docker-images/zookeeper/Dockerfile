@@ -1,4 +1,4 @@
-FROM samsara/base-image-jdk7:u1410-j7u75
+FROM samsara/base-image-jdk8:a33-j8u72
 
 MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 
