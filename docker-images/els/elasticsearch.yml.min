@@ -4,4 +4,4 @@ cluster.name: samsara
 path.data: /data/els/data
 path.work: /data/els/work
 path.logs: /logs
-path.plugins: /usr/share/elasticsearch/plugins
+path.plugins: /opt/els/plugins

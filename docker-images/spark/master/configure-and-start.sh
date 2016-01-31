@@ -7,7 +7,7 @@ exec 2>&1
 # REQUIRED:
 #   ZOOKEEPER_PORT_2181_TCP_ADDR
 export HOSTNAME=${HOSTNAME:-spark-$HOSTNAME}
-export IP=${ADV_IP:-`ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)"`}
+export IP=${ADV_IP:-`ip ro get 8.8.8.8 |  grep src | sed -E "s/.* src (\S+)/\1/g"`}
 
 export SPARK_MASTER_PORT=${SPARK_MASTER_PORT:-7077}
 export SPARK_MASTER_WEBUI_PORT=${SPARK_MASTER_WEBUI_PORT:-8080}
@@ -25,10 +25,10 @@ perl -pe 's/%%([A-Za-z0-9_]+)%%/defined $ENV{$1} ? $ENV{$1} : $&/eg' < ${CONFIG_
 chmod +x $CONFIG_FILE
 
 # check if all properties have been replaced
-if grep -qoP '%%[^%]+%%' $CONFIG_FILE ; then
+if grep -qoE '%%[^%]+%%' $CONFIG_FILE ; then
     echo "ERROR: Not all variable have been resolved,"
     echo "       please set the following variables in your environment:"
-    grep -oP '%%[^%]+%%' $CONFIG_FILE | sed 's/%//g' | sort -u
+    grep -oE '%%[^%]+%%' $CONFIG_FILE | sed 's/%//g' | sort -u
     exit 1
 fi
 

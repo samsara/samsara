@@ -7,7 +7,7 @@ exec 2>&1
 # REQUIRED:
 #   ZK_SERVER_ID
 export HOSTNAME=${HOSTNAME-zk$ZK_SERVER_ID}
-export IP=${ADV_IP:-`ip ro get 8.8.8.8 | grep -oP "(?<=src )(\S+)"`}
+export IP=${ADV_IP:-`ip ro get 8.8.8.8 |  grep src | sed -E "s/.* src (\S+)/\1/g"`}
 
 #
 # it uses Kubernetes API to find the list of all zookeepers

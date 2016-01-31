@@ -8,7 +8,7 @@ machine:
 test:
   override:
     - ./bin/build-test-snapshot.sh
-    - ./bin/publish-snapshot-containers.sh CI
+#    - ./bin/publish-snapshot-containers.sh CI
 
 
 #deployment:

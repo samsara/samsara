@@ -23,9 +23,9 @@ ADD ./riemann-supervisor.conf /etc/supervisor/conf.d/riemann-supervisor.conf
 #
 RUN export INFLUXDB_VERSION=0.9.6.1 && \
     wget --progress=dot:mega --no-check-certificate \
-    https://s3.amazonaws.com/influxdb/influxdb_${INFLUXDB_VERSION}_amd64.deb -O /tmp/influxdb.deb && \
-    dpkg -i /tmp/influxdb.deb && \
-    rm /tmp/influxdb.deb
+    https://s3.amazonaws.com/influxdb/influxdb_${INFLUXDB_VERSION}_x86_64.tar.gz -O - \
+    | tar -zxvf - -C /opt && \
+    ln -s /opt/influxdb_* /opt/influxdb
 
 ADD ./influxdb-config.toml /opt/influxdb/config/config.toml
 ADD ./influxdb-supervisor.conf /etc/supervisor/conf.d/influxdb-supervisor.conf

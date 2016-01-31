@@ -11,7 +11,7 @@ while [ "$(curl -m 1 -s -q -XGET 'http://localhost:8086/ping' >/dev/null || echo
 done
 
 echo "database ready"
-/usr/bin/influx -execute 'create database if not exists samsara'
+/opt/influxdb/usr/bin/influx -execute 'create database if not exists samsara'
 
 
 # wait for grafana to come up
