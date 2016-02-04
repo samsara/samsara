@@ -1,6 +1,6 @@
 # samsara-clj-sdk
 
-A Clojure Client SDK for Samsara. [![Circle CI](https://circleci.com/gh/samsara/samsara-clj-sdk/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara-clj-sdk/tree/master)
+A Clojure Client SDK for Samsara.
 
 ## Usage
 
@@ -20,7 +20,7 @@ or as part of your namespace
 
 ```clojure
 (ns my.project
-	(:require [samsara.client :as samsara]))
+    (:require [samsara.client :as samsara]))
 ```
 
 To set your configuration with:
@@ -96,11 +96,11 @@ Here some examples of **BAD** bad choices for `sourceId`:
     the sessionId or if you really want to use name append the process
     id (PID) to the name (such as:
     "com.example.api.user-service:56789")
-    
+
   - a randomly generate id which is not persitsed and regenerated on
     every use.  This is bad because it doesn't allow you to trace an
     history of the events and make meaningful correlations.
-    
+
   - same it will happen if the sourceId is not unique. Events from
     multiple different sources will mix together generating an
     undistiguishable events soup

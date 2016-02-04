@@ -20,6 +20,10 @@ Please see documentation at: http://samsara-analytics.io/
 
 For trying it out, please follow our [Quick Start guide](/docs/quick-start.md)
 
+## Develoment
+
+  * Circle CI: [![Circle CI](https://circleci.com/gh/samsara/samsara/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara/tree/master)
+
 ## License
 
 Copyright © 2015 Samsara's authors.

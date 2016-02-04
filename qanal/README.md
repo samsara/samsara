@@ -6,8 +6,7 @@ This program is intended as an alternative to the [Elasticsearch Kafka River Plu
 ## Release Status
 Still in development, hope to do the first release real soon.
 
-## Continous Integration
-Current build status: [![Circle CI](https://circleci.com/gh/samsara/qanal/tree/master.svg?style=shield)](https://circleci.com/gh/samsara/qanal/tree/master)
+## Tested against
 
 Developed and tested against:
 
@@ -18,6 +17,7 @@ Developed and tested against:
 
 
 ## Configuration
+
 The configuration file is split into 3 sections.
   * kafka-source
   * elasticsearch-target

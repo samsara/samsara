@@ -1,4 +1,4 @@
-# samsara-core [![Circle CI](https://circleci.com/gh/samsara/samsara-core/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara-core/tree/master)
+# samsara-core
 
 Real-time event stream processing pipeline for Samsara Analytics
 
