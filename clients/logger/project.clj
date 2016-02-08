@@ -9,6 +9,7 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.slf4j/slf4j-api "1.7.12"]
+                 [ch.qos.logback/logback-classic "1.1.3"]
                  [org.apache.logging.log4j/log4j-core "2.3"]
                  [samsara/samsara-client #=(clojure.string/trim #=(slurp "../../samsara.version"))]]
   :aot [samsara.logger.EventLogger samsara.logger.EventLoggerBuilder]

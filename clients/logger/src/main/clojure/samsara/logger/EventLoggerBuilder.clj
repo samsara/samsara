@@ -6,6 +6,7 @@
               :state state
               :init init
               :methods [[setApiUrl [String] Object]
+                        [getApiUrl [] String]
                         [setAppId  [String] Object]
                         [setSourceId [String] Object]
                         [setPublishInterval [Long] Object]
@@ -37,6 +38,9 @@
 (defn -setApiUrl [this ^String url]
   (swap! (.state this) assoc :url url)
   this)
+
+(defn -getApiUrl [this]
+  (:url @(.state this)))
 
 (defn -setAppId [this ^String appId]
   (swap! (.state this) assoc :appId appId)

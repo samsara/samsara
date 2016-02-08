@@ -5,6 +5,7 @@
            [org.slf4j.spi LocationAwareLogger]
            [org.apache.logging.log4j Level]
            [clojure.lang IPersistentMap]
+           [ch.qos.logback.classic.spi IThrowableProxy]
            )
   (:gen-class 
               :constructors {[String String] []
@@ -13,7 +14,8 @@
               :state state
               :init init
               :methods [[log4j2Event [org.apache.logging.log4j.Level String Throwable] void]
-                        [slf4jEvent [Integer String Throwable] void]]
+                        [slf4jEvent [Integer String Throwable] void]
+                        [logbackEvent [ch.qos.logback.classic.Level String ch.qos.logback.classic.spi.IThrowableProxy] void]]
               ))
 
 
@@ -22,6 +24,14 @@
                       LocationAwareLogger/INFO_INT  :info
                       LocationAwareLogger/WARN_INT  :warn
                       LocationAwareLogger/ERROR_INT :error})
+
+(def logback-level-map {ch.qos.logback.classic.Level/ALL   :all
+                        ch.qos.logback.classic.Level/TRACE :trace
+                        ch.qos.logback.classic.Level/DEBUG :debug
+                        ch.qos.logback.classic.Level/INFO  :info
+                        ch.qos.logback.classic.Level/WARN  :warn
+                        ch.qos.logback.classic.Level/ERROR :error
+                        ch.qos.logback.classic.Level/OFF :off})
 
 (def log4j2-level-map {Level/ALL   :all
                        Level/TRACE :trace
@@ -108,3 +118,11 @@
                            :level (get slf4j-level-map log-level)
                            :message msg
                            :throwable t}))
+
+
+(defn -logbackEvent [this ^ch.qos.logback.classic.Level log-level ^String msg ^IThrowableProxy t]
+  (send-log @(.state this) {:eventName "log"
+                            :loggingFramework "Logback"
+                            :level (get logback-level-map log-level)
+                            :message msg
+                            :throwable t}))
