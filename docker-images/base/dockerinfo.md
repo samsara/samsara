@@ -33,7 +33,7 @@ docker run -d -v /tmp/logs/os:/logs samsara/base-image-jdk8
 * `samsara/base-image-jdk8` \| `0.5.6.0` \| `u1510-j8u71`
   - Ubuntu 15.10, JDK 1.8u71, supervisord, jq, os tools
 * `samsara/base-image-jdk8` \| `0.5.x.x` \| `a33-j8u72`
-  - Alpine Linux 3.3, JDK 1.8u72, supervisord, jq, os tools
+  - Alpine Linux 3.3, JDK 1.8u72, supervisord, jq, synapse, os tools
 
 
 ## Copyright & License

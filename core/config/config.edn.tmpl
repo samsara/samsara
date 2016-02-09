@@ -1,23 +1,25 @@
 {:streams
-  [{:id          :%%INPUT_TOPIC%%
-    :input-topic "%%INPUT_TOPIC%%"
-    :input-partitions %%INPUT_PARTITIONS%%
+  [{:id          :%%INPUT_TOPIC||ingestion%%
+    :input-topic "%%INPUT_TOPIC||ingestion%%"
+    :input-partitions %%INPUT_PARTITIONS||:all%%
     :state        :partitioned
-    :output-topic "%%OUTPUT_TOPIC%%"
+    :output-topic "%%OUTPUT_TOPIC||events%%"
    }]
 
  :job
-  {:job-name "%%JOB_NAME%%"
+  {:job-name "%%JOB_NAME||Samsara%%"
    ;; a CSV list of hosts and ports (and optional path)
-   :zookeepers "%%ZOOKEEPER_PORT_2181_TCP_ADDR%%:%%ZOOKEEPER_PORT_2181_TCP_PORT%%"
+   :zookeepers "%%>>ZOOKEEPER.*:2181%%"
    ;; a CSV list of host and ports of kafka brokers
-   :brokers "%%KAFKA_PORT_9092_TCP_ADDR%%:%%KAFKA_PORT_9092_TCP_PORT%%"
-   :offset %%OFFSET_RESET%%
+   :brokers "%%>>KAFKA.*:9092%%"
+   :offset %%OFFSET_RESET||:smallest%%
    :samza-overrides
    { %%SAMZA_CONFIG%% }
   }
 
- :tracking {:enabled %%TRACKING_ENABLED%% :type :riemann
-            :host "%%RIEMANN_PORT_5555_TCP_ADDR%%"
-            :port %%RIEMANN_PORT_5555_TCP_PORT%%
-            :prefix "samsara.core.%%HOSTNAME%%"}}
+ :tracking {:enabled %%TRACKING_ENABLED||false%% :type :riemann
+            :host "%%[addr]>RIEMANN:5555||localhost%%"
+            :port %%[port]>RIEMANN:5555||5555%%
+            :prefix "samsara.core.%%HOSTNAME||samsara-core%%" }
+
+}

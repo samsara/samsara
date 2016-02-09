@@ -24,6 +24,14 @@ RUN ln -s /etc/supervisor/supervisord.conf /etc/supervisord.conf
 RUN apk add jq
 
 #
+# Installing synapse container linker
+#
+RUN wget --progress=dot:mega --no-check-certificate \
+    https://www.dropbox.com/s/bpmi0v56ueyx2ag/synapse?dl=0 \
+    -O /usr/local/bin/synapse && \
+    chmod +x /usr/local/bin/synapse
+
+#
 # setting the terminal to xterm
 #
 ENV TERM xterm

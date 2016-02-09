@@ -9,28 +9,7 @@ exec 2>&1
 export HOSTNAME=${HOSTNAME:-spark-$HOSTNAME}
 export IP=${ADV_IP:-`ip ro get 8.8.8.8 |  grep src | sed -E "s/.* src (\S+)/\1/g"`}
 
-export SPARK_MASTER_PORT=${SPARK_MASTER_PORT:-7077}
-export SPARK_MASTER_WEBUI_PORT=${SPARK_MASTER_WEBUI_PORT:-8080}
-export SPARK_WORKER_PORT=${SPARK_WORKER_PORT:-7078}
-export SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_WEBUI_PORT:-8081}
-export SPARK_LOCAL_DIRS=/data
-export SPARK_WORKER_DIR=/data
-
-
-export CONFIG_FILE=/opt/spark/conf/spark-env.sh
-# replace variables in template with environment values
-echo "TEMPLATE: generating configuation."
-perl -pe 's/%%([A-Za-z0-9_]+)%%/defined $ENV{$1} ? $ENV{$1} : $&/eg' < ${CONFIG_FILE}.tmpl > $CONFIG_FILE
-
-chmod +x $CONFIG_FILE
-
-# check if all properties have been replaced
-if grep -qoE '%%[^%]+%%' $CONFIG_FILE ; then
-    echo "ERROR: Not all variable have been resolved,"
-    echo "       please set the following variables in your environment:"
-    grep -oE '%%[^%]+%%' $CONFIG_FILE | sed 's/%//g' | sort -u
-    exit 1
-fi
-
+synapse /opt/spark/conf/spark-env.sh.tmpl
+chmod +x /opt/spark/conf/spark-env.sh
 
 exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf

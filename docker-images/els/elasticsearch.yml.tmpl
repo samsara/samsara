@@ -12,7 +12,7 @@ http.port: 9200
 http.publish_host: %%IP%%
 transport.tcp.port: 9300
 transport.publish_host: %%IP%%
-node.box_type : %%ELS_NODE_TYPE%%
+node.box_type : %%ELS_NODE_TYPE||standard%%
 
 threadpool:
     bulk:
@@ -41,22 +41,22 @@ discovery:
     type: com.sonian.elasticsearch.zookeeper.discovery.ZooKeeperDiscoveryModule
 sonian.elasticsearch.zookeeper:
     settings.enabled: true
-    client.host: %%ZOOKEEPER_PORT_2181_TCP_ADDR%%:%%ZOOKEEPER_PORT_2181_TCP_PORT%%
+    client.host: %%>>ZOOKEEPER.*:2181%%
     discovery.state_publishing.enabled: true
 
 cloud:
     aws:
         access_key: %%AWS_ACCESS_KEY%%
         secret_key: %%AWS_SECRET_KEY%%
-        region: %%AWS_REGION%%
+        region: %%AWS_REGION||eu-west%%
 
 repositories:
     s3:
-        bucket: %%AWS_REPOS_NAME%%
-        region: %%AWS_REGION%%
+        bucket: %%AWS_REPOS_NAME||samsara-backups%%
+        region: %%AWS_REGION||eu-west%%
         access_key: %%AWS_REPOS_ACCESS_KEY%%
         secret_key: %%AWS_REPOS_SECRET_KEY%%
-        base_path: %%AWS_REPOS_BASE_PATH%%
+        base_path: %%AWS_REPOS_BASE_PATH||/samsara%%
         compress: true
         max_retries: 10
 

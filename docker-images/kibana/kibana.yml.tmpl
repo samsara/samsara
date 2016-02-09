@@ -1,11 +1,11 @@
 # Kibana is served by a back end server. This controls which port to use.
-port: %%KIBANA_PORT%%
+port: %%KIBANA_PORT||8000%%
 
 # The host to bind the server to.
 host: "0.0.0.0"
 
 # The Elasticsearch instance to use for all your queries.
-elasticsearch_url: "http://%%ELASTICSEARCH_PORT_9200_TCP_ADDR%%:%%ELASTICSEARCH_PORT_9200_TCP_PORT%%"
+elasticsearch_url: "http://%%>ELASTICSEARCH:9200%%"
 
 # preserve_elasticsearch_host true will send the hostname specified in `elasticsearch`. If you set it to false,
 # then the host you use to connect to *this* Kibana instance will be sent.
@@ -13,7 +13,7 @@ elasticsearch_preserve_host: true
 
 # Kibana uses an index in Elasticsearch to store saved searches, visualizations
 # and dashboards. It will create a new index if it doesn't already exist.
-kibana_index: "%%KIBANA_INDEX%%"
+kibana_index: "%%KIBANA_INDEX||kibana%%"
 
 # If your Elasticsearch is protected with basic auth, this is the user credentials
 # used by the Kibana server to perform maintence on the kibana_index at statup. Your Kibana
