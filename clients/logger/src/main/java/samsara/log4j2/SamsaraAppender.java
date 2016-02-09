@@ -22,25 +22,18 @@ public class SamsaraAppender extends AbstractAppender
 {
     private EventLogger eventLogger;
     private AtomicBoolean warnOnce = new AtomicBoolean(false);
-    private AtomicBoolean printToConsole = new AtomicBoolean(true);
     private AtomicBoolean sendToSamsara = new AtomicBoolean(true);
 
-    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, EventLoggerBuilder builder, String logToConsole, boolean ignoreExceptions) 
+    protected SamsaraAppender(String name, Filter filter, Layout<? extends Serializable> layout, EventLoggerBuilder builder, boolean ignoreExceptions) 
     {
         super(name, filter, layout, ignoreExceptions);
 
         eventLogger = builder.build();
 
-        if(logToConsole != null)
-        {
-            printToConsole.set(Boolean.parseBoolean(logToConsole));
-        }
-
         if(!builder.sendToSamsara())
         {
             warnOnce.set(true);
             //override and log to console
-            printToConsole.set(true);
             sendToSamsara.set(false);
         }
     }
@@ -55,7 +48,6 @@ public class SamsaraAppender extends AbstractAppender
                                                  @PluginAttribute("maxBufferSize") String maxBufferSize,
                                                  @PluginAttribute("compression") String compression,
                                                  @PluginAttribute("serviceName") String serviceName,
-                                                 @PluginAttribute("logToConsole") String logToConsole,
                                                  @PluginAttribute("ignoreExceptions") boolean ignoreExceptions,
                                                  @PluginElement("Layout") Layout<? extends Serializable> layout,
                                                  @PluginElement("Filter") Filter filter)
@@ -85,15 +77,15 @@ public class SamsaraAppender extends AbstractAppender
         builder = (compression == null ? builder : (EventLoggerBuilder)builder.setCompression(compression));
         builder = (serviceName == null ? builder : (EventLoggerBuilder)builder.setServiceName(serviceName));
 
-        return new SamsaraAppender(name, filter, layout, builder, logToConsole, ignoreExceptions);
+        return new SamsaraAppender(name, filter, layout, builder, ignoreExceptions);
     }
 
     private void printWarning()
     {
-        System.out.println("****************************************************************");
-        System.out.println("SAMSARA: The apiUrl property for SamsaraAppender (log4j2.xml) has not been set");
-        System.out.println("SAMSARA: Samsara Log4j2 logger will just print to console and NOT send logs to Samsara");
-        System.out.println("****************************************************************\n");
+        System.err.println("****************************************************************");
+        System.err.println("SAMSARA: The apiUrl property for Appender (log4j2.xml) has not been set");
+        System.err.println("SAMSARA: The Appender will NOT send logs to Samsara");
+        System.err.println("****************************************************************\n");
     }
 
     @Override
@@ -105,10 +97,6 @@ public class SamsaraAppender extends AbstractAppender
         }
 
         String message = new String(this.getLayout().toByteArray(event));
-        if(printToConsole.get())
-        {
-            System.out.print(message);
-        }
 
         if(sendToSamsara.get())
         {

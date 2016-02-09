@@ -3,7 +3,6 @@
   <Appenders>
 
     <SamsaraAppender name="Samsara" apiUrl="http://localhost:9000" 
-				    logToConsole="true"
             publishInterval="5000"
             minBufferSize="1"
             maxBufferSize="10000"
