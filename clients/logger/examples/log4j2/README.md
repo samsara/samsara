@@ -4,13 +4,13 @@ This is a very simple Application showing how to integrate and use the samsara-l
 
 ## Usage
 
-To use the Log4j2 implementation within samsara-logger, you'll make sure that samsara-logger is within the runtime classpath of your application.
+To use the Log4j2 appender within samsara-logger, you'll make sure that samsara-logger is within the runtime classpath of your application.
 The latest samsara-logger can be grabbed from [clojars](https://clojars.org/samsara/samsara-logger)
 
 ### Leiningen
 Add the following to your project.clj's dependencies Vector
 ```
-[samsara/samsara-logger "0.1.1"]
+[samsara/samsara-logger "0.5.7.0"]
 ```
 
 ### Gradle
@@ -27,7 +27,7 @@ dependencies {
     compile 'org.apache.logging.log4j:log4j-api:2.3',
             'org.apache.logging.log4j:log4j-core:2.3'
 
-    runtime 'samsara:samsara-logger:0.1.1'
+    runtime 'samsara:samsara-logger:0.5.7.0'
 }
 ```
 
@@ -44,7 +44,7 @@ Add the following to your pom.xml file
 <dependency>
   <groupId>samsara</groupId>
   <artifactId>samsara-logger</artifactId>
-  <version>0.1.1</version>
+  <version>0.5.7.0</version>
 </dependency>
 ```
 

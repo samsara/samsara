@@ -4,13 +4,13 @@ This is a very simple Application showing how to integrate and use the samsara-l
 
 ## Usage
 
-To use the LogBack implementation within samsara-logger, you'll make sure that samsara-logger is within the runtime classpath of your application.
+To use the LogBack appender within samsara-logger, you'll make sure that samsara-logger is within the runtime classpath of your application.
 The latest samsara-logger can be grabbed from [clojars](https://clojars.org/samsara/samsara-logger)
 
 ### Leiningen
 Add the following to your project.clj's dependencies Vector
 ```
-[samsara/samsara-logger "0.1.1"]
+[samsara/samsara-logger "0.5.7.0"]
 ```
 
 ### Gradle
@@ -27,7 +27,7 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.12',
             'ch.qos.logback:logback-classic:1.1.3'
 
-    runtime 'samsara:samsara-logger:0.1.1'
+    runtime 'samsara:samsara-logger:0.5.7.0'
 }
 ```
 
@@ -44,7 +44,7 @@ Add the following to your pom.xml file
 <dependency>
   <groupId>samsara</groupId>
   <artifactId>samsara-logger</artifactId>
-  <version>0.1.1</version>
+  <version>0.5.7.0</version>
 </dependency>
 ```
 

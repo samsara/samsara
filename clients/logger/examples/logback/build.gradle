@@ -17,7 +17,7 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.12'
     compile 'ch.qos.logback:logback-classic:1.1.3'
 
-    runtime 'samsara:samsara-logger:0.5.7.0-SNAPSHOT'
+    runtime 'samsara:samsara-logger:0.5.7.0'
 }
 
 
