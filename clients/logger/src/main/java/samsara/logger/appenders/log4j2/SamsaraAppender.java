@@ -1,4 +1,4 @@
-package samsara.log4j2;
+package samsara.logger.appenders.log4j2;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicBoolean;

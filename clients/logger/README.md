@@ -26,7 +26,7 @@ An example of a logback.xml using the samsara-logger appender follows
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
  
-  <appender name="STDOUT" class="samsara.logger.appenders.LogBackAppender">
+  <appender name="STDOUT" class="samsara.logger.appenders.logback.SamsaraAppender">
     <apiUrl>http://localhost:9000</apiUrl>  
 
     <layout class="ch.qos.logback.classic.PatternLayout">
@@ -52,7 +52,7 @@ To use the samsara-logger Log4j2 appender, you need to do the following
 An example of a log4j2.xml for samsara-logger follows
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" packages="samsara.log4j2">
+<Configuration status="WARN" packages="samsara.logger.appenders.log4j2">
   <Appenders>
 
     <SamsaraAppender name="Samsara" apiUrl="http://localhost:9000">
@@ -75,10 +75,10 @@ A Simple Example Application can be seen [here](./examples/log4j2/README.md)
 
 
 
-### Appender XML Settings
+### SamsaraAppender XML Settings
 
-In the above logback.xml and log4j2.xml files, the *apiUrl* property is needed for the Appender xml tag.   
-The following table shows all the available configurable properties for the Appender xml tag.  
+In the above logback.xml and log4j2.xml files, the *apiUrl* property is needed for the SamsaraAppender xml tag.   
+The following table shows all the available configurable properties for the SamsaraAppender xml tag.  
 
 |Appender Property | Default Value | Description |
 |-------------------------|---------------|-------------|

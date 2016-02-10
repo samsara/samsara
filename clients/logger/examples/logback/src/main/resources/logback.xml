@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
  
-  <appender name="STDOUT" class="samsara.logger.appenders.LogBackAppender">
+  <appender name="STDOUT" class="samsara.logger.appenders.logback.SamsaraAppender">
     <apiUrl>http://localhost:9000</apiUrl>  
 
     <layout class="ch.qos.logback.classic.PatternLayout">

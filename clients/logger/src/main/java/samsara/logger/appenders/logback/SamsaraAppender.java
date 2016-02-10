@@ -1,4 +1,4 @@
-package samsara.logger.appenders;
+package samsara.logger.appenders.logback;
 
 import samsara.logger.EventLoggerBuilder;
 import samsara.logger.EventLogger;
@@ -9,7 +9,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.core.Layout;
 
-public class LogBackAppender extends AppenderBase<ILoggingEvent>
+public class SamsaraAppender extends AppenderBase<ILoggingEvent>
 {
     private Layout<ILoggingEvent> layout;
     private EventLoggerBuilder builder = new EventLoggerBuilder();
