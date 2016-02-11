@@ -35,6 +35,7 @@
           },
           "id": 1,
           "isNew": true,
+          "leftYAxisLabel": "req/s",
           "legend": {
             "avg": true,
             "current": false,
@@ -46,6 +47,7 @@
           },
           "lines": true,
           "linewidth": 2,
+          "links": [],
           "nullPointMode": "connected",
           "percentage": false,
           "pointradius": 5,
@@ -57,6 +59,7 @@
           "steppedLine": false,
           "targets": [
             {
+              "alias": "request-rate ($2)",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -72,6 +75,8 @@
                   "type": "fill"
                 }
               ],
+              "measurement": "/samsara.ingestion..*.ingestion.events.backend-send.m1_rate/",
+              "query": "SELECT mean(\"value\") FROM /samsara.ingestion..*.ingestion.events.backend-send.m1_rate/ WHERE $timeFilter GROUP BY time($interval) fill(null)",
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -88,10 +93,7 @@
                   }
                 ]
               ],
-              "tags": [],
-              "measurement": "/samsara.ingestion..*.ingestion.events.backend-send.m1_rate/",
-              "query": "SELECT mean(\"value\") FROM /samsara.ingestion..*.ingestion.events.backend-send.m1_rate/ WHERE $timeFilter GROUP BY time($interval) fill(null)",
-              "alias": "request-rate ($2)"
+              "tags": []
             }
           ],
           "timeFrom": null,
@@ -107,9 +109,7 @@
           "y_formats": [
             "short",
             "short"
-          ],
-          "links": [],
-          "leftYAxisLabel": "req/s"
+          ]
         }
       ],
       "title": "Ingestion"
@@ -120,140 +120,142 @@
       "height": "250px",
       "panels": [
         {
-          "title": "Processing",
-          "error": false,
-          "span": 12,
-          "editable": true,
-          "type": "graph",
-          "isNew": true,
-          "id": 3,
+          "aliasColors": {},
+          "bars": false,
           "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 3,
+          "isNew": true,
+          "leftYAxisLabel": "evt/s",
+          "legend": {
+            "avg": false,
+            "current": true,
+            "hideEmpty": false,
+            "hideZero": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": true
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
           "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "alias": "$4.$5",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "hide": false,
+              "measurement": "/samsara.core..*.pipeline..*..*.overall-processing.time.m1_rate/",
+              "query": "SELECT mean(\"value\") FROM /samsara.core..*.pipeline..*..*.overall-processing.time.m1_rate/ WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "refId": "A",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            },
+            {
+              "alias": "",
+              "dsType": "influxdb",
+              "groupBy": [
+                {
+                  "params": [
+                    "$interval"
+                  ],
+                  "type": "time"
+                },
+                {
+                  "params": [
+                    "null"
+                  ],
+                  "type": "fill"
+                }
+              ],
+              "hide": true,
+              "measurement": "/samsara.core..*.pipeline..*..*.overall-processing.time.mean/",
+              "query": "SELECT mean(\"value\") FROM /samsara.core..*.pipeline..*..*.overall-processing.time.mean/ WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "refId": "B",
+              "resultFormat": "time_series",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "value"
+                    ],
+                    "type": "field"
+                  },
+                  {
+                    "params": [],
+                    "type": "mean"
+                  }
+                ]
+              ],
+              "tags": []
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Processing",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
             "short",
             "short"
-          ],
-          "grid": {
-            "leftLogBase": 1,
-            "leftMax": null,
-            "rightMax": null,
-            "leftMin": null,
-            "rightMin": null,
-            "rightLogBase": 1,
-            "threshold1": null,
-            "threshold2": null,
-            "threshold1Color": "rgba(216, 200, 27, 0.27)",
-            "threshold2Color": "rgba(234, 112, 112, 0.22)"
-          },
-          "lines": true,
-          "fill": 1,
-          "linewidth": 2,
-          "points": false,
-          "pointradius": 5,
-          "bars": false,
-          "stack": false,
-          "percentage": false,
-          "legend": {
-            "show": true,
-            "values": true,
-            "min": false,
-            "max": false,
-            "current": true,
-            "total": false,
-            "avg": false
-          },
-          "nullPointMode": "connected",
-          "steppedLine": false,
-          "tooltip": {
-            "value_type": "cumulative",
-            "shared": true
-          },
-          "timeFrom": null,
-          "timeShift": null,
-          "targets": [
-            {
-              "refId": "A",
-              "dsType": "influxdb",
-              "resultFormat": "time_series",
-              "tags": [],
-              "groupBy": [
-                {
-                  "type": "time",
-                  "params": [
-                    "$interval"
-                  ]
-                },
-                {
-                  "type": "fill",
-                  "params": [
-                    "null"
-                  ]
-                }
-              ],
-              "select": [
-                [
-                  {
-                    "type": "field",
-                    "params": [
-                      "value"
-                    ]
-                  },
-                  {
-                    "type": "mean",
-                    "params": []
-                  }
-                ]
-              ],
-              "measurement": "/samsara.core..*.pipeline..*..*.overall-processing.time.m1_rate/",
-              "query": "SELECT mean(\"value\") FROM /samsara.core..*.pipeline..*..*.overall-processing.time.m1_rate/ WHERE $timeFilter GROUP BY time($interval) fill(null)",
-              "alias": "$4.$5",
-              "hide": false
-            },
-            {
-              "refId": "B",
-              "dsType": "influxdb",
-              "resultFormat": "time_series",
-              "tags": [],
-              "groupBy": [
-                {
-                  "type": "time",
-                  "params": [
-                    "$interval"
-                  ]
-                },
-                {
-                  "type": "fill",
-                  "params": [
-                    "null"
-                  ]
-                }
-              ],
-              "select": [
-                [
-                  {
-                    "type": "field",
-                    "params": [
-                      "value"
-                    ]
-                  },
-                  {
-                    "type": "mean",
-                    "params": []
-                  }
-                ]
-              ],
-              "measurement": "/samsara.core..*.pipeline..*..*.overall-processing.time.mean/",
-              "query": "SELECT mean(\"value\") FROM /samsara.core..*.pipeline..*..*.overall-processing.time.mean/ WHERE $timeFilter GROUP BY time($interval) fill(null)",
-              "alias": "",
-              "hide": true
-            }
-          ],
-          "aliasColors": {},
-          "seriesOverrides": [],
-          "links": [],
-          "leftYAxisLabel": "evt/s"
+          ]
         }
       ],
       "title": "Processing"
@@ -283,8 +285,11 @@
             "threshold2Color": "rgba(234, 112, 112, 0.22)",
             "thresholdLine": false
           },
+          "hideTimeOverride": false,
           "id": 2,
+          "interval": "",
           "isNew": true,
+          "leftYAxisLabel": "docs/s",
           "legend": {
             "avg": true,
             "current": false,
@@ -302,12 +307,13 @@
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
+          "rightYAxisLabel": "millis",
           "seriesOverrides": [
             {
               "alias": "/docs-time*/",
-              "yaxis": 2,
+              "fill": 0,
               "lines": true,
-              "fill": 0
+              "yaxis": 2
             }
           ],
           "span": 12,
@@ -315,6 +321,7 @@
           "steppedLine": false,
           "targets": [
             {
+              "alias": "docs-rate ($2)",
               "dsType": "influxdb",
               "groupBy": [
                 {
@@ -332,6 +339,7 @@
               ],
               "measurement": "/samsara.indexing..*.qanal.els.bulk-index.docs.m1_rate/",
               "query": "SELECT mean(\"value\") FROM /samsara.indexing..*.qanal.els.bulk-index.docs.m1_rate/ WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "rawQuery": false,
               "refId": "A",
               "resultFormat": "time_series",
               "select": [
@@ -348,46 +356,45 @@
                   }
                 ]
               ],
-              "tags": [],
-              "rawQuery": false,
-              "alias": "docs-rate ($2)"
+              "tags": []
             },
             {
-              "refId": "B",
+              "alias": "docs-time ($2)",
               "dsType": "influxdb",
-              "resultFormat": "time_series",
-              "tags": [],
               "groupBy": [
                 {
-                  "type": "time",
                   "params": [
                     "$interval"
-                  ]
+                  ],
+                  "type": "time"
                 },
                 {
-                  "type": "fill",
                   "params": [
                     "null"
-                  ]
+                  ],
+                  "type": "fill"
                 }
               ],
+              "measurement": "/samsara.indexing..*.qanal.els.bulk-index.time.mean$/",
+              "query": "SELECT mean(\"value\") FROM /samsara.indexing..*.qanal.els.bulk-index.time.mean$/ WHERE $timeFilter GROUP BY time($interval) fill(null)",
+              "refId": "B",
+              "resultFormat": "time_series",
               "select": [
                 [
                   {
-                    "type": "field",
                     "params": [
                       "value"
-                    ]
+                    ],
+                    "type": "field"
                   },
                   {
-                    "type": "mean",
-                    "params": []
+                    "params": [],
+                    "type": "mean"
                   }
                 ]
               ],
-              "measurement": "samsara.indexing.5c0e1c85148b.qanal.els.bulk-index.time.mean",
-              "query": "SELECT mean(\"value\") FROM \"samsara.indexing.5c0e1c85148b.qanal.els.bulk-index.time.mean\" WHERE $timeFilter GROUP BY time($interval) fill(null)",
-              "alias": "docs-time ($2)"
+              "tags": [],
+              "rawQuery": false
             }
           ],
           "timeFrom": null,
@@ -403,18 +410,14 @@
           "y_formats": [
             "short",
             "short"
-          ],
-          "interval": "",
-          "leftYAxisLabel": "docs/s",
-          "rightYAxisLabel": "millis",
-          "hideTimeOverride": false
+          ]
         }
       ],
       "title": "Indexing"
     }
   ],
   "time": {
-    "from": "now-3h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
@@ -451,6 +454,6 @@
   },
   "refresh": "5s",
   "schemaVersion": 8,
-  "version": 8,
+  "version": 13,
   "links": []
 }
