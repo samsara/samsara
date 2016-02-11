@@ -6,7 +6,7 @@ MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 # Common packages
 #
 RUN apk add --update bash tar ca-certificates wget curl bzip2 \
-        less vim netcat-openbsd zip iproute2 perl \
+        less vim netcat-openbsd zip iproute2 \
         libstdc++ libc6-compat
 
 #
