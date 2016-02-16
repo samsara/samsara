@@ -1,4 +1,0 @@
-## Customize the test machine
-test:
-  override:
-    - MIDJE_COLORIZE=NONE lein test
