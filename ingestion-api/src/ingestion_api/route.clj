@@ -46,17 +46,21 @@
                              (to-long postingTimestamp)
                              (-> system :http-server :backend :backend))
                       {:status 202
-                       :body (warn-when-missing-header postingTimestamp)})))
+                       :body (warn-when-missing-header postingTimestamp)}))))
 
-           (GET "/api-status" []
-                {:status (if (is-online?) 200 503)
-                 :body {:status (if (is-online?) "online" "offline")}})
+  (not-found))
 
-           (PUT "/api-status" {{new-status :status} :body}
-                (if-not (= :error (change-status! new-status))
-                  {:status 200 :body nil}
-                  {:status 400 :body nil})))
 
+(defroutes admin-routes
+  (context "/v1" []
+    (GET "/api-status" []
+      {:status (if (is-online?) 200 503)
+       :body {:status (if (is-online?) "online" "offline")}})
+
+    (PUT "/api-status" {{new-status :status} :body}
+      (if-not (= :error (change-status! new-status))
+        {:status 200 :body nil}
+        {:status 400 :body nil})))
   (not-found))
 
 
@@ -77,4 +81,10 @@
       (wrap-json-body {:keywords? true})
       (wrap-json-response)
       (gzip-req-wrapper)
+      catch-all))
+
+(def admin-app
+  (-> admin-routes
+      (wrap-json-body {:keywords? true})
+      (wrap-json-response)
       catch-all))
