@@ -17,7 +17,7 @@
 
   (stop [component]
     (if server-instance
-      (->> component :server-instance .close (assoc component :server-instance))
+      (update component :server-instance #(.close %))
       component)))
 
 (defn new-admin-server

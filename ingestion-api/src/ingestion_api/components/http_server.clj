@@ -25,7 +25,7 @@
 
   (stop [component]
     (if server
-      (->> component :server .close (assoc component :server))
+      (update component :server #(.close %))
       component)))
 
 (defn new-http-server

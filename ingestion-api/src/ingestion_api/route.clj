@@ -36,26 +36,27 @@
 
   (context "/v1" []
 
-           (POST  "/events"   {events :body
-                               {postingTimestamp "x-samsara-publishedtimestamp"} :headers}
-                  (if-let [errors (is-invalid? events)]
-                    {:status 400 :body (map #(if % % "OK") errors)}
-                    (do
-                      (track-distribution "ingestion.payload.size" (count events))
-                      (send! events
-                             (to-long postingTimestamp)
-                             (-> system :http-server :backend :backend))
-                      {:status 202
-                       :body (warn-when-missing-header postingTimestamp)}))))
+    (GET "/api-status" []
+      {:status (if (is-online?) 200 503)
+       :body {:status (if (is-online?) "online" "offline")}})
 
+    (POST  "/events"   {events :body
+                        {postingTimestamp "x-samsara-publishedtimestamp"} :headers}
+      (if-let [errors (is-invalid? events)]
+        {:status 400 :body (map #(if % % "OK") errors)}
+        (do
+          (track-distribution "ingestion.payload.size" (count events))
+          (send! events
+                 (to-long postingTimestamp)
+                 (-> system :http-server :backend :backend))
+          {:status 202
+           :body (warn-when-missing-header postingTimestamp)}))))
   (not-found))
 
 
 (defroutes admin-routes
+
   (context "/v1" []
-    (GET "/api-status" []
-      {:status (if (is-online?) 200 503)
-       :body {:status (if (is-online?) "online" "offline")}})
 
     (PUT "/api-status" {{new-status :status} :body}
       (if-not (= :error (change-status! new-status))
