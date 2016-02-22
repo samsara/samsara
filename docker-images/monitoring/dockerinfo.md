@@ -40,9 +40,9 @@ docker run -d -p 15000:80 -p 5555:5555 \
 
 ## Versions
 
-* `0.5.5.0`  - Riemann `0.2.9`, InfluxDB `0.8.8`, Grafana `1.9.1`
-* `0.5.7.0`  - Riemann `0.2.10`, InfluxDB `0.9.6.1`, Grafana `2.6.0`, MySQL `5.7.10`
-* `0.5.7.1`  - Alpine Linux `3.3` 
+* `0.5.5.0`  - Riemann `0.2.9`, InfluxDB `0.8.8`, Grafana `1.9.1`, Ubuntu `14.10`
+* `0.5.7.0`  - Riemann `0.2.10`, InfluxDB `0.9.6.1`, Grafana `2.6.0`, MySQL `5.7.10`, Ubuntu `15.10`
+* `0.5.7.1`  - Riemann `0.2.10`, InfluxDB `0.10.0-1`, Grafana `2.6.0`, MySQL `5.7.10`, Alpine Linux `3.3`
 
 
 ## Copyright & License
