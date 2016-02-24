@@ -3,16 +3,16 @@
   (:require [com.stuartsierra.component :as component]
             [ring.middleware.reload :as reload]
             [aleph.http :refer [start-server]])
-  (:require [ingestion-api.route-util :refer [gzip-req-wrapper]])
+  (:require [ingestion-api.route-util :refer
+             [gzip-req-wrapper catch-all not-found]])
   (:require [reloaded.repl :refer [system]])
   (:require [samsara.trackit :refer [track-distribution]])
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [compojure.route :as route]
             [ring.middleware.json :refer :all]
-            [ring.util.response :refer :all :exclude [not-found]]
-            [clojure.pprint :refer [pprint]])
-  (:require [ingestion-api.status :refer [change-status! is-online?]]
+            [ring.util.response :refer :all :exclude [not-found]])
+  (:require [ingestion-api.status :refer [is-online?]]
             [ingestion-api.events :refer [send! is-invalid? inject-receivedAt
                                           inject-publishedAt]]) )
 
@@ -35,11 +35,6 @@
 ;;                         ---==| R O U T E S |==----                         ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defn not-found []
-   (rfn request
-       {:status 404 :body {:status "ERROR" :message "Not found"}}))
 
 
 (defn warn-when-missing-header [postingTimestamp]
@@ -81,44 +76,12 @@
   (not-found))
 
 
-
-(defroutes admin-routes
-
-  (context "/v1" []
-
-    (PUT "/api-status" {{new-status :status} :body}
-      (if-not (= :error (change-status! new-status))
-        {:status 200 :body nil}
-        {:status 400 :body nil})))
-  (not-found))
-
-
-(defn catch-all [handler]
-  (fn [req]
-    (try (handler req)
-         (catch Exception x
-           (println "-----------------------------------------------------------------------")
-           (println (java.util.Date.) "[ERR!] -- " x)
-           (.printStackTrace x)
-           (pprint req)
-           (println "-----------------------------------------------------------------------")
-           {:status  500 :headers {} :body  nil}))))
-
-
 (def app
   (-> app-routes
       (wrap-json-body {:keywords? true})
       (wrap-json-response)
       (gzip-req-wrapper)
       catch-all))
-
-
-(def admin-app
-  (-> admin-routes
-      (wrap-json-body {:keywords? true})
-      (wrap-json-response)
-      catch-all))
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

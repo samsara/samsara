@@ -3,8 +3,8 @@
             [reloaded.repl :refer [system init start stop go reset]]
             [ingestion-api.components.backend :as backend]
             [ingestion-api.input.http :as http]
-            [ingestion-api.components.mqtt-server :as mqtt]
-            [ingestion-api.components.admin-server :as admin]))
+            [ingestion-api.input.http-admin :as admin]
+            [ingestion-api.components.mqtt-server :as mqtt]))
 
 
 (defn ingestion-api-system

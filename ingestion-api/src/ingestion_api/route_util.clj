@@ -1,5 +1,7 @@
 (ns ingestion-api.route-util
-  (:require [clojure.java.io :as io])
+  (:require [clojure.java.io :as io]
+            [clojure.pprint :refer [pprint]]
+            [compojure.core :refer [rfn]])
   (:import (java.util.zip GZIPInputStream)
            (java.io InputStream
                     File
@@ -46,3 +48,20 @@
     (if (is-gzipped req)
       (handler (gunzip-request req))
       (handler req))))
+
+
+(defn catch-all [handler]
+  (fn [req]
+    (try (handler req)
+         (catch Exception x
+           (println "-----------------------------------------------------------------------")
+           (println (java.util.Date.) "[ERR!] -- " x)
+           (.printStackTrace x)
+           (pprint req)
+           (println "-----------------------------------------------------------------------")
+           {:status  500 :headers {} :body  nil}))))
+
+
+(defn not-found []
+  (rfn request
+       {:status 404 :body {:status "ERROR" :message "Not found"}}))
