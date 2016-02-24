@@ -1,4 +1,4 @@
-(ns ingestion-api.core
+(ns ingestion-api.main
   (:require [samsara.trackit :refer
              [set-base-metrics-name! start-reporting!]])
   (:require [clojure.tools.cli :refer [parse-opts]])
@@ -129,7 +129,7 @@ DESCRIPTION
                      (format "%s %s [%s] - %s%s"
                              timestamp (-> level name clojure.string/upper-case) ns (or message "")
                              (or (log/stacktrace throwable "\n" (when nofonts? {})) ""))))
-(log/merge-config! cfg))
+  (log/merge-config! cfg))
 
 
 (defn- init-tracking!
