@@ -1,10 +1,10 @@
 (ns ingestion-api.components.backend
   (:refer-clojure :exclude [send])
   (:require [taoensso.timbre :as log]
-            [ingestion-api.backend :refer :all]
-            [ingestion-api.backend-kafka
+            [ingestion-api.backend.api :refer :all]
+            [ingestion-api.backend.backend-kafka
              :refer [make-kafka-backend make-kafka-backend-for-docker]]
-            [ingestion-api.backend-console :refer [make-console-backend]]
+            [ingestion-api.backend.backend-console :refer [make-console-backend]]
             [com.stuartsierra.component :as component]))
 
 ;; Backend component

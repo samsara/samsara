@@ -1,6 +1,6 @@
 (ns ingestion-api.events
   (:refer-clojure :exclude [send])
-  (:require [ingestion-api.backend :refer :all])
+  (:require [ingestion-api.backend.api :refer :all])
   (:require [reloaded.repl :refer [system]])
   (:require [schema.core :as s])
   (:require [samsara.trackit :refer [track-time]]))
