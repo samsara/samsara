@@ -47,8 +47,36 @@ GET http://:host:9000/v1/api-status
 
 #
 # set the api-status to offline
+# This should NOT be allowed on the
+# public endpoint but only on the
+# admin port
 #
 PUT http://:host:9000/v1/api-status
+Content-Type: application/json
+
+{ "status": "offline" }
+
+
+################################################################################
+#                          H T T P   A D M I N
+################################################################################
+
+#
+# check the api-status
+# returns:
+#   - 200 when api is only
+#   - 503 when api is offline
+#
+GET http://:host:9010/v1/api-status
+
+
+#
+# set the api-status to offline
+# This should NOT be allowed on the
+# public endpoint but only on the
+# admin port
+#
+PUT http://:host:9010/v1/api-status
 Content-Type: application/json
 
 { "status": "offline" }
@@ -57,7 +85,7 @@ Content-Type: application/json
 #
 # set the api-status to online
 #
-PUT http://:host:9000/v1/api-status
+PUT http://:host:9010/v1/api-status
 Content-Type: application/json
 
 { "status": "online" }

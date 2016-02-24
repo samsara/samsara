@@ -27,7 +27,9 @@
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [com.stuartsierra/component "0.3.0"]
                  [reloaded.repl "0.2.1"]]
+
   :main ingestion-api.main
+
   :profiles {:uberjar {:aot :all}
              :dev {:dependencies [[midje "1.6.3"]
                                   [clojurewerkz/machine_head "1.0.0-beta9"]
