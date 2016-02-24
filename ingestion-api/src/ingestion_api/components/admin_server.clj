@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [taoensso.timbre :as log]
             [aleph.http :refer [start-server]]
-            [ingestion-api.route :refer [admin-app]]))
+            [ingestion-api.input.http :refer [admin-app]]))
 
 (def default-values {:port 9010})
 
@@ -24,4 +24,3 @@
   [config]
   (let [server-config (merge default-values (:admin-server config))]
     (map->AdminServer server-config)))
-

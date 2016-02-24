@@ -1,4 +1,8 @@
-(ns ingestion-api.route
+(ns ingestion-api.input.http
+  (:require [taoensso.timbre :as log])
+  (:require [com.stuartsierra.component :as component]
+            [ring.middleware.reload :as reload]
+            [aleph.http :refer [start-server]])
   (:require [ingestion-api.route-util :refer [gzip-req-wrapper]])
   (:require [reloaded.repl :refer [system]])
   (:require [samsara.trackit :refer [track-distribution]])
@@ -10,17 +14,35 @@
             [clojure.pprint :refer [pprint]])
   (:require [ingestion-api.status :refer [change-status! is-online?]]
             [ingestion-api.events :refer [send! is-invalid? inject-receivedAt
-                                          inject-publishedAt]]))
+                                          inject-publishedAt]]) )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                  ---==| H T T P   E N D P O I N T |==----                  ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                         ---==| R O U T E S |==----                         ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (defn not-found []
    (rfn request
        {:status 404 :body {:status "ERROR" :message "Not found"}}))
 
+
 (defn warn-when-missing-header [postingTimestamp]
   (when-not postingTimestamp
     {:status "OK"
      :warning "For completeness, please provide the 'X-Samsara-publishedTimestamp' header."}))
+
 
 
 (defn- to-long
@@ -30,6 +52,7 @@
     (try
       (Long/parseLong num)
       (catch Exception x nil))))
+
 
 
 (defroutes app-routes
@@ -52,6 +75,7 @@
           {:status 202
            :body (warn-when-missing-header postingTimestamp)}))))
   (not-found))
+
 
 
 (defroutes admin-routes
@@ -84,8 +108,49 @@
       (gzip-req-wrapper)
       catch-all))
 
+
 (def admin-app
   (-> admin-routes
       (wrap-json-body {:keywords? true})
       (wrap-json-response)
       catch-all))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                 ---==| H T T P   C O M P O N E N T |==----                 ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn wrap-app
+  [auto-reload]
+  (if auto-reload
+    (do
+      (log/info "AUTO-RELOAD enabled!!! I hope you are in dev mode.")
+      (reload/wrap-reload #'app))
+    app))
+
+
+(defrecord HttpServer [port auto-reload backend server]
+  component/Lifecycle
+
+
+  (start [component]
+    (log/info "Samsara Ingestion-API listening on port:" port)
+    (if server component
+        (as-> (wrap-app auto-reload) $
+          (start-server $ {:port port})
+          (assoc component :server $))))
+
+  (stop [component]
+    (if server
+      (update component :server #(.close %))
+      component)))
+
+
+
+(defn new-http-server
+  [config]
+  (map->HttpServer (:server config)))

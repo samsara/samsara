@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [reloaded.repl :refer [system init start stop go reset]]
             [ingestion-api.components.backend :as backend]
-            [ingestion-api.components.http-server :as http]
+            [ingestion-api.input.http :as http]
             [ingestion-api.components.mqtt-server :as mqtt]
             [ingestion-api.components.admin-server :as admin]))
 
