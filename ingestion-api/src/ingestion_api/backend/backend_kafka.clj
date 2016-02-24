@@ -1,4 +1,4 @@
-(ns ingestion-api.backend-kafka
+(ns ingestion-api.backend.backend-kafka
   (:refer-clojure :exclude [send])
   (:import  [ingestion_api.backend EventsQueueingBackend])
   (:require [ingestion-api.docker :refer [docker-link-into]])

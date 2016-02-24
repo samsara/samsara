@@ -1,4 +1,4 @@
-(ns ingestion-api.backend-console
+(ns ingestion-api.backend.backend-console
   (:refer-clojure :exclude [send])
   (:import  [ingestion_api.backend EventsQueueingBackend])
   (:require [clojure.pprint :refer [pprint]]))
