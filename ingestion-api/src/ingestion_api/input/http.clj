@@ -64,15 +64,19 @@
 
     (POST  "/events"   {events :body
                         {postingTimestamp "x-samsara-publishedtimestamp"} :headers}
-      (if-let [errors (is-invalid? events)]
-        {:status 400 :body (map #(if % % "OK") errors)}
+
+      (if-let [process-fn (-> system :http-server :process-fn)]
+        (let [process-result (process-fn events :posting-timestamp (to-long postingTimestamp))]
+          (if (= :success (:status process-result))
+            {:status 202
+             :body (warn-when-missing-header postingTimestamp)}
+            {:status 400
+             :body (:error-msg process-result)}))
         (do
-          (track-distribution "ingestion.payload.size" (count events))
-          (send! events
-                 (to-long postingTimestamp)
-                 (-> system :http-server :backend :backend))
-          {:status 202
-           :body (warn-when-missing-header postingTimestamp)}))))
+          (log/error "The http-server component wasn't configured with a process-fn"
+                    (-> system :http-server))
+          {:status 500
+             :body "Server misconfiguration"}))))
   (not-found))
 
 
@@ -100,7 +104,7 @@
     app))
 
 
-(defrecord HttpServer [port auto-reload backend server]
+(defrecord HttpServer [port auto-reload backend server process-fn]
   component/Lifecycle
 
 

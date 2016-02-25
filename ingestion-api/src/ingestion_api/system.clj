@@ -8,11 +8,11 @@
             [ingestion-api.components.mqtt-server :as mqtt]
             [ingestion-api.core.processors :as ps]
             [ingestion-api.backend.api :refer :all]
-            [samsara.trackit :refer [track-time]]))
+            [samsara.trackit :refer [track-time track-distribution]]))
 
 
 (defn send!
-  [events backend]
+  [backend events]
   (track-time "ingestion.events.backend-send"
               (send backend events)))
 
@@ -29,11 +29,13 @@
   "
   (if-let [errors (ps/is-invalid? events-seq)]
     (hash-map :status :error :error-msg (map #(if % % "OK") errors))
-    (as-> events-seq $$
-      (ps/inject-receivedAt (System/currentTimeMillis) $$)
-      (ps/inject-publishedAt posting-timestamp $$)
-      (send! (-> system :backend :backend) $$)
-      (hash-map :status :success))))
+    (do
+      (track-distribution "ingestion.payload.size" (count events-seq))
+      (as-> events-seq $$
+        (ps/inject-receivedAt (System/currentTimeMillis) $$)
+        (ps/inject-publishedAt posting-timestamp $$)
+        (send! (-> system :backend :backend) $$)
+        (hash-map :status :success)))))
 
 
 (defn ingestion-api-system
@@ -42,6 +44,7 @@
    :backend     (backend/new-backend config)
    :admin-server (admin/new-admin-server config)
    :http-server (component/using
-                 (http/new-http-server config) {:backend :backend})
+                 (http/new-http-server (assoc-in config [:server :process-fn] process-events))
+                 {:backend :backend})
    :mqtt-server (component/using
                  (mqtt/new-mqtt-server config) {:backend :backend})))
