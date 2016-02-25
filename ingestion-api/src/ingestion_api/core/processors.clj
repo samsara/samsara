@@ -1,4 +1,4 @@
-(ns ingestion-api.core.pipeline
+(ns ingestion-api.core.processors
   (:require [samsara.trackit :refer [track-time]]
             [schema.core :as s]))
 
@@ -43,70 +43,3 @@
   (if published
     (map #(update-in % [:publishedAt] (fn [ov] (or ov published))) events)
     events))
-
-
-(defn process-events [events-seq & {:keys[posting-timestamp]}]
-  "Takes a sequence of events (and optional values) validates and enriches them,
-   returns a map with the :status (:success or :error)
-   :events (if successful the enriched events otherwise the provided events)
-   and optionally :error-msg
-   e.g
-   {:events
-    ({:timestamp 1458414757925,
-      :sourceId \"user-a\",
-      :eventName \"test-event\",
-      :event-class :test,
-      :receivedAt 1456389378708}
-     {:timestamp 1458414757925,
-      :sourceId \"user-b\",
-      :eventName \"test-event\",
-      :event-class :test,
-      :receivedAt 1456389378708}),
-    :status :success}
-
-   {:events
-    ({:timestamp 1458414757925,
-      :sourceId \"user-a\",
-      :eventName \"test-event\",
-      :event-class :test}
-     {:timestamp \"not a timestamp\",
-      :sourceId \"user-a\",
-      :eventName \"test-event\",
-      :event-class :test}),
-    :error-msg
-    (\"OK\" {:timestamp (not (integer? \"not a timestamp\"))}),
-    :status :error}
-  "
-  (if-let [errors (is-invalid? events-seq)]
-    (hash-map :status :error :error-msg (map #(if % % "OK") errors) :events events-seq)
-    (as-> events-seq $$
-      (inject-receivedAt (System/currentTimeMillis) $$)
-      (inject-publishedAt posting-timestamp $$)
-      (hash-map :status :success :events $$))))
-
-
-(comment
-
-  (def date #inst "2016-03-19T19:12:37.925-00:00")
-
-  (def valid-event {
-                    :timestamp (.getTime date)
-                    :sourceId "user-a"
-                    :eventName "test-event"
-                    :event-class :test})
-
-  (def invalid-event {
-                     :timestamp "not a timestamp"
-                     :sourceId "user-a"
-                     :eventName "test-event"
-                     :event-class :test} )
-
-  (def valid-event-seq (take 3 (repeat valid-event )))
-
-  (def invalid-event-seq (take 3 (cycle [valid-event invalid-event])))
-
-  (process-events valid-event-seq)
-
-  (process-events invalid-event-seq)
-
-)
