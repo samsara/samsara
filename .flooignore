@@ -1,0 +1,6 @@
+.git
+tmp
+target/
+*.class
+*.tfvars
+*.tfstate*
