@@ -1,4 +1,4 @@
-# samsara
+# Samsara
 
 Samsara is a real-time analytics platform.
 
