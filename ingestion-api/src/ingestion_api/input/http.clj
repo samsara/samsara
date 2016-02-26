@@ -13,8 +13,8 @@
             [ring.middleware.json :refer :all]
             [ring.util.response :refer :all :exclude [not-found]])
   (:require [ingestion-api.status :refer [is-online?]]
-            [ingestion-api.events :refer [send! is-invalid? inject-receivedAt
-                                          inject-publishedAt]]) )
+            [ingestion-api.core.processors :refer [process-events]]
+            [ingestion-api.events :refer [send!]]) )
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -65,18 +65,16 @@
     (POST  "/events"   {events :body
                         {postingTimestamp "x-samsara-publishedtimestamp"} :headers}
 
-      (if-let [process-fn (-> system :http-server :process-fn)]
-        (let [process-result (process-fn events :posting-timestamp (to-long postingTimestamp))]
-          (if (= :success (:status process-result))
+      (let [process-result (process-events events :posting-timestamp
+                                           (to-long postingTimestamp))
+            {:keys [status error-msgs processed-events]} process-result]
+        (if (= :error status)
+          {:status 400 :body error-msgs}
+          (do
+            (track-distribution "ingestion.payload.size" (count events))
+            (send! (-> system :http-server :backend :backend) processed-events)
             {:status 202
-             :body (warn-when-missing-header postingTimestamp)}
-            {:status 400
-             :body (:error-msg process-result)}))
-        (do
-          (log/error "The http-server component wasn't configured with a process-fn"
-                    (-> system :http-server))
-          {:status 500
-             :body "Server misconfiguration"}))))
+             :body (warn-when-missing-header postingTimestamp)})))))
   (not-found))
 
 
@@ -104,7 +102,7 @@
     app))
 
 
-(defrecord HttpServer [port auto-reload backend server process-fn]
+(defrecord HttpServer [port auto-reload backend server]
   component/Lifecycle
 
 
@@ -123,5 +121,6 @@
 
 
 (defn new-http-server
-  [config]
-  (map->HttpServer (:server config)))
+  [{:keys [server]}]
+  {:pre [(number? (:port server))]}
+  (map->HttpServer server))
