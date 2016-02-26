@@ -24,9 +24,7 @@
   are valid then nil is returned."
   [events]
   (track-time "ingestion.events.validation"
-              (if-not (seq? events)
-                ["Invalid format, content-type must be application/json"]
-                (s/check events-schema events))))
+              (s/check events-schema events)))
 
 
 (defn inject-receivedAt

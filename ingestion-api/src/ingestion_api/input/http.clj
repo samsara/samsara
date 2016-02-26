@@ -62,6 +62,12 @@
       {:status (if (is-online?) 200 503)
        :body {:status (if (is-online?) "online" "offline")}})
 
+
+    ;; TODO: check that the payload is actually a collection of clojure data
+    ;; TODO: this was in the validation function before
+    ;; (if-not (seq? events)
+    ;;   ["Invalid format, content-type must be application/json"]
+    ;;   (s/check events-schema events))
     (POST  "/events"   {events :body
                         {postingTimestamp "x-samsara-publishedtimestamp"} :headers}
 
