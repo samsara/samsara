@@ -63,24 +63,30 @@
        :body {:status (if (is-online?) "online" "offline")}})
 
 
-    ;; TODO: check that the payload is actually a collection of clojure data
-    ;; TODO: this was in the validation function before
-    ;; (if-not (seq? events)
-    ;;   ["Invalid format, content-type must be application/json"]
-    ;;   (s/check events-schema events))
+    ;; TODO: maybe yada could help here with content-type
     (POST  "/events"   {events :body
-                        {publishedTimestamp "x-samsara-publishedtimestamp"} :headers}
+                        {publishedTimestamp "x-samsara-publishedtimestamp"
+                         content-type       "content-type"} :headers}
 
-      (let [process-result (process-events events :publishedTimestamp
-                                           (to-long publishedTimestamp))
-            {:keys [status error-msgs processed-events]} process-result]
-        (if (= :error status)
-          {:status 400 :body error-msgs}
-          (do
-            (track-distribution "ingestion.payload.size" (count events))
-            (send! (-> system :http-server :backend :backend) processed-events)
-            {:status 202
-             :body (warn-when-missing-header publishedTimestamp)})))))
+           ;; regex taken from ring-json middleware
+           (if-not (re-matches #"^application/(.+\+)?json" content-type)
+
+             ;; the payload is not JSON
+             {:status 400
+              :body {:status :ERROR
+                     :message "Invalid format, content-type must be application/json"}}
+
+             ;; the payload a valid JSON, let's validate the events
+             (let [process-result (process-events events :publishedTimestamp
+                                                  (to-long publishedTimestamp))
+                   {:keys [status error-msgs processed-events]} process-result]
+               (if (= :error status)
+                 {:status 400 :body error-msgs}
+                 (do
+                   (track-distribution "ingestion.payload.size" (count events))
+                   (send! (-> system :http-server :backend :backend) processed-events)
+                   {:status 202
+                    :body (warn-when-missing-header publishedTimestamp)}))))))
   (not-found))
 
 
