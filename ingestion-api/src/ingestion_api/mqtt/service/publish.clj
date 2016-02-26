@@ -34,7 +34,7 @@
       (throw (ex-info "Invalid publish message received:" error)))
     ;;Process events
     (let [events (-> request :payload from-json)
-          process-result (process-events events :posting-timestamp (System/currentTimeMillis))
+          process-result (process-events events)
           {:keys [status error-msgs processed-events]} process-result]
       (if (= :error status)
         (throw (ex-info "Invalid event format received" {:errors error-msgs}))
