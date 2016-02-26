@@ -37,8 +37,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defn warn-when-missing-header [postingTimestamp]
-  (when-not postingTimestamp
+(defn warn-when-missing-header [publishedTimestamp]
+  (when-not publishedTimestamp
     {:status "OK"
      :warning "For completeness, please provide the 'X-Samsara-publishedTimestamp' header."}))
 
@@ -69,10 +69,10 @@
     ;;   ["Invalid format, content-type must be application/json"]
     ;;   (s/check events-schema events))
     (POST  "/events"   {events :body
-                        {postingTimestamp "x-samsara-publishedtimestamp"} :headers}
+                        {publishedTimestamp "x-samsara-publishedtimestamp"} :headers}
 
-      (let [process-result (process-events events :posting-timestamp
-                                           (to-long postingTimestamp))
+      (let [process-result (process-events events :publishedTimestamp
+                                           (to-long publishedTimestamp))
             {:keys [status error-msgs processed-events]} process-result]
         (if (= :error status)
           {:status 400 :body error-msgs}
@@ -80,7 +80,7 @@
             (track-distribution "ingestion.payload.size" (count events))
             (send! (-> system :http-server :backend :backend) processed-events)
             {:status 202
-             :body (warn-when-missing-header postingTimestamp)})))))
+             :body (warn-when-missing-header publishedTimestamp)})))))
   (not-found))
 
 

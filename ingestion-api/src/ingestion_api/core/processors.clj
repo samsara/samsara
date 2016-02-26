@@ -43,12 +43,11 @@
     events))
 
 
-(defn process-events [events-seq & {:keys [posting-timestamp]}]
-  "Takes a sequence of events (and optional values) processes them and sends
-   on to the backend,
-   returns a map with the :status (:success or :error)
-   and optionally :error-msg
-   e.g
+(defn process-events [events-seq & {:keys [publishedTimestamp]}]
+  "Takes a sequence of events (and optional values) processes them
+   returns a map with the :status (:success or :error) and
+   optionally :error-msg e.g
+
    {:status :success
     :processed-events ({:timestamp 1456485005659
                         :sourceId \"a-user\"
@@ -68,7 +67,7 @@
     (do
       (as-> events-seq $$
         (inject-receivedAt (System/currentTimeMillis) $$)
-        (inject-publishedAt posting-timestamp $$)
+        (inject-publishedAt publishedTimestamp $$)
         {:status :success :processed-events $$}))))
 
 
@@ -87,7 +86,7 @@
   (def invalid-seq (take 3 (cycle [valid-event invalid-event])))
 
   (process-events valid-seq)
-  (process-events valid-seq :posting-timestamp (.getTime #inst "2016-02-26T11:20:04.501-00:00"))
+  (process-events valid-seq :publishedTimestamp (.getTime #inst "2016-02-26T11:20:04.501-00:00"))
   (process-events invalid-seq)
 
   )
