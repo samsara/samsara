@@ -7,11 +7,4 @@ machine:
 
 test:
   override:
-    - ./bin/build-test-snapshot.sh
-
-
-deployment:
-  docker-hub:
-    branch: master
-    commands:
-      - ./bin/publish-snapshot-containers.sh CI
+    - ./bin/build-test-snapshot.sh && ./bin/publish-snapshot-containers.sh CI
