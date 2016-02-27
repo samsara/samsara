@@ -68,7 +68,7 @@
    or in case of an error:
 
    {:status :error
-    :error-msgs (\"OK\" {:timestamp (not (integer? \"not a timestamp\"))})}
+    :error-msgs [:OK, {:timestamp (not (integer? \"not a timestamp\"))}]}
   "
   [events-seq & {:keys [publishedTimestamp]}]
   (if-let [errors (is-invalid? events-seq)]
