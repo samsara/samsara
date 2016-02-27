@@ -1,0 +1,11 @@
+* Task to complete for the ingestion-api refactoring [0/9] [0%]
+  - [ ] BRUNO: write integration tests (just a few for happy path)
+  - [ ] BRUNO: remove global vars system and replace with lambda
+
+  - [ ] remove MQTT broker and use library
+  - [ ] get rid of the components namespace
+  - [ ] review metrics names and update dashboard and doc with new names
+  - [ ] add samsara.version in uberjar (separate-name?)
+  - [ ] experiment with yada for routing instead of compojure
+  - [ ] re-run perf test
+  - [ ] general code cleanup before merge
