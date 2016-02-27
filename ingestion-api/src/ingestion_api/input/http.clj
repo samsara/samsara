@@ -3,7 +3,7 @@
   (:require [com.stuartsierra.component :as component]
             [ring.middleware.reload :as reload]
             [aleph.http :refer [start-server]])
-  (:require [ingestion-api.route-util :refer
+  (:require [ingestion-api.input.route-util :refer
              [gzip-req-wrapper catch-all not-found]])
   (:require [reloaded.repl :refer [system]])
   (:require [samsara.trackit :refer [track-distribution]])

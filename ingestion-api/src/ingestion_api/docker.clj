@@ -2,6 +2,9 @@
   (:require [taoensso.timbre :as log])
   (:require [clojure.string :refer [upper-case join]]))
 
+;;
+;; TODO: this will be replaced by synapse as a library
+;;
 
 (defn- grep-env
   "filter the environment variables and keeps those whose key

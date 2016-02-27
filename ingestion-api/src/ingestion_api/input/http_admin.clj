@@ -2,7 +2,7 @@
   (:require [com.stuartsierra.component :as component]
             [taoensso.timbre :as log]
             [aleph.http :refer [start-server]])
-  (:require [ingestion-api.route-util :refer [catch-all not-found]])
+  (:require [ingestion-api.input.route-util :refer [catch-all not-found]])
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [compojure.route :as route]

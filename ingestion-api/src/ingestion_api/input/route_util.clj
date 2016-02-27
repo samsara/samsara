@@ -1,4 +1,4 @@
-(ns ingestion-api.route-util
+(ns ingestion-api.input.route-util
   (:require [clojure.java.io :as io]
             [clojure.pprint :refer [pprint]]
             [compojure.core :refer [rfn]])
