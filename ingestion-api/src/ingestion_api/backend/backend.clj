@@ -26,9 +26,10 @@
   component/Lifecycle
 
   (start [this]
-    (if backend this
-        (assoc this :backend
-               (init-backend config))))
+    (if backend
+      this
+      (assoc this :backend
+             (init-backend config))))
 
   (stop [this]
     (dissoc this :backend)))
@@ -38,7 +39,7 @@
   [backend events]
   ;; TODO: should this be changed into events->payload
   (track-time "ingestion.events.backend-send"
-              (protocol/send backend events)))
+              (protocol/send (:backend backend) events)))
 
 (defn new-backend
   "Initialize the backend component."

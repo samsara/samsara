@@ -282,8 +282,8 @@
         {:status :error,
          :error-msgs
          (just [:OK
-                (just {:timestamp anything})
-                (just {:timestamp anything})])})
+                "{:timestamp (not (integer? \"a string timestamp\"))}"
+                "{:timestamp missing-required-key}"])})
 
 
        )

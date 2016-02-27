@@ -32,6 +32,7 @@
 
   :profiles {:uberjar {:aot :all}
              :dev {:dependencies [[midje "1.6.3"]
+                                  [clj-http "2.1.0"]
                                   [clojurewerkz/machine_head "1.0.0-beta9"]
                                   [clj-mqtt "0.4.1-alpha"]]
                    :plugins [[lein-midje "3.1.3"]

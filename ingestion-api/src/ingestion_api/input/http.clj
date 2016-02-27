@@ -55,45 +55,45 @@
 
 
 
-(defroutes app-routes
+(defn app-routes [backend]
 
-  (context "/v1" []
+  (routes
+   (context "/v1" []
 
-    (GET "/api-status" []
-      {:status (if (is-online?) 200 503)
-       :body {:status (if (is-online?) "online" "offline")}})
-
-
-    ;; TODO: maybe yada could help here with content-type
-    (POST  "/events"   {events :body
-                        {publishedTimestamp "x-samsara-publishedtimestamp"
-                         content-type       "content-type"} :headers}
-
-           ;; regex taken from ring-json middleware
-           (if-not (re-matches #"^application/(.+\+)?json" content-type)
-
-             ;; the payload is not JSON
-             {:status 400
-              :body {:status :ERROR
-                     :message "Invalid format, content-type must be application/json"}}
-
-             ;; the payload a valid JSON, let's validate the events
-             (let [process-result (process-events events :publishedTimestamp
-                                                  (to-long publishedTimestamp))
-                   {:keys [status error-msgs processed-events]} process-result]
-               (if (= :error status)
-                 {:status 400 :body error-msgs}
-                 (do
-                   (track-distribution "ingestion.payload.size" (count events))
-                   ;; TODO: this need to be turned into a lambda, no global vars
-                   (send (-> system :http-server :backend :backend) processed-events)
-                   {:status 202
-                    :body (warn-when-missing-header publishedTimestamp)}))))))
-  (not-found))
+            (GET "/api-status" []
+                 {:status (if (is-online?) 200 503)
+                  :body {:status (if (is-online?) "online" "offline")}})
 
 
-(def app
-  (-> app-routes
+            ;; TODO: maybe yada could help here with content-type
+            (POST  "/events"   {events :body
+                                {publishedTimestamp "x-samsara-publishedtimestamp"
+                                 content-type       "content-type"} :headers}
+
+                   ;; regex taken from ring-json middleware
+                   (if-not (re-matches #"^application/(.+\+)?json" content-type)
+
+                     ;; the payload is not JSON
+                     {:status 400
+                      :body {:status :ERROR
+                             :message "Invalid format, content-type must be application/json"}}
+
+                     ;; the payload a valid JSON, let's validate the events
+                     (let [process-result (process-events events :publishedTimestamp
+                                                          (to-long publishedTimestamp))
+                           {:keys [status error-msgs processed-events]} process-result]
+                       (if (= :error status)
+                         {:status 400 :body error-msgs}
+                         (do
+                           (track-distribution "ingestion.payload.size" (count events))
+                           (send backend processed-events)
+                           {:status 202
+                            :body (warn-when-missing-header publishedTimestamp)}))))))
+   (not-found)))
+
+
+(defn app [backend]
+  (-> (app-routes backend)
       (wrap-json-body {:keywords? true})
       (wrap-json-response)
       (gzip-req-wrapper)
@@ -106,14 +106,14 @@
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
+;; TODO: RELOAD won't probably work
 (defn wrap-app
-  [auto-reload]
+  [app-fn auto-reload]
   (if auto-reload
     (do
       (log/info "AUTO-RELOAD enabled!!! I hope you are in dev mode.")
-      (reload/wrap-reload #'app))
-    app))
+      (reload/wrap-reload (app-fn)))
+    (app-fn)))
 
 
 (defrecord HttpServer [port auto-reload backend server]
@@ -122,8 +122,9 @@
 
   (start [component]
     (log/info "Samsara Ingestion-API listening on port:" port)
+    (log/info "BACKEND:" (:backend component))
     (if server component
-        (as-> (wrap-app auto-reload) $
+        (as-> (wrap-app #(app (:backend component)) auto-reload) $
           (start-server $ {:port port})
           (assoc component :server $))))
 
