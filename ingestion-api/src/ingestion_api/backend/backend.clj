@@ -1,7 +1,7 @@
-(ns ingestion-api.components.backend
+(ns ingestion-api.backend.backend
   (:refer-clojure :exclude [send])
   (:require [taoensso.timbre :as log]
-            [ingestion-api.backend.api :refer :all]
+            [ingestion-api.backend.backend-protocol :refer [send]]
             [ingestion-api.backend.backend-kafka
              :refer [make-kafka-backend make-kafka-backend-for-docker]]
             [ingestion-api.backend.backend-console :refer [make-console-backend]]
@@ -22,7 +22,7 @@
 (defrecord Backend [config backend]
   ;;Implement Lifecycle
   component/Lifecycle
-  
+
   (start [this]
     (if backend this
         (assoc this :backend

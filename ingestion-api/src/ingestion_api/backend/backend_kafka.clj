@@ -1,10 +1,11 @@
 (ns ingestion-api.backend.backend-kafka
   (:refer-clojure :exclude [send])
-  (:import  [ingestion_api.backend.api EventsQueueingBackend])
+  (:require [ingestion-api.backend.backend-protocol :refer [send]])
   (:require [ingestion-api.docker :refer [docker-link-into]])
   (:require [clj-kafka.producer :as kp])
   (:require [schema.core :as s])
-  (:require [samsara.utils :refer [to-json]]))
+  (:require [samsara.utils :refer [to-json]])
+  (:import  [ingestion_api.backend.backend_protocol EventsQueueingBackend]))
 
 
 (def default-producer-config

@@ -1,4 +1,4 @@
-(ns ingestion-api.backend.api
+(ns ingestion-api.backend.backend-protocol
   (:refer-clojure :exclude [send])
   (:require [clojure.pprint :refer [pprint]]))
 

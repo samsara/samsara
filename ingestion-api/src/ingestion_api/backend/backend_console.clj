@@ -1,6 +1,6 @@
 (ns ingestion-api.backend.backend-console
   (:refer-clojure :exclude [send])
-  (:import  [ingestion_api.backend.api EventsQueueingBackend])
+  (:import  [ingestion_api.backend.backend_protocol EventsQueueingBackend])
   (:require [clojure.pprint :refer [pprint]]))
 
 ;;
