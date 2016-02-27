@@ -25,6 +25,7 @@
   is invalid an error structure is returned. If all events
   are valid then nil is returned."
   [events]
+  ;; TODO: payload validation? or events validation?
   (track-time "ingestion.events.validation"
               (s/check events-schema events)))
 

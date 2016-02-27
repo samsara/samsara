@@ -1,4 +1,5 @@
 (ns ingestion-api.input.http
+  (:refer-clojure :exclude [send])
   (:require [taoensso.timbre :as log])
   (:require [com.stuartsierra.component :as component]
             [ring.middleware.reload :as reload]
@@ -14,7 +15,7 @@
             [ring.util.response :refer :all :exclude [not-found]])
   (:require [ingestion-api.status :refer [is-online?]]
             [ingestion-api.core.processors :refer [process-events]]
-            [ingestion-api.events :refer [send!]]) )
+            [ingestion-api.backend.backend :refer [send]]) )
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -84,7 +85,8 @@
                  {:status 400 :body error-msgs}
                  (do
                    (track-distribution "ingestion.payload.size" (count events))
-                   (send! (-> system :http-server :backend :backend) processed-events)
+                   ;; TODO: this need to be turned into a lambda, no global vars
+                   (send (-> system :http-server :backend :backend) processed-events)
                    {:status 202
                     :body (warn-when-missing-header publishedTimestamp)}))))))
   (not-found))

@@ -1,6 +1,7 @@
 (ns ingestion-api.mqtt.service.publish
+  (:refer-clojure :exclude [send])
   (:require [ingestion-api.core.processors :refer [process-events]]
-            [ingestion-api.events :refer [send!]]
+            [ingestion-api.backend.backend :refer [send]]
             [ingestion-api.mqtt.domain.publish :refer [bytes->mqtt-publish]]
             [samsara.utils :refer [from-json]]
             [schema.core :as s]
@@ -38,5 +39,6 @@
           {:keys [status error-msgs processed-events]} process-result]
       (if (= :error status)
         (throw (ex-info "Invalid event format received" {:errors error-msgs}))
-        (send! (-> system :mqtt-server :backend :backend) processed-events))))
+        ;; TODO: this need to be turned into a lambda, no global vars
+        (send (-> system :mqtt-server :backend :backend) processed-events))))
   nil)

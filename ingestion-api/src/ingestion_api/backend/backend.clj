@@ -1,11 +1,13 @@
 (ns ingestion-api.backend.backend
   (:refer-clojure :exclude [send])
   (:require [taoensso.timbre :as log]
-            [ingestion-api.backend.backend-protocol :refer [send]]
+            [ingestion-api.backend.backend-protocol :as protocol]
             [ingestion-api.backend.backend-kafka
              :refer [make-kafka-backend make-kafka-backend-for-docker]]
             [ingestion-api.backend.backend-console :refer [make-console-backend]]
-            [com.stuartsierra.component :as component]))
+            [com.stuartsierra.component :as component]
+            [samsara.trackit :refer [track-time]]))
+
 
 ;; Backend component
 (defn- init-backend
@@ -30,6 +32,13 @@
 
   (stop [this]
     (dissoc this :backend)))
+
+
+(defn send
+  [backend events]
+  ;; TODO: should this be changed into events->payload
+  (track-time "ingestion.events.backend-send"
+              (protocol/send backend events)))
 
 (defn new-backend
   "Initialize the backend component."
