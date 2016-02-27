@@ -47,12 +47,10 @@
   which is typically boundled with jar file"
   []
   (try
-    (->> "project.clj"
-         ((fn [f] (if (.exists (io/file f)) (io/file f) (io/resource f))))
+    (->> (if (.exists (io/file "../samsara.version"))
+           (io/file "../samsara.version")
+           (io/resource "samsara.version"))
          slurp
-         read-string
-         nnext
-         first
          (str "v"))
     (catch Exception x "")))
 
@@ -70,7 +68,7 @@
 /____/\\__,_/_/ /_/ /_/____/\\__,_/_/   \\__,_/
 
   Samsara Ingestion API
------------------------------| %7.7s |-------
+--------------------------| %10.10s |-------
 
 " (version)))
 
