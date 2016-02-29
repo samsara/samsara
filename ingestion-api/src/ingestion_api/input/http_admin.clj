@@ -2,7 +2,8 @@
   (:require [com.stuartsierra.component :as component]
             [taoensso.timbre :as log]
             [aleph.http :refer [start-server]])
-  (:require [ingestion-api.input.route-util :refer [catch-all not-found]])
+  (:require [ingestion-api.input.route-util :refer
+             [catch-all not-found wrap-reload]])
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [compojure.route :as route]
@@ -33,28 +34,37 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defroutes admin-routes
+(defn admin-routes []
 
-  (context "/v1" []
+  (routes
+   (context "/v1" []
 
-           (GET "/api-status" []
-                {:status (if (is-online?) 200 503)
-                 :body {:status (if (is-online?) "online" "offline")}})
+            (GET "/api-status" []
+                 {:status (if (is-online?) 200 503)
+                  :body {:status (if (is-online?) "online" "offline")}})
 
-           (PUT "/api-status" {{new-status :status} :body}
-                (if-not (= :error (change-status! new-status))
-                  {:status 200 :body nil}
-                  {:status 400 :body nil})))
-  (not-found))
+            (PUT "/api-status" {{new-status :status} :body}
+                 (if-not (= :error (change-status! new-status))
+                   {:status 200 :body nil}
+                   {:status 400 :body nil})))
+   (not-found)))
 
 
 
-(def admin-app
-  (-> admin-routes
+(defn admin-app []
+  (-> (admin-routes)
       (wrap-json-body {:keywords? true})
       (wrap-json-response)
       catch-all))
 
+
+(defn wrap-app
+  [app-fn auto-reload]
+  (if auto-reload
+    (do
+      (log/info "AUTO-RELOAD enabled!!! I hope you are in dev mode.")
+      (wrap-reload app-fn))
+    (app-fn)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -64,25 +74,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(def default-values {:port 9010})
 
-
-(defrecord AdminServer [server-instance port]
+(defrecord AdminServer [port auto-reload server]
   component/Lifecycle
 
   (start [component]
     (log/info "Samsara Admin listening on port:" port)
-    (if server-instance component
-        (->>  (start-server admin-app {:port port})
-              (assoc component :server-instance))))
+    (if server
+      component
+      (as-> (wrap-app #(#'admin-app) auto-reload) $
+        (start-server $ {:port port})
+        (assoc component :server $))))
 
   (stop [component]
-    (if server-instance
-      (update component :server-instance #(.close %))
+    (if server
+      (update component :server #(.close %))
       component)))
 
 
 (defn new-admin-server
   [config]
-  (let [server-config (merge default-values (:admin-server config))]
+  (let [server-config (:admin-server config)]
     (map->AdminServer server-config)))

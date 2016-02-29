@@ -5,7 +5,6 @@
   (:require [aleph.http :refer [start-server]])
   (:require [taoensso.timbre :as log])
   (:require [clojure.java.io :as io])
-  (:require [ring.middleware.reload :as reload])
   (:require [reloaded.repl :refer [go set-init!]]
             [ingestion-api.system :refer [ingestion-api-system]])
   (:gen-class))
@@ -14,6 +13,7 @@
   "Default configuration which will be merged with
   the user defined configuration."
   {:server {:port 9000 :auto-reload false}
+   :admin-server {:port 9010 :auto-reload false}
    :mqtt   {:port 10010 :enabled true}
 
    :log   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}

@@ -1,8 +1,8 @@
-* Task to complete for the ingestion-api refactoring [2/12] [16%]
+* Task to complete for the ingestion-api refactoring [3/12] [25%]
   - [X] BRUNO: write integration tests (just a few for happy path)
   - [X] BRUNO: remove global vars system and replace with lambda (done for HTTP)
+  - [X] BRUNO: fix ring-wrap-reload to accept a function instead
 
-  - [ ] BRUNO: fix ring-wrap-reload to accept a function instead
   - [ ] remove global vars system and replace with lambda for MQTT
   - [ ] remove MQTT broker and use library
   - [ ] get rid of the components namespace

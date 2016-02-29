@@ -2,6 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.pprint :refer [pprint]]
             [compojure.core :refer [rfn]])
+  (:require [ns-tracker.core :refer [ns-tracker]])
   (:import (java.util.zip GZIPInputStream)
            (java.io InputStream
                     File
@@ -65,3 +66,20 @@
 (defn not-found []
   (rfn request
        {:status 404 :body {:status "ERROR" :message "Not found"}}))
+
+
+;; adapted from https://github.com/ring-clojure/ring/blob/1.4.0/ring-devel/src/ring/middleware/reload.clj
+(defn wrap-reload
+  "Reload namespaces of modified files before the request is passed to the
+  supplied handler.
+  Accepts the following options:
+  :dirs - A list of directories that contain the source files.
+          Defaults to [\"src\"]."
+  {:arglists '([handler-fn] [handler-fn options])}
+  [handler-fn & [options]]
+  (let [source-dirs (:dirs options ["src"])
+        modified-namespaces (ns-tracker source-dirs)]
+    (fn [request]
+      (doseq [ns-sym (modified-namespaces)]
+        (require ns-sym :reload))
+      ((handler-fn) request))))

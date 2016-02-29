@@ -2,10 +2,9 @@
   (:refer-clojure :exclude [send])
   (:require [taoensso.timbre :as log])
   (:require [com.stuartsierra.component :as component]
-            [ring.middleware.reload :as reload]
             [aleph.http :refer [start-server]])
   (:require [ingestion-api.input.route-util :refer
-             [gzip-req-wrapper catch-all not-found]])
+             [gzip-req-wrapper catch-all not-found wrap-reload]])
   (:require [reloaded.repl :refer [system]])
   (:require [samsara.trackit :refer [track-distribution]])
   (:require [compojure.core :refer :all]
@@ -100,20 +99,20 @@
       catch-all))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                            ;;
-;;                 ---==| H T T P   C O M P O N E N T |==----                 ;;
-;;                                                                            ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; TODO: RELOAD won't probably work
 (defn wrap-app
   [app-fn auto-reload]
   (if auto-reload
     (do
       (log/info "AUTO-RELOAD enabled!!! I hope you are in dev mode.")
-      (reload/wrap-reload (app-fn)))
+      (wrap-reload app-fn))
     (app-fn)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                 ---==| H T T P   C O M P O N E N T |==----                 ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (defrecord HttpServer [port auto-reload backend server]
@@ -124,7 +123,7 @@
     (log/info "Samsara Ingestion-API listening on port:" port)
     (log/info "BACKEND:" (:backend component))
     (if server component
-        (as-> (wrap-app #(app (:backend component)) auto-reload) $
+        (as-> (wrap-app #(#'app (:backend component)) auto-reload) $
           (start-server $ {:port port})
           (assoc component :server $))))
 

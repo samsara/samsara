@@ -14,7 +14,6 @@
                   #=(clojure.string/trim #=(slurp "../samsara.version"))]
                  [aleph "0.4.0"]
                  [gloss "0.2.5"]
-                 [ring/ring-devel "1.4.0"]
                  [ring/ring-core "1.4.0"]
                  [ring/ring-json "0.4.0"]
                  [compojure "1.4.0"]
@@ -26,7 +25,8 @@
                  [samsara/trackit "0.3.0"]
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [com.stuartsierra/component "0.3.0"]
-                 [reloaded.repl "0.2.1"]]
+                 [reloaded.repl "0.2.1"]
+                 [ns-tracker "0.3.0"]]
 
   :main ingestion-api.main
 
