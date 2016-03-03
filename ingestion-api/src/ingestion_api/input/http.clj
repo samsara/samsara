@@ -6,7 +6,7 @@
   (:require [ingestion-api.input.route-util :refer
              [gzip-req-wrapper catch-all not-found wrap-reload]])
   (:require [reloaded.repl :refer [system]])
-  (:require [samsara.trackit :refer [track-distribution]])
+  (:require [samsara.trackit :refer [track-distribution track-rate]])
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
             [compojure.route :as route]
@@ -64,7 +64,6 @@
                   :body {:status (if (is-online?) "online" "offline")}})
 
 
-            ;; TODO: maybe yada could help here with content-type
             (POST  "/events"   {events :body
                                 {publishedTimestamp "x-samsara-publishedtimestamp"
                                  content-type       "content-type"} :headers}
@@ -84,7 +83,10 @@
                        (if (= :error status)
                          {:status 400 :body error-msgs}
                          (do
-                           (track-distribution "ingestion.payload.size" (count events))
+                           (track-rate "ingestion.http.requests")
+                           (track-rate "ingestion.http.events" (count events))
+                           (track-distribution "ingestion.http.batch.size"
+                                               (count events))
                            (send backend processed-events)
                            {:status 202
                             :body (warn-when-missing-header publishedTimestamp)}))))))

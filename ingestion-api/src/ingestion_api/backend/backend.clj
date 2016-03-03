@@ -37,8 +37,7 @@
 
 (defn send
   [backend events]
-  ;; TODO: should this be changed into events->payload
-  (track-time "ingestion.events.backend-send"
+  (track-time "ingestion.batch.backend-send"
               (protocol/send (:backend backend) events)))
 
 (defn new-backend

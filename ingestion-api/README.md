@@ -39,7 +39,7 @@ The `lein-bin` will produce an executable uberjar in `./target/ingestion-api`.
 /____/\__,_/_/ /_/ /_/____/\__,_/_/   \__,_/
 
   Samsara Ingestion API
------------------------------| v0.1.0- |-------
+-----------------------------| v0.0.0  |-------
 
 
 SYNOPSIS
@@ -71,6 +71,8 @@ The configuration looks as follow:
 {
   :server {:port 9000 :auto-reload false}
 
+  :admin-server {:port 9010 :auto-reload false}
+
   :log   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}
 
   :backend  {:type :console :pretty? true}
@@ -85,7 +87,6 @@ Here is the description of the configuration
                        and automatically reloads the changes without requiring
                        server reloads.
                        This should be used only used in development.
-      * `http-kit` additional configuration options available [here](http://www.http-kit.org/server.html#options)
 
   * `:log` - This section controls the logging settings.
       * `:timestamp-pattern` - timestamp pattern for the log.
@@ -126,6 +127,89 @@ Here is the default configuration for the Kafka producer:
           * `:protocol` - `tcp` or `udp`
           * `:to` - name of the property which will get address of the linked container.
 
+
+## Tracking of metrics
+
+To track metrics I use [TRACKit!](https://github.com/samsara/trackit)
+and we expose the following metrics:
+
+```
+# tracking the rate of events received
+
+ingestion.http.events
+             count = total count of events received
+         mean rate = mean rate events/second
+     1-minute rate = mean rate events/second over last minute
+     5-minute rate = mean rate events/second over last 5 minutes
+    15-minute rate = mean rate events/second over last 15 minutes
+
+
+# tracking the rate of HTTP requests received (which may contain 1 or more events)
+
+ingestion.http.requests
+             count = total count of requests received
+         mean rate = mean rate requests/second
+     1-minute rate = mean rate requests/second over last minute
+     5-minute rate = mean rate requests/second over last 5 minutes
+    15-minute rate = mean rate requests/second over last 15 minutes
+
+
+# tracking the distribution (histogram) of http request batches
+
+ingestion.http.batch.size
+             count = total count of requests received
+               min = minimum number of events per request
+               max = maximum number of events per request
+              mean = average number of events per request
+            stddev = standard deviation of number of events per request
+            median = median of number of events per request
+              75% <= various percentiles of number of events per request
+              95% <=              "
+              98% <=              "
+              99% <=              "
+            99.9% <=              "
+
+
+# tracking how long it takes to validate the batch of events
+
+ingestion.batch.validation
+             count = number of batch validations
+         mean_rate = mean rate x second
+           m1_rate = rate x second over last 1 minute
+           m5_rate = rate x second over last 5 minutes
+          m15_rate = rate x second over last 15 minutes
+               min = min execution time
+               max = max execution time
+              mean = mean execution time
+            stddev = standard deviation on execution time
+            median = mean execution time
+              p75 <= various percentiles on execution time
+              p95 <=               ''
+              p98 <=               ''
+              p99 <=               ''
+             p999 <=               ''
+
+
+# tracking how long it takes to send the batch of events to the selected backend
+
+ingestion.batch.backend-send
+             count = number of events batch sent
+         mean_rate = mean rate x second
+           m1_rate = rate x second over last 1 minute
+           m5_rate = rate x second over last 5 minutes
+          m15_rate = rate x second over last 15 minutes
+               min = min execution time
+               max = max execution time
+              mean = mean execution time
+            stddev = standard deviation on execution time
+            median = mean execution time
+              p75 <= various percentiles on execution time
+              p95 <=               ''
+              p98 <=               ''
+              p99 <=               ''
+             p999 <=               ''
+
+```
 
 ## How to build and run the Docker container
 
