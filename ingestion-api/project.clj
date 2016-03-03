@@ -30,7 +30,7 @@
 
   :main ingestion-api.main
 
-  :profiles {:uberjar {:aot :all}
+  :profiles {:uberjar {:aot :all :resource-paths ["../samsara.version"]}
              :dev {:dependencies [[midje "1.6.3"]
                                   [clj-http "2.1.0"]
                                   [clojurewerkz/machine_head "1.0.0-beta9"]
