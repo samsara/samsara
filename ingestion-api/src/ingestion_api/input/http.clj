@@ -54,6 +54,21 @@
 
 
 
+(defn when-json-content-type
+  "If the request is has not a json content type it returns a error"
+  [handler]
+  (fn [request]
+    (if-not (re-matches #"^application/(.+\+)?json" (get-in request [:headers "content-type"] ""))
+
+      ;; the payload is not JSON
+      {:status 400
+       :body {:status :ERROR
+              :message "Invalid format, content-type must be application/json"}}
+
+      (handler request))))
+
+
+
 (defn app-routes [backend]
 
   (routes
@@ -64,32 +79,24 @@
                   :body {:status (if (is-online?) "online" "offline")}})
 
 
-            (POST  "/events"   {events :body
-                                {publishedTimestamp "x-samsara-publishedtimestamp"
-                                 content-type       "content-type"} :headers}
+            (when-json-content-type
+                (POST  "/events"   {events :body
+                                    {publishedTimestamp "x-samsara-publishedtimestamp"} :headers}
 
-                   ;; regex taken from ring-json middleware
-                   (if-not (re-matches #"^application/(.+\+)?json" content-type)
-
-                     ;; the payload is not JSON
-                     {:status 400
-                      :body {:status :ERROR
-                             :message "Invalid format, content-type must be application/json"}}
-
-                     ;; the payload a valid JSON, let's validate the events
-                     (let [process-result (process-events events :publishedTimestamp
-                                                          (to-long publishedTimestamp))
-                           {:keys [status error-msgs processed-events]} process-result]
-                       (if (= :error status)
-                         {:status 400 :body error-msgs}
-                         (do
-                           (track-rate "ingestion.http.requests")
-                           (track-rate "ingestion.http.events" (count events))
-                           (track-distribution "ingestion.http.batch.size"
-                                               (count events))
-                           (send backend processed-events)
-                           {:status 202
-                            :body (warn-when-missing-header publishedTimestamp)}))))))
+                       ;; the payload a valid JSON, let's validate the events
+                       (let [process-result (process-events events :publishedTimestamp
+                                                            (to-long publishedTimestamp))
+                             {:keys [status error-msgs processed-events]} process-result]
+                         (if (= :error status)
+                           {:status 400 :body error-msgs}
+                           (do
+                             (track-rate "ingestion.http.requests")
+                             (track-rate "ingestion.http.events" (count events))
+                             (track-distribution "ingestion.http.batch.size"
+                                                 (count events))
+                             (send backend processed-events)
+                             {:status 202
+                              :body (warn-when-missing-header publishedTimestamp)}))))))
    (not-found)))
 
 
