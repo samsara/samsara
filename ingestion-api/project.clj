@@ -26,7 +26,8 @@
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [com.stuartsierra/component "0.3.0"]
                  [reloaded.repl "0.2.1"]
-                 [ns-tracker "0.3.0"]]
+                 [ns-tracker "0.3.0"]
+                 [com.brunobonacci/synapse "0.3.1"]]
 
   :main ingestion-api.main
 
@@ -43,7 +44,11 @@
             ["shell" "docker" "build" "-t" "samsara/ingestion-api:${:version}" "."]
 
             "docker-latest"
-            ["shell" "docker" "build" "-t" "samsara/ingestion-api" "."]}
+            ["shell" "docker" "build" "-t" "samsara/ingestion-api" "."]
+
+            "docker-snapshot"
+            ["shell" "docker" "build" "-t" "samsara/ingestion-api:snapshot" "."]}
 
   :jvm-opts ["-server" "-Dfile.encoding=utf-8"]
-  :bin {:name "ingestion-api" :bootclasspath false})
+  :bin {:name "ingestion-api" :bootclasspath false}
+  )

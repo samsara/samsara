@@ -7,7 +7,9 @@
   (:require [clojure.java.io :as io])
   (:require [reloaded.repl :refer [go set-init!]]
             [ingestion-api.system :refer [ingestion-api-system]])
+  (:require [synapse.synapse :refer [load-config-file!]])
   (:gen-class))
+
 
 (def DEFAULT-CONFIG
   "Default configuration which will be merged with
@@ -20,7 +22,6 @@
 
    :backend  {:type :console :pretty? true}
    ;;:backend {:type :kafka :topic "ingestion" :metadata.broker.list "192.168.59.103:9092"}
-   ;;:backend {:type :kafka-docker :topic "ingestion" :docker {:link "kafka.*" :port "9092" :to "metadata.broker.list"} }
 
    :tracking {:enabled false :type :console}
    })
@@ -110,10 +111,8 @@ DESCRIPTION
   "Read the user's configuration file
   and apply the default values."
   [config-file]
-  (->> (io/file config-file)
-      slurp
-      read-string
-      (merge-with merge DEFAULT-CONFIG)))
+  (->> (load-config-file! config-file)
+       (merge-with merge DEFAULT-CONFIG)))
 
 
 (defn- init-log!

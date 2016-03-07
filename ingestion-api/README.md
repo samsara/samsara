@@ -105,6 +105,10 @@ Depending on the backend type you can have different options:
       * `:topic` - is the name of the Kafka topic where to send the events to. (Default: `events`, *REQUIRED*)
       * `:metadata.broker.list` - This is a comma-separated-list of brokers host or IPs and their port. (*REQUIRED*)
                                Example: `172.0.0.3:9092,172.0.0.4:9092,172.0.0.5:9092`
+                               It support [synapse](https://github.com/BrunoBonacci/synapse) style
+                               links so you could write something like `:metadata.broker.list "%%>>kafka.*:9092%%"`
+                               and it will be replaced with the actual instance ips and ports using
+                               Docker's environment variables.
       * You can put additional Kafka Producer configuration options as from [Kafka options](http://kafka.apache.org/documentation.html#producerconfigs)
 
 Here is the default configuration for the Kafka producer:
@@ -116,16 +120,6 @@ Here is the default configuration for the Kafka producer:
 | "request.required.acks"     | "-1"                                |
 | "producer.type"             | "async"                             |
 |  "message.send.max.retries" | "5"                                 |
-
-  * `:type :kafka-docker` - It's the same as `:type :kafka` with the difference
-                            that the `:metadata.broker.list` is generated using
-                            the Docker's autodiscovery system with environment
-                            variables. All the other parameters must be passed.
-      * `:docker {:link "kafka.*" :port "9092" :protocol "tcp" :to :metadata.broker.list }`
-          * `:link` - it's a regex mapping the name of linked containers
-          * `:port` - is the port number to connect to
-          * `:protocol` - `tcp` or `udp`
-          * `:to` - name of the property which will get address of the linked container.
 
 
 ## Tracking of metrics

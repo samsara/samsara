@@ -1,7 +1,6 @@
 (ns ingestion-api.backend.backend-kafka
   (:refer-clojure :exclude [send])
   (:require [ingestion-api.backend.backend-protocol :refer [send]])
-  (:require [ingestion-api.docker :refer [docker-link-into]])
   (:require [clj-kafka.producer :as kp])
   (:require [schema.core :as s])
   (:require [samsara.utils :refer [to-json]])
@@ -62,12 +61,3 @@
         producer (kp/producer cfg)]
 
     (KafkaBackend. cfg topic producer)))
-
-
-(defn make-kafka-backend-for-docker
-  "Create a kafka backend and configures the brokers using the Docker's environment variables"
-  [config]
-  (-> config
-      (#(docker-link-into (:docker %) %))
-      (dissoc :docker)
-      (make-kafka-backend)))

@@ -2,8 +2,7 @@
   (:refer-clojure :exclude [send])
   (:require [taoensso.timbre :as log]
             [ingestion-api.backend.backend-protocol :as protocol]
-            [ingestion-api.backend.backend-kafka
-             :refer [make-kafka-backend make-kafka-backend-for-docker]]
+            [ingestion-api.backend.backend-kafka :refer [make-kafka-backend]]
             [ingestion-api.backend.backend-console :refer [make-console-backend]]
             [com.stuartsierra.component :as component]
             [samsara.trackit :refer [track-time]]))
@@ -17,7 +16,6 @@
   (case type
     :console (make-console-backend cfg)
     :kafka   (make-kafka-backend   cfg)
-    :kafka-docker   (make-kafka-backend-for-docker cfg)
     (throw (RuntimeException. "Illegal backed type:" type))))
 
 
