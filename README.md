@@ -35,6 +35,6 @@ Distributed under the Apache License v 2.0 (http://www.apache.org/licenses/LICEN
 
 Many thanks to:
 
-  * YourKit [![YourKit logo](/docs/images/yklogo.png)] for supporting Samsara's OpenSource development.
-    YourKit supports open source projects with its full-featured Java Profiler.
-    YourKit, LLC is the creator of <a href="https://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a> and <a href="https://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a>, innovative and intelligent tools for profiling Java and .NET applications.
+  * ![YourKit logo](/docs/images/yklogo.png) for supporting Samsara's OpenSource development.
+    **YourKit supports open source projects with its full-featured Java Profiler.
+    YourKit, LLC is the creator of <a href="https://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a> and <a href="https://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a>, innovative and intelligent tools for profiling Java and .NET applications.**
