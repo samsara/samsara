@@ -29,3 +29,12 @@ For trying it out, please follow our [Quick Start guide](/docs/quick-start.md)
 Copyright © 2015 Samsara's authors.
 
 Distributed under the Apache License v 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+
+
+## Thanks
+
+Many thanks to:
+
+  * YourKit [![YourKit logo](/docs/images/yklogo.png)] for supporting Samsara's OpenSource development.
+    YourKit supports open source projects with its full-featured Java Profiler.
+    YourKit, LLC is the creator of <a href="https://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a> and <a href="https://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a>, innovative and intelligent tools for profiling Java and .NET applications.
