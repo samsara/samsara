@@ -27,7 +27,7 @@
                  [com.stuartsierra/component "0.3.0"]
                  [reloaded.repl "0.2.1"]
                  [ns-tracker "0.3.0"]
-                 [com.brunobonacci/synapse "0.3.1"]]
+                 [com.brunobonacci/synapse "0.3.2"]]
 
   :main ingestion-api.main
 
