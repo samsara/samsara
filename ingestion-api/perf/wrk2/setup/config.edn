@@ -1,0 +1,8 @@
+{
+ :server {:port 9000 :auto-reload false}
+ :admin-server {:port 9010 :auto-reload false}
+ :backend {:type :kafka :topic "ingestion"
+           :metadata.broker.list "192.168.59.103:9092"
+           ;;:metadata.broker.list "127.0.0.1:9092"
+           }
+}

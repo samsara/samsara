@@ -1,9 +1,10 @@
 # Running on laptop
 #  - 2.6GHz Quad-core Intel Core i7, 16GB 1600MHz DDR3L SDRAM
+#  - wrk2 v3.1.1 (https://github.com/giltene/wrk2)
 #  - ingestion-api on host (no docker)
 #  -  {:server {:port 9000 :auto-reload true}
 #      :backend {:type :kafka :topic "events" :metadata.broker.list "192.168.59.103:49154"}}
-#  - kafka backend with 3 brokers in docker
+#  - kafka v0.8.2.1 backend with 3 brokers in docker
 #  - 1 topic 1 partition
 
 Running 50s test @ http://127.0.0.1:9000/v1/events

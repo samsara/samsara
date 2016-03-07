@@ -1,0 +1,61 @@
+#
+# Zookeeper
+#
+zookeeper:
+  image: samsara/zookeeper:0.5.5.0
+  ports:
+    - "2181:2181"
+    - "15000:15000"
+  environment:
+    ZK_SERVER_ID: 1
+  volumes:
+    - /tmp/logs/zk1:/logs
+    - /tmp/data/zk1:/data
+
+#
+# Kafka
+#
+kafka1:
+  image: samsara/kafka:0.5.5.0
+  ports:
+    - "9091:9091"
+    - "15001:15000"
+  links:
+    - zookeeper:zookeeper
+  environment:
+    KAFKA_BROKER_ID: 1
+    ADV_IP: 192.168.59.103
+    KAFKA_BROKER_PORT: 9091
+  volumes:
+    - /tmp/logs/kafka1:/logs
+    - /tmp/data/kafka1:/data
+
+kafka2:
+  image: samsara/kafka:0.5.5.0
+  ports:
+    - "9092:9092"
+    - "15002:15000"
+  links:
+    - zookeeper:zookeeper
+  environment:
+    KAFKA_BROKER_ID: 2
+    ADV_IP: 192.168.59.103
+    KAFKA_BROKER_PORT: 9092
+  volumes:
+    - /tmp/logs/kafka2:/logs
+    - /tmp/data/kafka2:/data
+
+kafka3:
+  image: samsara/kafka:0.5.5.0
+  ports:
+    - "9093:9093"
+    - "15003:15000"
+  links:
+    - zookeeper:zookeeper
+  environment:
+    KAFKA_BROKER_ID: 3
+    ADV_IP: 192.168.59.103
+    KAFKA_BROKER_PORT: 9093
+  volumes:
+    - /tmp/logs/kafka3:/logs
+    - /tmp/data/kafka3:/data
