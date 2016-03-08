@@ -1,7 +1,6 @@
 (ns ingestion-api.system
   (:refer-clojure :exclude [send])
   (:require [com.stuartsierra.component :as component]
-            [reloaded.repl :refer [system init start stop go reset]]
             [ingestion-api.backend.backend :as backend]
             [ingestion-api.input.http :as http]
             [ingestion-api.input.http-admin :as admin]

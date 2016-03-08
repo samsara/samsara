@@ -5,8 +5,8 @@
   (:require [aleph.http :refer [start-server]])
   (:require [taoensso.timbre :as log])
   (:require [clojure.java.io :as io])
-  (:require [reloaded.repl :refer [go set-init!]]
-            [ingestion-api.system :refer [ingestion-api-system]])
+  (:require [ingestion-api.system :refer [ingestion-api-system]]
+            [com.stuartsierra.component :as component])
   (:require [synapse.synapse :refer [load-config-file!]])
   (:gen-class))
 
@@ -161,6 +161,5 @@ DESCRIPTION
       (let [_ (println (headline))
             {config-file :config} options
             config (init! config-file)]
-        (set-init! #(ingestion-api-system config))
-        ;; starting the system
-        (go)))))
+        (-> (ingestion-api-system config)
+            (component/start))))))

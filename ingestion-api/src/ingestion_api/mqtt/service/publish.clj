@@ -4,8 +4,7 @@
             [ingestion-api.backend.backend :refer [send]]
             [ingestion-api.mqtt.domain.publish :refer [bytes->mqtt-publish]]
             [samsara.utils :refer [from-json]]
-            [schema.core :as s]
-            [reloaded.repl :refer [system]]))
+            [schema.core :as s]))
 
 
 (def publish-schema
@@ -40,5 +39,6 @@
       (if (= :error status)
         (throw (ex-info "Invalid event format received" {:errors error-msgs}))
         ;; TODO: this need to be turned into a lambda, no global vars
-        (send (-> system :mqtt-server :backend :backend) processed-events))))
+        ;; (send (-> system :mqtt-server :backend :backend) processed-events)
+        )))
   nil)

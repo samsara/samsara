@@ -25,7 +25,6 @@
                  [samsara/trackit "0.3.0"]
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [com.stuartsierra/component "0.3.0"]
-                 [reloaded.repl "0.2.1"]
                  [ns-tracker "0.3.0"]
                  [com.brunobonacci/synapse "0.3.2"]]
 
@@ -35,6 +34,7 @@
              :dev {:dependencies [[midje "1.6.3"]
                                   [clj-http "2.1.0"]
                                   [clojurewerkz/machine_head "1.0.0-beta9"]
+                                  [reloaded.repl "0.2.1"]
                                   [clj-mqtt "0.4.1-alpha"]]
                    :plugins [[lein-midje "3.1.3"]
                              [lein-bin "0.3.5"]

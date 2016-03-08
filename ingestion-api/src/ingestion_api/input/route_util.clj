@@ -1,7 +1,8 @@
 (ns ingestion-api.input.route-util
   (:require [clojure.java.io :as io]
             [clojure.pprint :refer [pprint]]
-            [compojure.core :refer [rfn]])
+            [compojure.core :refer [rfn]]
+            [taoensso.timbre :as log])
   (:require [ns-tracker.core :refer [ns-tracker]])
   (:import (java.util.zip GZIPInputStream)
            (java.io InputStream
@@ -51,15 +52,19 @@
       (handler req))))
 
 
+
+(defn pretty-print-str
+  [data]
+  (with-out-str
+    (pprint data)))
+
+
+
 (defn catch-all [handler]
   (fn [req]
     (try (handler req)
          (catch Exception x
-           (println "-----------------------------------------------------------------------")
-           (println (java.util.Date.) "[ERR!] -- " x)
-           (.printStackTrace x)
-           (pprint req)
-           (println "-----------------------------------------------------------------------")
+           (log/error x "Error processing request: \n" (pretty-print-str req))
            {:status  500 :headers {} :body  nil}))))
 
 

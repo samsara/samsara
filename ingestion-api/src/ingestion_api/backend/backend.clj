@@ -19,6 +19,7 @@
     (throw (RuntimeException. "Illegal backed type:" type))))
 
 
+
 (defrecord Backend [config backend]
   ;;Implement Lifecycle
   component/Lifecycle
@@ -33,10 +34,13 @@
     (dissoc this :backend)))
 
 
+
 (defn send
   [backend events]
   (track-time "ingestion.batch.backend-send"
               (protocol/send (:backend backend) events)))
+
+
 
 (defn new-backend
   "Initialize the backend component."

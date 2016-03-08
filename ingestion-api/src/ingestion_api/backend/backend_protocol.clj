@@ -1,6 +1,6 @@
 (ns ingestion-api.backend.backend-protocol
-  (:refer-clojure :exclude [send])
-  (:require [clojure.pprint :refer [pprint]]))
+  (:refer-clojure :exclude [send]))
+
 
 (defprotocol EventsQueueingBackend
   "Backend queueing system abstraction where events are sent to.

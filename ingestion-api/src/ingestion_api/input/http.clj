@@ -5,7 +5,6 @@
             [aleph.http :refer [start-server]])
   (:require [ingestion-api.input.route-util :refer
              [gzip-req-wrapper catch-all not-found wrap-reload]])
-  (:require [reloaded.repl :refer [system]])
   (:require [samsara.trackit :refer [track-distribution track-rate]])
   (:require [compojure.core :refer :all]
             [compojure.handler :as handler]
@@ -69,6 +68,26 @@
 
 
 
+(defn with-publishedTimestamp-header
+  "Ensures that the publishedTimestamp header is a valid timestamp"
+  [handler]
+  (fn [{{publishedTimestamp "x-samsara-publishedtimestamp"} :headers :as request}]
+    (if (and publishedTimestamp (nil? (to-long publishedTimestamp)))
+      {:status 400
+       :body {:status :ERROR
+              :message "X-Samsara-publishedTimestamp must be a valid timestamp."}}
+      (handler request))))
+
+
+(defn- send-to-backend
+  [backend events]
+  (track-rate "ingestion.http.requests")
+  (track-rate "ingestion.http.events" (count events))
+  (track-distribution "ingestion.http.batch.size" (count events))
+  (send backend events))
+
+
+
 (defn app-routes [backend]
 
   (routes
@@ -80,23 +99,20 @@
 
 
             (when-json-content-type
-                (POST  "/events"   {events :body
-                                    {publishedTimestamp "x-samsara-publishedtimestamp"} :headers}
+                (with-publishedTimestamp-header
+                  (POST  "/events"   {events :body
+                                      {publishedTimestamp "x-samsara-publishedtimestamp"} :headers}
 
-                       ;; the payload a valid JSON, let's validate the events
-                       (let [process-result (process-events events :publishedTimestamp
-                                                            (to-long publishedTimestamp))
-                             {:keys [status error-msgs processed-events]} process-result]
-                         (if (= :error status)
-                           {:status 400 :body error-msgs}
-                           (do
-                             (track-rate "ingestion.http.requests")
-                             (track-rate "ingestion.http.events" (count events))
-                             (track-distribution "ingestion.http.batch.size"
-                                                 (count events))
-                             (send backend processed-events)
-                             {:status 202
-                              :body (warn-when-missing-header publishedTimestamp)}))))))
+                         ;; if all events are valid then process and send them to the backend
+                         (let [{:keys [status error-msgs processed-events]}
+                               (process-events events :publishedTimestamp
+                                               (to-long publishedTimestamp))]
+                           (if (= :error status)
+                             {:status 400 :body error-msgs}
+                             (do
+                               (send-to-backend backend processed-events)
+                               {:status 202
+                                :body (warn-when-missing-header publishedTimestamp)})))))))
    (not-found)))
 
 
