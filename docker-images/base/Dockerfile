@@ -26,9 +26,9 @@ RUN apk add jq
 #
 # Installing synapse container linker
 #
-RUN export VER=0.3.2 && \
+RUN export VER=0.3.3 && \
     wget --progress=dot:mega --no-check-certificate \
-    https://github.com/BrunoBonacci/synapse/releases/download/$VER/synapse-$VER-java8 \
+    https://github.com/BrunoBonacci/synapse/releases/download/$VER/synapse-$VER-Linux-x86_64 \
     -O /usr/local/bin/synapse && \
     unset VER && \
     chmod +x /usr/local/bin/synapse
