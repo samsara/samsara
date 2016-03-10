@@ -50,12 +50,12 @@ paths:
         to handle both compressed and uncompressed data and select the
         right handler on a per request basis.
         *This request returns an empty body* check the status codes for more info.
-        
+
         If the `X-Samsara-publishedTimestamp` is missing a the payload is accepted,
         but a warning message is returnted.
-        
+
         Example of a plain JSON payload:
-        
+
         ```
         cat <<EOF | curl -i -H "Content-Type: application/json" \
                         -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
@@ -78,9 +78,9 @@ paths:
         ]
         EOF
         ```
-        
+
         Example of a GZIP JSON payload:
-        
+
         ```
         cat <<EOF | gzip | curl -i -H "Content-Type: application/json" \
                                 -H "X-Samsara-publishedTimestamp: $(date +%s999)" \
@@ -140,7 +140,7 @@ paths:
   /api-status:
     get:
 
-      summary: This is the proble url used by the load-balancer for healthcheck.
+      summary: This is the proble url used by the load-balancer for healthcheck. Available from both user endpoint and admin port.
 
       description: |
         This should return the state of the interal status flag which
@@ -148,10 +148,10 @@ paths:
         By default the status should healthy and online (HTTP 200).
 
         Example:
-        
+
         ```
         curl -i -XGET "http://localhost:9000/v1/api-status"
-        
+
         { "status": "online" }
         ```
 
@@ -168,7 +168,7 @@ paths:
 
     put:
 
-      summary: This internal path is used to set the service offline for maintenance reason.
+      summary: This internal path is used to set the service offline for maintenance reason. AVAILABLE ONLY FROM THE ADMIN PORT (9010)
 
       description: |
         This should control and internal 'status' flag. When set to 'offline'
@@ -177,10 +177,10 @@ paths:
         should return `200` as normal.
 
         Example:
-        
+
         ```
         curl -i -H "Content-Type: application/json" \
-             -XPUT "http://localhost:9000/v1/api-status" \
+             -XPUT "http://localhost:9010/v1/api-status" \
              -d '{ "status": "offline" }'
         ```
 
@@ -191,7 +191,7 @@ paths:
           required: true
           schema:
             properties:
-              status: 
+              status:
                 type: string
                 enum:
                   - online

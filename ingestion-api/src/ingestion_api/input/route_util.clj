@@ -2,14 +2,10 @@
   (:require [clojure.java.io :as io]
             [clojure.pprint :refer [pprint]]
             [compojure.core :refer [rfn]]
+            [ns-tracker.core :refer [ns-tracker]]
             [taoensso.timbre :as log])
-  (:require [ns-tracker.core :refer [ns-tracker]])
-  (:import (java.util.zip GZIPInputStream)
-           (java.io InputStream
-                    File
-                    ByteArrayInputStream
-                    ByteArrayOutputStream)))
-
+  (:import [java.io ByteArrayInputStream ByteArrayOutputStream InputStream]
+           java.util.zip.GZIPInputStream))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
@@ -72,8 +68,9 @@
   (rfn request
        {:status 404 :body {:status "ERROR" :message "Not found"}}))
 
-
+;;
 ;; adapted from https://github.com/ring-clojure/ring/blob/1.4.0/ring-devel/src/ring/middleware/reload.clj
+;;
 (defn wrap-reload
   "Reload namespaces of modified files before the request is passed to the
   supplied handler.
@@ -88,3 +85,12 @@
       (doseq [ns-sym (modified-namespaces)]
         (require ns-sym :reload))
       ((handler-fn) request))))
+
+
+(defn wrap-app
+  [app-fn auto-reload]
+  (if auto-reload
+    (do
+      (log/info "AUTO-RELOAD enabled!!! I hope you are in dev mode.")
+      (wrap-reload app-fn))
+    (app-fn)))

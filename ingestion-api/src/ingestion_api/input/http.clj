@@ -1,20 +1,18 @@
 (ns ingestion-api.input.http
   (:refer-clojure :exclude [send])
-  (:require [taoensso.timbre :as log])
-  (:require [com.stuartsierra.component :as component]
-            [aleph.http :refer [start-server]])
-  (:require [ingestion-api.input.route-util :refer
-             [gzip-req-wrapper catch-all not-found wrap-reload]])
-  (:require [samsara.trackit :refer [track-distribution track-rate]])
-  (:require [compojure.core :refer :all]
-            [compojure.handler :as handler]
-            [compojure.route :as route]
-            [ring.middleware.json :refer :all]
-            [ring.util.response :refer :all :exclude [not-found]])
-  (:require [ingestion-api.status :refer [is-online?]]
+  (:require [aleph.http :refer [start-server]]
+            [com.stuartsierra.component :as component]
+            [compojure.core :refer :all]
+            [ingestion-api.backend.backend :refer [send]]
             [ingestion-api.core.processors :refer [process-events]]
-            [ingestion-api.backend.backend :refer [send]]) )
-
+            [ingestion-api.input.route-util
+             :refer
+             [catch-all gzip-req-wrapper not-found wrap-reload wrap-app]]
+            [ingestion-api.status :refer [is-online?]]
+            [ring.middleware.json :as json]
+            [ring.util.response :refer :all :exclude [not-found]]
+            [samsara.trackit :refer [track-distribution track-rate]]
+            [taoensso.timbre :as log]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
@@ -118,19 +116,10 @@
 
 (defn app [backend]
   (-> (app-routes backend)
-      (wrap-json-body {:keywords? true})
-      (wrap-json-response)
+      (json/wrap-json-body {:keywords? true})
+      (json/wrap-json-response)
       (gzip-req-wrapper)
       catch-all))
-
-
-(defn wrap-app
-  [app-fn auto-reload]
-  (if auto-reload
-    (do
-      (log/info "AUTO-RELOAD enabled!!! I hope you are in dev mode.")
-      (wrap-reload app-fn))
-    (app-fn)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

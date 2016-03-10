@@ -1,14 +1,12 @@
 (ns ingestion-api.main
-  (:require [samsara.trackit :refer
-             [set-base-metrics-name! start-reporting!]])
-  (:require [clojure.tools.cli :refer [parse-opts]])
-  (:require [aleph.http :refer [start-server]])
-  (:require [taoensso.timbre :as log])
-  (:require [clojure.java.io :as io])
-  (:require [ingestion-api.system :refer [ingestion-api-system]]
-            [com.stuartsierra.component :as component])
-  (:require [synapse.synapse :refer [load-config-file!]])
-  (:gen-class))
+  (:gen-class)
+  (:require [clojure.java.io :as io]
+            [clojure.tools.cli :refer [parse-opts]]
+            [com.stuartsierra.component :as component]
+            [ingestion-api.system :refer [ingestion-api-system]]
+            [samsara.trackit :refer [set-base-metrics-name! start-reporting!]]
+            [synapse.synapse :refer [load-config-file!]]
+            [taoensso.timbre :as log]))
 
 
 (def DEFAULT-CONFIG
@@ -162,4 +160,5 @@ DESCRIPTION
             {config-file :config} options
             config (init! config-file)]
         (-> (ingestion-api-system config)
-            (component/start))))))
+            (component/start))
+        (println "\nSamsara's ingestion-api is ready.!!!\n")))))

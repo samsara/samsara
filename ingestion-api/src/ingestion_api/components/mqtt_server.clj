@@ -25,5 +25,3 @@
 (defn new-mqtt-server
   [config]
   (map->MqttServer (:mqtt config)))
-
-

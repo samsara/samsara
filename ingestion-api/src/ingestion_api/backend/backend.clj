@@ -1,12 +1,12 @@
 (ns ingestion-api.backend.backend
   (:refer-clojure :exclude [send])
-  (:require [taoensso.timbre :as log]
-            [ingestion-api.backend.backend-protocol :as protocol]
-            [ingestion-api.backend.backend-kafka :refer [make-kafka-backend]]
-            [ingestion-api.backend.backend-console :refer [make-console-backend]]
-            [com.stuartsierra.component :as component]
-            [samsara.trackit :refer [track-time]]))
-
+  (:require [com.stuartsierra.component :as component]
+            [ingestion-api.backend
+             [backend-console :refer [make-console-backend]]
+             [backend-kafka :refer [make-kafka-backend]]
+             [backend-protocol :as protocol]]
+            [samsara.trackit :refer [track-time]]
+            [taoensso.timbre :as log]))
 
 ;; Backend component
 (defn- init-backend

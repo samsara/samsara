@@ -1,17 +1,13 @@
 (ns ingestion-api.input.http-admin
-  (:require [com.stuartsierra.component :as component]
-            [taoensso.timbre :as log]
-            [aleph.http :refer [start-server]])
-  (:require [ingestion-api.input.route-util :refer
-             [catch-all not-found wrap-reload]])
-  (:require [compojure.core :refer :all]
-            [compojure.handler :as handler]
-            [compojure.route :as route]
-            [ring.middleware.json :refer :all]
-            [ring.util.response :refer :all :exclude [not-found]]
-            [ingestion-api.status :refer [change-status! is-online?]]))
-
-
+  (:require [aleph.http :refer [start-server]]
+            [com.stuartsierra.component :as component]
+            [compojure.core :refer :all]
+            [ingestion-api.input.route-util
+             :refer
+             [catch-all not-found wrap-reload wrap-app]]
+            [ingestion-api.status :refer [change-status! is-online?]]
+            [ring.middleware.json :as json]
+            [taoensso.timbre :as log]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
@@ -53,18 +49,9 @@
 
 (defn admin-app []
   (-> (admin-routes)
-      (wrap-json-body {:keywords? true})
-      (wrap-json-response)
+      (json/wrap-json-body {:keywords? true})
+      (json/wrap-json-response)
       catch-all))
-
-
-(defn wrap-app
-  [app-fn auto-reload]
-  (if auto-reload
-    (do
-      (log/info "AUTO-RELOAD enabled!!! I hope you are in dev mode.")
-      (wrap-reload app-fn))
-    (app-fn)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
