@@ -1,10 +1,11 @@
 (ns ingestion-api.system
   (:require [com.stuartsierra.component :as component]
             [ingestion-api.backend.backend :as backend]
-            [ingestion-api.components.mqtt-server :as mqtt]
             [ingestion-api.input
              [http :as http]
-             [http-admin :as admin]]))
+             [http-admin :as admin]
+             [mqtt-server :as mqtt]]))
+
 
 (defn ingestion-api-system
   [config]

@@ -26,7 +26,8 @@
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [com.stuartsierra/component "0.3.0"]
                  [ns-tracker "0.3.0"]
-                 [com.brunobonacci/synapse "0.3.2"]]
+                 [com.brunobonacci/synapse "0.3.2"]
+                 [samsara-mqtt "1.0-SNAPSHOT"]]
 
   :main ingestion-api.main
 

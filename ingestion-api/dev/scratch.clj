@@ -61,15 +61,15 @@
 
 
 
-(def event {:sourceId "5340-dfd0350"
-            :eventName "session.created"
-            :timestamp "2015-09-20T19:31:36+00:00"
-            :user      "svittal@gmail.com"})
+(def events [{:sourceId "5340-dfd0350"
+              :eventName "session.created"
+              :timestamp (System/currentTimeMillis)
+              :user      "svittal@gmail.com"}])
 
 (defn publish
-  [event]
+  [events]
   (let [id   (mh/generate-id)
         conn (mh/connect "tcp://localhost:10010" id)]
-    (mh/publish conn "topic/events" event 0)))
+    (mh/publish conn "topic/events" events 0)))
 
-(publish (generate-string event))
+(publish (generate-string events))
