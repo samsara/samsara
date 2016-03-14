@@ -27,7 +27,7 @@
                  [com.stuartsierra/component "0.3.0"]
                  [ns-tracker "0.3.0"]
                  [com.brunobonacci/synapse "0.3.2"]
-                 [samsara-mqtt "1.0-SNAPSHOT"]]
+                 [samsara-mqtt "0.1.0"]]
 
   :main ingestion-api.main
 
