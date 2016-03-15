@@ -59,6 +59,7 @@ docker run -d -p 2181:2181 -p 2888:2888 -p 3888:3888 -p 15000:15000 \
 ## Versions
 
 * Samsara-`0.5.5.0`, `zk-3.4.6` - Zookeeper installation
+* Samsara-`0.x.x.x`, `zk-3.5.1-alpha` - Zookeeper installation
 
 
 ## Copyright & License

@@ -5,7 +5,7 @@ __(most recent on top)__
 
 ### Breaking changes
 
-  * Kafka migrated to *0.9.0.1* (for cluster migration see [official kafka documentation](http://kafka.apache.org/documentation.html#upgrade_9)
+  * Kafka migrated to **0.9.0.1** (for cluster migration see [official kafka documentation](http://kafka.apache.org/documentation.html#upgrade_9)
   * ingestion-api: metrics names changed
     [see new ones](/ingestion-api/README.md)
   * ingestion-api: separated client endpoint from admin endpoint
@@ -16,6 +16,7 @@ __(most recent on top)__
   * ingestion-api: major code refactoring and cleanup
   * Configuration templates migrated to
     [synapse](https://github.com/BrunoBonacci/synapse)
+  * updated zookeeper to version **3.5.1-alpha**
   * Remaining GOALS:
     - update all third-party dependencies (els, kibana, zookeeper, kafka)
     - qanal elastic scale on new kafka client

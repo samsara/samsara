@@ -5,10 +5,10 @@ MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 #
 # Zookeeper installation
 #
-ENV ZK_VERSION 3.4.6
+ENV ZK_VERSION 3.5.1-alpha
 
-
-RUN curl -sSL http://apache.mirrors.pair.com/zookeeper/zookeeper-${ZK_VERSION}/zookeeper-${ZK_VERSION}.tar.gz | tar -xzf - -C /opt && \
+# http://apache.mirrors.pair.com/zookeeper
+RUN curl -sSL http://mirrors.ukfast.co.uk/sites/ftp.apache.org/zookeeper/zookeeper-${ZK_VERSION}/zookeeper-${ZK_VERSION}.tar.gz | tar -xzf - -C /opt && \
     ln -fs /opt/zookeeper-* /opt/zookeeper
 
 
