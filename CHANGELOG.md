@@ -3,10 +3,16 @@ __(most recent on top)__
 
 ## version 0.6.0.0 (not released yet)
 
-  * docker: all containers migrated to Alpine Linux 3.3 for smaller footprint
-  * **BREAK** ingestion-api: metrics names changed
+### Breaking changes
+
+  * Kafka migrated to *0.9.0.1* (for cluster migration see [official kafka documentation](http://kafka.apache.org/documentation.html#upgrade_9)
+  * ingestion-api: metrics names changed
     [see new ones](/ingestion-api/README.md)
   * ingestion-api: separated client endpoint from admin endpoint
+
+### Other changes
+
+  * docker: all containers migrated to Alpine Linux 3.3 for smaller footprint
   * ingestion-api: major code refactoring and cleanup
   * Configuration templates migrated to
     [synapse](https://github.com/BrunoBonacci/synapse)

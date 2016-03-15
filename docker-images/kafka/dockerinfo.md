@@ -39,6 +39,11 @@ Whether the system should send tracking metrics to Statsd
 * `STATSD_PORT_8125_TCP_ADDR` (default: `localhost`)
 If the `KAFKA_ENABLE_REPORTING_STATSD` is true, then the IP of a Statsd daemon.
 
+* `$KAFKA_BROKER_PROTOCOL_VERSION` (default: *empty*)
+If you are upgrade your cluster from different versions
+you need to set the `inter.broker.protocol.version=0.8.2.X` property.
+Please check the official [Kafka documentation](http://kafka.apache.org/documentation.html#upgrade_9) for more info.
+
 ## Usage
 
 ```
@@ -53,6 +58,7 @@ docker run -d -p 9092:9092 -p 15000:15000 \
 ## Versions
 
 * Samsara-`0.5.5.0`, `kafka-0.8.2.1` - Kafka with enabled compaction and topic delete
+* Samsara-`0.x.x.x`, `kafka-0.9.0.1` - New Kafka version.
 
 
 ## Copyright & License

@@ -161,9 +161,15 @@ external.kafka.statsd.host=%%[addr]>STATSD:8125||localhost%%
 # the port of the StatsD server (8125)
 external.kafka.statsd.port=%%[port]>STATSD:8125||8125%%
 
+# don't use datadog extensions
+external.kafka.statsd.tag.enabled=false
+
 # a prefix for all metrics names (empty)
 external.kafka.statsd.metrics.prefix=kafka.%%HOSTNAME%%.broker.%%KAFKA_BROKER_ID%%
 
 
 ## enable topic delete
 delete.topic.enable=true
+
+## inter.broker.protocol.version is used for mixed version clusters
+%%KAFKA_BROKER_PROTOCOL_VERSION_LINE||%%
