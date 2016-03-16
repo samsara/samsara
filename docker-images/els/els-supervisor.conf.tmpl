@@ -1,6 +1,6 @@
 [program:els]
 process_name=els
-command=/opt/els/bin/elasticsearch --default.config=/opt/els/config/elasticsearch.yml --default.path.home=/opt/els --default.path.logs=/logs --default.path.data=/data/els/data --default.path.work=/data/els/work --default.path.conf=/opt/els/config
+command=/opt/els/bin/elasticsearch -Des.insecure.allow.root=true --path.home=/opt/els --path.logs=/logs --path.data=/data/els/data --path.work=/data/els/work --path.conf=/opt/els/config
 environment = ES_HEAP_SIZE="%%ELS_HEAP_SIZE%%"
 stdout_logfile = /logs/els-server.out
 stderr_logfile = /logs/els-server.out

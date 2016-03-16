@@ -10,8 +10,10 @@ transport.tcp.compress: true
 discovery.zen.minimum_master_nodes: 1
 http.port: 9200
 http.publish_host: %%IP%%
+http.bind_host: 0.0.0.0
 transport.tcp.port: 9300
 transport.publish_host: %%IP%%
+transport.tcp.bind_host: 0.0.0.0
 node.box_type : %%ELS_NODE_TYPE||standard%%
 
 threadpool:
@@ -37,12 +39,12 @@ index.translog.flush_threshold_ops: 50000
 #         service_name: {{your_azure_cloud_service_name}}
 
 
-discovery:
-    type: com.sonian.elasticsearch.zookeeper.discovery.ZooKeeperDiscoveryModule
-sonian.elasticsearch.zookeeper:
-    settings.enabled: true
-    client.host: %%>>ZOOKEEPER.*:2181%%
-    discovery.state_publishing.enabled: true
+#discovery:
+#    type: com.sonian.elasticsearch.zookeeper.discovery.ZooKeeperDiscoveryModule
+#sonian.elasticsearch.zookeeper:
+#    settings.enabled: true
+#    client.host: %%>>ZOOKEEPER.*:2181%%
+#    discovery.state_publishing.enabled: true
 
 cloud:
     aws:
