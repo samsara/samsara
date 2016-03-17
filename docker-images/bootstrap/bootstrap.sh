@@ -64,6 +64,15 @@ curl -sSL "http://$ELASTICSEARCH_PORT_9200_TCP_ADDR:9200/_cat/indices?v" \
     }
 }'
 
+
+echo "changing the number of replicas"
+curl -sSL http://$ELASTICSEARCH_PORT_9200_TCP_ADDR:9200/_cat/indices \
+    | awk '{print $3}' \
+    | xargs -I{} \
+            curl -sS -XPUT http://$ELASTICSEARCH_PORT_9200_TCP_ADDR:9200/{}/_settings \
+            -d '{"index":{ "number_of_replicas": 0}}'
+
+
 echo "checking if kibana index is created"
 curl -sSL "http://$ELASTICSEARCH_PORT_9200_TCP_ADDR:9200/_cat/indices?v" \
     | grep -q 'kibana' \
