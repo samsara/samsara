@@ -18,7 +18,9 @@ VOLUME ["/data", "/logs"]
 
 ## maybe need to install cloud plugins as well
 RUN /opt/els/bin/plugin install royrusso/elasticsearch-HQ/v2.0.3 && \
-    /opt/els/bin/plugin install lmenezes/elasticsearch-kopf/v2.1.1
+    /opt/els/bin/plugin install lmenezes/elasticsearch-kopf/v2.1.1 && \
+    /opt/els/bin/plugin install license && \
+    /opt/els/bin/plugin install marvel-agent
 #    /opt/els/bin/plugin install elasticsearch/elasticsearch-cloud-aws/2.7.1
 
 

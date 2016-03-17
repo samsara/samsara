@@ -9,6 +9,7 @@ __(most recent on top)__
   * ingestion-api: metrics names changed
     [see new ones](/ingestion-api/README.md)
   * ingestion-api: separated client endpoint from admin endpoint
+  * ElasticSearch: updated to **v2.2.1** (TODO: migration notes)
 
 ### Other changes
 
@@ -17,8 +18,12 @@ __(most recent on top)__
   * Configuration templates migrated to
     [synapse](https://github.com/BrunoBonacci/synapse)
   * updated zookeeper to version **3.5.1-alpha**
+  * updated Kibana to version **4.4.2**
+  * elasticsearch: removed mobz/elasticsearch-head plugin
+  * elasticsearch: removed grmblfrz/elasticsearch-zookeeper plugin
+  * elasticsearch: added marvel plugin
+  * elasticsearch: added sense plugin
   * Remaining GOALS:
-    - update all third-party dependencies (els, kibana, zookeeper, kafka)
     - qanal elastic scale on new kafka client
     - core elastic scale
     - core execution model (without samza)

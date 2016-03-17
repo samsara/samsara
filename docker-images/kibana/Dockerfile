@@ -9,8 +9,9 @@ MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 RUN export KIBANA_VERSION=4.4.2 && \
     curl -sSL "https://download.elastic.co/kibana/kibana/kibana-${KIBANA_VERSION}-linux-x64.tar.gz" | tar -zxvf - -C /opt && \
     ln -s /opt/kibana-* /opt/kibana && \
+    /opt/kibana/bin/kibana plugin --install elasticsearch/marvel/latest && \
+    /opt/kibana/bin/kibana plugin --install elastic/sense && \
     mv /opt/kibana/config/kibana.yml /opt/kibana/config/kibana.yml.orig
-
 
 ### VOLUME ["/data", "/logs"]
 
