@@ -1,12 +1,28 @@
 (ns ingestion-api.input.mqtt-server
   (:refer-clojure :exclude [send])
-  (:require [taoensso.timbre :as log])
   (:require [com.stuartsierra.component :as component]
-            [samsara-mqtt.mqtt-server :as mqtt]
-            [ingestion-api.core.processors :as ps]
             [ingestion-api.backend.backend :refer [send]]
-            [samsara.utils :refer [from-json]]))
+            [ingestion-api.core.processors :as ps]
+            [samsara
+             [trackit :refer [track-distribution track-rate]]
+             [utils :refer [from-json]]]
+            [samsara-mqtt.mqtt-server :as mqtt]
+            [taoensso.timbre :as log]))
 
+
+(defn- send-to-backend
+  [backend events]
+  (track-rate "ingestion.mqtt.requests")
+  (track-rate "ingestion.mqtt.events" (count events))
+  (track-distribution "ingestion.mqtt.batch.size" (count events))
+  (send backend events))
+
+
+
+(defn- log-errors [events error-msg]
+  (track-rate "ingestion.mqtt.requests-error")
+  (log/warn "Received invalid events in the mqtt channel. Events: "
+            (prn-str events)  "Reason:" (prn-str error-msg)))
 
 
 (defn mqtt-callback
@@ -14,11 +30,12 @@
   [backend]
   (fn [data]
     (doseq [m (:payload data)]
-      (->> (from-json m)
-           ps/process-events
-           ;; TODO: handle error
-           :processed-events
-           (send backend)))))
+      (let [events (from-json m)
+            {:keys [status error-msgs processed-events]
+             } (ps/process-events events)]
+        (if (= :error status)
+          (log-errors events error-msgs)
+          (send-to-backend backend processed-events))))))
 
 
 
