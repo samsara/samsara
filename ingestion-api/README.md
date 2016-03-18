@@ -130,6 +130,7 @@ and we expose the following metrics:
 ```
 # tracking the rate of events received
 
+ingestion.mqtt.events
 ingestion.http.events
              count = total count of events received
          mean rate = mean rate events/second
@@ -138,8 +139,9 @@ ingestion.http.events
     15-minute rate = mean rate events/second over last 15 minutes
 
 
-# tracking the rate of HTTP requests received (which may contain 1 or more events)
+# tracking the rate of HTTP or MQTT requests received (which may contain 1 or more events)
 
+ingestion.mqtt.requests
 ingestion.http.requests
              count = total count of requests received
          mean rate = mean rate requests/second
@@ -148,8 +150,18 @@ ingestion.http.requests
     15-minute rate = mean rate requests/second over last 15 minutes
 
 
+# tracking the rate of  MQTT requests received containing 1 or more events which failed the validation
+
+ingestion.mqtt.requests
+             count = total count of requests received
+         mean rate = mean rate requests/second
+     1-minute rate = mean rate requests/second over last minute
+     5-minute rate = mean rate requests/second over last 5 minutes
+    15-minute rate = mean rate requests/second over last 15 minutes
+
 # tracking the distribution (histogram) of http request batches
 
+ingestion.mqtt.batch.size
 ingestion.http.batch.size
              count = total count of requests received
                min = minimum number of events per request
