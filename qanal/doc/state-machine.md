@@ -1,14 +1,14 @@
 # Qanal state machine
 
-Qanal design goal is to make a system which is highly resilient to may
-different type of  failures.  For a successful  operation, qanal needs
-to communicate with  several systems such as  Kafka and ElasticSearch.
-Each  of  above  systems  typically   is  deployed  as  a  cluster  of
-machines.  In addition  of that  it  is common  to have  ElasticSearch
+Qanal design  goal is to  make a system  which is highly  resilient to
+many different  type of failures.   For a successful  operation, qanal
+needs  to  communicate   with  several  systems  such   as  Kafka  and
+ElasticSearch.  Both  systems typically are  deployed in a  cluster of
+machines.   In addition  to that  it is  common to  have ElasticSearch
 RESTful interface behind a LoadBalancer.  In such setup many different
-errors can arise. We tried here to list all major class of errors.  By
-any mean  this is a  exhaustive list of  possible error, but  just the
-common one.   We will  also see  how we  can handle  unexpected errors
+errors can arise. We tried to list  all major class of errors.  By any
+means  this is  an exhaustive  list of  possible error,  but just  the
+common ones.   We will also  see how  we can handle  unexpected errors
 which are not listed here.
 
 Common operational errors:
@@ -37,10 +37,10 @@ to define how to handle a given error in relation to the current state
 of the system. Another great property  of State Machine models is that
 the _current_ state  is typically inspectable. In other  words you can
 connect to a running system and see what is going on right now, and in
-which state the  State Machine is. This property comes  very useful to
-extract and publish  processing metrics as the only thing  you need to
-do  is to  sample the  current  state and  push the  information to  a
-monitoring system.
+which state the System is. This  property comes very useful to extract
+and publish processing metrics as the only  thing you need to do is to
+sample  the current  state and  push the  information to  a monitoring
+system.
 
 Here is the qanal's state machine.
 
