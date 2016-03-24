@@ -3,9 +3,8 @@
 
 These are the possible errors:
 
-|------------+-------------------------------+-----------------------------------|
 | Error Code | Description                   | Action                            |
-|------------+-------------------------------+-----------------------------------|
+|-----------:|-------------------------------|-----------------------------------|
 |          1 | Cannot talk to Kafka          | Retry                             |
 |          2 | Topic doesnt exist            | Retry                             |
 |          3 | Partition doesnt exist        | Retry                             |
@@ -19,9 +18,8 @@ These are the possible errors:
 |         11 | ES Error (5xx)                | Retry                             |
 |         12 | Bulk response contains errors | Send to Error                     |
 |         13 | ES Error (4xx)                | Retry                             |
-|------------+-------------------------------+-----------------------------------|
 
 
 This is the state machine used for processing
 
-![State Machine](/qanal/docs/images/state-machine.png)
+![State Machine](./images/state-machine.png)
