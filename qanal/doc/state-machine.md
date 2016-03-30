@@ -15,6 +15,7 @@ Common operational errors:
 
 | Error Code | Description                   | Action                            |
 |-----------:|-------------------------------|-----------------------------------|
+|          0 | Uncategorized error           | Reset to initial state.           |
 |          1 | Cannot talk to Kafka          | Retry                             |
 |          2 | Topic doesnt exist            | Retry                             |
 |          3 | Partition doesnt exist        | Retry                             |
@@ -38,11 +39,10 @@ of the system. Another great property  of State Machine models is that
 the _current_ state  is typically inspectable. In other  words you can
 connect to a running system and see what is going on right now, and in
 which state the System is. This  property comes very useful to extract
-and publish processing metrics as the only  thing you need to do is to
-sample  the current  state and  push the  information to  a monitoring
-system.
+and publish processing metrics as you  only need to sample the current
+state and push the information to a monitoring system.
 
-Here is the qanal's state machine.
+Here is a diagram of qanal's state machine.
 
 ![State Machine](./images/state-machine.png)
 
@@ -72,8 +72,8 @@ The follow things can happen:
   - A number of messages (**batch**) have been found and fetched (as
     byte-arrays). In this case we move to the next state.
 
-**TODO:** add empty result in chart
-**TODO:** send to `_errors` can fail too, add retry (on all states)
+ * **TODO:** add empty result in chart
+ * **TODO:** send to `_errors` can fail too, add retry (on all states)
 
 ### state: `transform`
 
@@ -106,7 +106,7 @@ state.
 
 ### state: `load`
 
-In this state we try to batch load the processed events into
+In this state we try to bulk-load the processed events into
 ElasticSearch. As for the other states one of the following things can
 happen:
 
