@@ -60,7 +60,7 @@ Ingestion API using the publish-events function.
 ```clojure
 (samsara/publish-events [{:eventName "user.logged"
                           :timestamp 1431261991023
-                          :sourceId "e6f01efd-04a9-4c18-a210-2806718b6d43"})]
+                          :sourceId "e6f01efd-04a9-4c18-a210-2806718b6d43"}])
 ```
 The event will be sent to samsara immediately.
 
