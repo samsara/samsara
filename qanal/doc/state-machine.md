@@ -16,19 +16,19 @@ Common operational errors:
 | Error Code | Description                   | Action                            |
 |-----------:|-------------------------------|-----------------------------------|
 |          0 | Uncategorized error           | Reset to initial state.           |
-|          1 | Cannot talk to Kafka          | Retry                             |
-|          2 | Topic doesnt exist            | Retry                             |
-|          3 | Partition doesnt exist        | Retry                             |
+|          1 | Kafka unavailable             | Retry                             |
+|          2 | Topic not found               | Retry                             |
+|          3 | Partition not found           | Retry                             |
 |          4 | Message too big               | Send to Error                     |
-|          5 | Offset doesnt exist           | Action - Reset to earliest/latest |
+|          5 | Offset not available          | Action - Reset to earliest/latest |
 |          6 | Network exceptions            | Retry                             |
-|          7 | Message format Invalid        | Send to Error                     |
+|          7 | Invalid Message format        | Send to Error                     |
 |          8 | Invalid Event                 | Send to Error                     |
 |          9 | Transformation Error          | Send to Error                     |
-|         10 | Cannot talk to ES             | Retry                             |
-|         11 | ES Error (5xx)                | Retry                             |
+|         10 | ELS not available             | Retry                             |
+|         11 | ELS response status 5xx       | Retry                             |
 |         12 | Bulk response contains errors | Send to Error                     |
-|         13 | ES Error (4xx)                | Retry                             |
+|         13 | ELS response status 4xx       | Retry                             |
 
 
 In order  to understand how  the system can  recover in face  of these
@@ -52,12 +52,12 @@ The first state attempt to extract the next few messages from the kafka.
 The follow things can happen:
 
   - No messages are available, then retry later
-  - `err[1]`: **Cannot talk to Kafka**, then retry later
-  - `err[2]`: **Topic to consume doesn't exist**, then retry later
-  - `err[3]`: **Partition to consume doesn't exist**, then retry later
+  - `err[1]`: **Kafka unavailable**, then retry later
+  - `err[2]`: **Topic to consume is not found**, then retry later
+  - `err[3]`: **Partition to consume is not found**, then retry later
   - `err[6]`: **Generic network exception**, retry later
   - `err[4]`: **Message too big**, then send to `_errors` topic
-  - `err[5]`: **Offset doesn't exist**. This can happen in two following cases:
+  - `err[5]`: **Offset requested not available**. This can happen in two following cases:
     - _No previous checkpoint_: you are starting to consume a topic
         for the first time, and the is no previous offset. In this
         case consumer will reset the offset to the `:earliest` or
@@ -86,7 +86,7 @@ received a batch of messages from the previous step, so we apply the
 transformation to each message in the batch and one of the following
 things can happen:
 
-  - `err[7]`: **Message format invalid**. The given message is not a
+  - `err[7]`: **Invalid Message format**. The given message is not a
     JSON formatted string, maybe not even a valid string. Then we send
     to `_errors`.
   - `err[8]`: **Invalid event**. The given message is not a valid
@@ -111,7 +111,7 @@ ElasticSearch. As for the other states one of the following things can
 happen:
 
   - `err[6]`: **Generic network error**, then retry later
-  - `err[10]`: **Cannot talk to ELS**, then retry later
+  - `err[10]`: **ELS unavailable**, then retry later
   - `err[11]`: **ELS returns HTTP status 5xx**, then retry later
   - `err[13]`: **ELS returns HTTP status 4xx**, then retry later
   - `err[12]`: **ELS bulk response contains errors**, then we send the
