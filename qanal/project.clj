@@ -18,7 +18,9 @@
                  [prismatic/schema "0.4.4"]
                  [samsara/trackit "0.3.0"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [clj-time "0.11.0"]]
+                 [clj-time "0.11.0"]
+
+                 [com.brunobonacci/safely "0.2.1"]]
 
   :main qanal.core
 
