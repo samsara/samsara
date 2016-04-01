@@ -131,6 +131,50 @@
       nil)))
 
 
+(defn dispatch-error
+  "takes a list of pairs of predicate functions and error-handling functions.
+   When a predicate function returns truthy when tested against the :error
+   key the associated error-handling function is used and the error
+   is dispatched to that function. if `preds-funs` contains an odd number
+   of elements, last one is interpreted as `catch-all` and it is used
+   when no other predicate function matches. The error handling function
+   must accept 2 parameters `[state error]`.
+
+   Examples:
+
+     (dispatch-error
+
+       #{:errors/network-error
+         :errors/kafka-unavailable}   retry-error
+
+       :errors/message-to-big         send-to-errors
+
+       :errors/offset-not-available   reset-offset
+
+       #(= % :errors/topic-not-found) retry-error
+       :errors/partition-not-found    retry-error
+
+      (fn [s e]
+         (throw (make-error :errors/uncategorized \"Unknown error\" {} e))))
+
+  "
+  [& preds-funs]
+  (let [has-default? (odd? (count preds-funs))
+        default (if has-default? (last preds-funs) (fn [s e] (throw e)))
+        pnfs (if has-default? (drop-last preds-funs) preds-funs)
+        pairs (partition 2 pnfs)]
+    (fn [s e]
+      (let [error (:error (ex-data e))]
+        (loop [[[p f] & preds] pairs]
+          (cond
+            (and (nil? p) (nil? f))        (default s e)
+            (and (keyword? p) (= p error)) (f s e)
+            (p error)                    (f s e)
+            :default                     (recur preds)))))))
+
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
 ;;                 ---==| S T A T E :   E X T R A C T |==----                 ;;
@@ -182,12 +226,19 @@
   (assoc-in s [:data :batch] (poll consumer offsets)))
 
 
-;; TODO: err: 4,5
-
 (defmethod transition :extract
   [s]
   (with-state-machine s
-    :on-error   retry-error
+    :on-error   (dispatch-error
+                 :errors/kafka-unavailable    retry-error
+                 :errors/topic-not-found      retry-error
+                 :errors/partition-not-found  retry-error
+                 :errors/network-error        retry-error
+
+                 ;; TODO: err: 4,5
+                 ;;:errors/message-too-big      send-to-errors
+                 ;;:errors/offset-not-available reset-offset
+                 )
     :on-success (fn [s]
                   (if (empty? (get-in s [:data :batch]))
                     s
@@ -222,20 +273,20 @@
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(comment
+  (defmethod transition :transform
+    [s]
+    (with-state-machine s
+      :on-error   retry-error
+      :on-success (fn [s]
+                    (if (empty? (get-in s [:data :batch]))
+                      s
+                      (clean-move-to :transform s)))
 
-(defmethod transition :transform
-  [s]
-  (with-state-machine s
-    :on-error   retry-error
-    :on-success (fn [s]
-                  (if (empty? (get-in s [:data :batch]))
-                    s
-                    (clean-move-to :transform s)))
-
-    (fn [{{:keys [parse validate transform]} :fns
-         {:keys [batch]} :data
-         config :config :as s}]
-      (-> s
-          extract-init-consumer
-          extract-check
-          extract-poll))))
+      (fn [{{:keys [parse validate transform]} :fns
+           {:keys [batch]} :data
+           config :config :as s}]
+        (-> s
+            extract-init-consumer
+            extract-check
+            extract-poll)))))

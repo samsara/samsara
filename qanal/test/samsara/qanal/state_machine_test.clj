@@ -4,12 +4,20 @@
   (:require [safely.core :refer [*sleepless-mode*]]))
 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                   ---==| S T A T E :   R E T R Y |==----                   ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (fact "RETRY: an error during state processing causes the transition to :retry state"
 
       ;; an error causes in a retry-able state casues the state machine
       ;; to transition to a retry state
       (transition
-       {:fns {:init-consumer (fn [cfg] (throw (ex-info "failed" {})))}
+       {:fns {:init-consumer (fn [cfg] (throw (make-error :errors/network-error "net-err" {})))}
         :state :extract
         })
       =>
@@ -27,7 +35,7 @@
       ;; if connection to kafka consumer is not present
       ;; it creates one.
       (binding [*sleepless-mode* true]
-        (-> {:fns {:init-consumer (fn [cfg] (throw (ex-info "init-consumer-failed" {})))}
+        (-> {:fns {:init-consumer (fn [cfg] (throw (make-error :errors/network-error "net-err" {})))}
              :state :extract}
             transition
             transition
@@ -39,6 +47,13 @@
 
       )
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                 ---==| S T A T E :   E X T R A C T |==----                 ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (facts ":EXTRACT: entering the state causes the initialization of the kafka consumer if not present yet."
@@ -127,3 +142,11 @@
 
 
        )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;               ---==| S T A T E :   T R A N S F O R M |==----               ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
