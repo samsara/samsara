@@ -1,28 +1,48 @@
 (ns samsara.qanal.state-machine
   (:require [safely.core :refer [sleeper]]))
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;        ---==| S T A T E   M A C H I N E   U T I L I T I E S |==----        ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;
 ;; This is the implementation of the state machine described
 ;; at doc/state-machine.md
 ;;
 
-;;
-;; Available states
-;;
-;; :extract/init
-;; :extract/check
-;; :extract/poll
-;; :retry
-;; :transform/parse
-;; :transform/validate
-;; :transform/transform
-;; :load/init
-;; :load/bulk-load
-;;
-
 ;; sample state
-{:config {:topic "topic1" :partition 2}
- :fns {:init-consumer (fn [cfg] :a-consemer)}
+{
+ ;;
+ ;; the configuration of what this state machine
+ ;; has to consume and where all the data
+ ;; has to be loaded it is part of the `:config` element
+ ;;
+ :config {;; this is the connect string for the kafka
+          ;; brokers, a comma-separated list
+          ;; of host and ports
+          :brokers ""
+
+          ;; this is the topic and partition to consume
+          :topic "topic1" :partition 2
+
+          ;; the elasticsearch endpoint where
+          ;; to load the data
+          :elasticsearch ""
+          }
+
+ ;; TODO: signatures and doc
+ :fns {:init-consumer (fn [cfg] :new-consumer)
+       :check (fn [c cfg] {["topic1" 2] 2345})
+       :poll (fn [c offset] [1 2 3 4])
+       :parse    1
+       :validate 1
+       :tranform 1
+       :init-load 1
+       :bulk-load 1}
 
  :state :retry
 
@@ -101,6 +121,8 @@
    :errors/bulk-load-with-errrors 12
    :errors/els-status-4xx         13})
 
+
+
 (defn make-error
   ([type message data]
    (make-error type message data nil))
@@ -112,7 +134,8 @@
      (ex-info message info cause))))
 
 
-(defn retry-error [s e]
+
+(defn retry-action [s e]
   (-> s
       (update-in [:retry :state] (fn [os] (if (not= :retry (:state s)) (:state s) os)))
       (update-in [:retry :attempts] (fn [ov] (inc (or ov 1))))
@@ -121,14 +144,20 @@
       (assoc      :state :retry)))
 
 
+
+;; TODO: this needs access to single event
+;; and might be different for every state
+(defn send-to-errors [s e])
+
 (defmethod transition :retry
   [s]
   (with-state-machine s
-    :on-error   retry-error
+    :on-error   retry-action
     :on-success (fn [{{:keys [state]} :retry :as s}] (assoc s :state state))
     (fn [{{:keys [delayer]} :retry}]
       (delayer)
       nil)))
+
 
 
 (defn dispatch-error
@@ -145,14 +174,14 @@
      (dispatch-error
 
        #{:errors/network-error
-         :errors/kafka-unavailable}   retry-error
+         :errors/kafka-unavailable}   retry-action
 
        :errors/message-to-big         send-to-errors
 
        :errors/offset-not-available   reset-offset
 
-       #(= % :errors/topic-not-found) retry-error
-       :errors/partition-not-found    retry-error
+       #(= % :errors/topic-not-found) retry-action
+       :errors/partition-not-found    retry-action
 
       (fn [s e]
          (throw (make-error :errors/uncategorized \"Unknown error\" {} e))))
@@ -229,21 +258,25 @@
 (defmethod transition :extract
   [s]
   (with-state-machine s
+    ;; error handling
     :on-error   (dispatch-error
-                 :errors/kafka-unavailable    retry-error
-                 :errors/topic-not-found      retry-error
-                 :errors/partition-not-found  retry-error
-                 :errors/network-error        retry-error
+                 :errors/kafka-unavailable    retry-action
+                 :errors/topic-not-found      retry-action
+                 :errors/partition-not-found  retry-action
+                 :errors/network-error        retry-action
 
                  ;; TODO: err: 4,5
-                 ;;:errors/message-too-big      send-to-errors
+                 :errors/message-too-big      send-to-errors
                  ;;:errors/offset-not-available reset-offset
                  )
+
+    ;; successful dispatch
     :on-success (fn [s]
                   (if (empty? (get-in s [:data :batch]))
                     s
                     (clean-move-to :transform s)))
 
+    ;; this state processing.
     (fn [s]
       (-> s
           extract-init-consumer
@@ -273,20 +306,65 @@
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(comment
-  (defmethod transition :transform
-    [s]
-    (with-state-machine s
-      :on-error   retry-error
-      :on-success (fn [s]
-                    (if (empty? (get-in s [:data :batch]))
-                      s
-                      (clean-move-to :transform s)))
+;; TODO: batch -> {:success [] :failed [] :offsets {["t1" 2] 3445}
+;; TODO: parse -> validate -> transform take above map
+;; and do transformation.
+;; end result is: `:success` contains all transformed items
+;; and `:failed` contains all failed items with a structure
+;; as follow {:error the-execption :topic t1 :partition 1 :offset 1 }
+;; and the exception should contain :data with the info of why this
+;; particular item failed
 
-      (fn [{{:keys [parse validate transform]} :fns
-           {:keys [batch]} :data
-           config :config :as s}]
-        (-> s
-            extract-init-consumer
-            extract-check
-            extract-poll)))))
+(defmethod transition :transform
+  [s]
+  (with-state-machine s
+    ;; error handling
+    :on-error   (dispatch-error
+                 :errors/invalid-message-format send-to-errors
+                 :errors/invalid-event          send-to-errors
+                 :errors/transformation-error   send-to-errors
+                 )
+
+    ;; successful dispatch
+    :on-success (clean-move-to :load s)
+
+    ;; this state processing.
+    (fn [{{:keys [parse validate transform]} :fns
+         config :config :as s}]
+      (update-in s [:data :batch]
+                 (fn [batch]
+                   (-> {:success batch :failed [] :offsets {}} ;;TODO: calc offsets
+                       parse
+                       validate
+                       transform))))))
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                    ---==| S T A T E :   L O A D |==----                    ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod transition :load
+  [s]
+  (with-state-machine s
+    ;; error handling
+    :on-error   (dispatch-error
+                 :errors/network-error        retry-action
+                 :errors/els-unavailable      retry-action
+                 :errors/els-status-5xx       retry-action
+                 :errors/els-status-4xx       retry-action
+
+                 :errors/bulk-load-with-errrors send-to-errors
+                 )
+
+    ;; successful dispatch
+    :on-success (clean-move-to :extract s)
+
+    ;; this state processing.
+    (fn [s]
+      (-> s
+          load-init
+          load-bulk-load))))
