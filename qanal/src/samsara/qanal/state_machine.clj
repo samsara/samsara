@@ -366,5 +366,5 @@
     ;; this state processing.
     (fn [s]
       (-> s
-          load-init
-          load-bulk-load))))
+          #_load-init
+          #_load-bulk-load))))
