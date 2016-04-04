@@ -32,6 +32,10 @@
           ;; the elasticsearch endpoint where
           ;; to load the data
           :elasticsearch ""
+
+          ;; topic where to send the processing
+          ;; errors
+          :errors-topic "qanal-errors"
           }
 
  ;; TODO: signatures and doc
@@ -42,13 +46,18 @@
        :validate 1
        :tranform 1
        :init-load 1
-       :bulk-load 1}
+       :bulk-load 1
+       :init-producer (fn [cfg] :new-consumer)
+       :to-errors (fn [p cfg item])}
 
  :state :retry
 
- :retry {:state :extract :attempts 3 :delayer (fn [])}
+ :retry  {:state :extract :attempts 3 :delayer (fn [])}
+ :errors {:state :extract :batch []}
 
- :data {:consumer nil :els nil
+ :data {:consumer nil
+        :producer nil
+        :els nil
         :offsets {["topic1" 2] 2345}
         :batch []}
  }
@@ -145,10 +154,6 @@
 
 
 
-;; TODO: this needs access to single event
-;; and might be different for every state
-(defn send-to-errors [s e])
-
 (defmethod transition :retry
   [s]
   (with-state-machine s
@@ -157,6 +162,51 @@
     (fn [{{:keys [delayer]} :retry}]
       (delayer)
       nil)))
+
+
+
+(defn- errors-init-producer
+  [{{:keys [init-producer]} :fns
+    {:keys [producer]} :data
+    config :config :as s}]
+  ;; if producer is not initialized
+  ;; the initialize one
+  (if producer
+    s
+    (assoc-in s [:data :producer] (init-producer config))))
+
+
+
+(defn- errors-publish
+  [{{:keys [to-errors]} :fns
+    {:keys [producer]} :data
+    {[item] :batch} :errors
+    config :config :as s}]
+  (if (and item (to-errors producer config item))
+    (update-in s [:errors :batch] rest)
+    s))
+
+
+
+(defmethod transition :send-to-errors
+  [s]
+  (with-state-machine s
+    :on-error   retry-action
+    :on-success (fn [{{:keys [state batch]} :errors :as s}]
+                  (if (empty? batch)
+                    (-> s
+                        (assoc :state state)
+                        (dissoc :errors))
+                    s))
+    (fn [s]
+      (-> s
+          errors-init-producer
+          errors-publish))))
+
+
+;; TODO: this needs access to single event
+;; and might be different for every state
+(defn send-to-errors [s e])
 
 
 
@@ -204,24 +254,14 @@
 
 
 
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
 ;;                 ---==| S T A T E :   E X T R A C T |==----                 ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-{:config {:topic "topic1" :partition 2}
- :fns {:init-consumer (fn [cfg] :a-consemer)}
-
- :state :extract
-
- :retry {:state :extract :attempts 3 :delayer (fn [])}
-
- :data {:consumer nil :els nil
-        :offsets {["topic1" 2] 2345}
-        :batch []}
- }
-
 
 
 (defn- extract-init-consumer
