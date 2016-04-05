@@ -51,6 +51,87 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
+;;          ---==| S T A T E :   S E N D - T O - E R R O R S |==----          ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(fact "SEND-TO-ERRORS: on a empty batch the originating state"
+
+      (transition
+       {:fns {:init-producer (fn [cfg] :new-producer)
+              :to-errors (fn [p cfg item])}
+        :state :send-to-errors
+        :errors {:state :transform :batch []}})
+
+      => (contains {:state :transform})
+
+      )
+
+
+
+(fact "SEND-TO-ERRORS: if the send is successful the item is removed from the list"
+
+      (transition
+       {:fns {:init-producer (fn [cfg] :new-producer)
+              :to-errors (fn [p cfg item] :ok)}
+        :state :send-to-errors
+        :errors {:state :transform :batch [1]}})
+
+      => (contains {:state :transform})
+
+
+      (transition
+       {:fns {:init-producer (fn [cfg] :new-producer)
+              :to-errors (fn [p cfg item] :ok)}
+        :state :send-to-errors
+        :errors {:state :transform :batch [1 2 3]}})
+
+      => (contains
+          {:state :send-to-errors
+           :errors {:state :transform :batch [2 3]}})
+
+      )
+
+
+
+(fact "SEND-TO-ERRORS: if the send is failed the item is not removed"
+
+      (transition
+       {:fns {:init-producer (fn [cfg] :new-producer)
+              :to-errors (fn [p cfg item] nil)}
+        :state :send-to-errors
+        :errors {:state :transform :batch [1 2 3]}})
+
+      => (contains
+          {:state :send-to-errors
+           :errors {:state :transform :batch [1 2 3]}})
+
+      )
+
+
+
+(fact "SEND-TO-ERRORS: if the send goes in exception"
+
+      (transition
+       {:fns {:init-producer (fn [cfg] :new-producer)
+              :to-errors (fn [p cfg item]
+                           (throw (make-error :errors/network-error "boom" {})))}
+        :state :send-to-errors
+        :errors {:state :transform :batch [1 2 3]}})
+
+      => (contains
+          {:state :retry
+           :retry (contains {:state :send-to-errors})
+           :errors {:state :transform :batch [1 2 3]}})
+
+      )
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
 ;;                 ---==| S T A T E :   E X T R A C T |==----                 ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
