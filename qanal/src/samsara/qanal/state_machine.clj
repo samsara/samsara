@@ -48,7 +48,7 @@
        :init-load 1
        :bulk-load 1
        :init-producer (fn [cfg] :new-consumer)
-       :to-errors (fn [p cfg item])}
+       :to-errors (fn [p cfg item] :non-falsey)}
 
  :state :retry
 
@@ -209,6 +209,12 @@
 (defn send-to-errors [s e])
 
 
+(-> {:fns {:init-producer (fn [cfg] :new-producer)
+           :to-errors (fn [p cfg item])}
+     :state :send-to-errors
+     :errors {:state :transform :batch []}}
+    errors-init-producer)
+
 
 (defn dispatch-error
   "takes a list of pairs of predicate functions and error-handling functions.
@@ -351,7 +357,7 @@
 ;; and do transformation.
 ;; end result is: `:success` contains all transformed items
 ;; and `:failed` contains all failed items with a structure
-;; as follow {:error the-execption :topic t1 :partition 1 :offset 1 }
+;; as follow {:error the-exception :topic t1 :partition 1 :offset 1 }
 ;; and the exception should contain :data with the info of why this
 ;; particular item failed
 
