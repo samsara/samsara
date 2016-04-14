@@ -328,10 +328,10 @@ Set up the docker client to use your `samsara-vm` vm by setting some docker envi
 Run the following command to show the environment variables and to set them
 
 ``` bash
-## Show the environment variables 
+## Show the environment variables
 docker-machine env samsara-vm
 ## Set the environment variables
-env $(docker-machine env samsara-vm)
+eval "$(docker-machine env samsara-vm)"
 ```
 
 Once the environment variables have been set, make a note of the vm's ip by running the following command
