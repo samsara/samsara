@@ -24,6 +24,12 @@ For trying it out, please follow our [Quick Start guide](/docs/quick-start.md)
 
   * Circle CI: [![Circle CI](https://circleci.com/gh/samsara/samsara/tree/master.svg?style=svg)](https://circleci.com/gh/samsara/samsara/tree/master)
 
+## Contribute
+
+Samsara is a big projects and we need help. If you are interested
+in contributing please have a look to the [contribution list](HELP-US.md) and
+find something you can help us to develop.
+
 ## License
 
 Copyright © 2015 Samsara's authors.
