@@ -3,8 +3,12 @@
 If you are interested in contributing to Samsara here is a list of
 things the project needs which you might help us with.
 
+If you find anything you are interested con contribute or
+you wish to talk to us about some other ideas please contact
+us to the email address on our [website](http://samsara-analytics.io/about/).
 
 ## Clients for other platforms/languages.
+
 _Skills required: languages, multi-threading, lock-free (CAS), http_
 
 We are looking to add client support for the following languages:
