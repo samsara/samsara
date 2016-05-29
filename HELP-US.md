@@ -39,6 +39,11 @@ There are some design goal we are trying to maintain across all client
 such as deliver a lock-free CAS based implementation so that low-latency
 environments could safely use such type of clients.
 
+Mobiles platforms are slightly more complicated as they have to
+guarantee that buffers are persisted across application executions,
+and they have to use application specific api to monitor application
+state.
+
 ## Deployment options and Kubernetes
 
 _Skills required: docker, kubernetes, shell scripting_
@@ -55,7 +60,7 @@ production ready solution for various sizes.
 
 ## Qanal re-design
 
-_Skills required: kafka, ElasticSearch, Clojure_
+_Skills required: Kafka, ElasticSearch, Clojure_
 
 We started to redesign a new implementation of our indexing system
 (Qanal).  Qanal takes processed data from Kafka topics and index the
@@ -76,3 +81,7 @@ Kafka-ElasticSearch Connector and see if this fits what we are trying
 to achieve. In the best option we can replace completely Qanal with a
 ready-made connector. In the worst case, we will need to develop
 ourselves.
+
+### Core re-design.
+
+_Skills required: Kafka, Kafka-Streams, Clojure_
