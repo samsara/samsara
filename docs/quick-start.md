@@ -455,7 +455,7 @@ Finally, to stop all services.
 docker-compose stop
 ```
 
-#### Troubleshooting
+#### <a name="troubleshooting"></a>Troubleshooting
 
 If something goes wrong and you want a clean start run:
 
@@ -467,4 +467,15 @@ docker-machine ssh samsara-vm 'sudo rm -fr /tmp/logs /tmp/data'
 
 # start with a fresh bootstrap
 docker-compose up
+```
+
+### <a name="snapshot"></a>Want to use the latest development version?
+
+If you wish to try the latest unreleased version you just update the images in your
+docker-compose file to use the latest `snapshot` version.
+
+``` bash
+cd docker-images
+docker-compose -f samsara-snapshot.yml pull
+docker-compose -f samsara-snapshot.yml up
 ```
