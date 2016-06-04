@@ -481,3 +481,5 @@ cd docker-images
 docker-compose -f samsara-snapshot.yml pull
 docker-compose -f samsara-snapshot.yml up
 ```
+
+**NOTE:** __This is really intended for development so time to time it might be broken__.
