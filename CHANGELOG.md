@@ -10,6 +10,7 @@ __(most recent on top)__
     [see new ones](/ingestion-api/README.md)
   * ingestion-api: separated client endpoint from admin endpoint
   * ElasticSearch: updated to **v2.2.1** (TODO: migration notes)
+  * Spark: updated to **v1.6.1**
 
 ### Other changes
 

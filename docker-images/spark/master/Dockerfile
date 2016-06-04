@@ -5,7 +5,7 @@ MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 #
 # Spark installation
 #
-ENV SPARK_VERSION 1.4.1
+ENV SPARK_VERSION 1.6.1
 
 RUN \
     curl -sSL "http://apache.mirrors.pair.com/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop2.6.tgz" | tar -zxvf - -C /opt && \
