@@ -13,6 +13,8 @@ Samsara provides production quality Docker images for those components to help y
   * [Linux local docker engine](#linux_local)
   * [Mac OS X with boot2docker](#osx_boot2docker)
   * [Using docker machine (Windows, OSX & Linux)](#docker_machine)
+  * [Troubleshooting](#troubleshooting)
+  * [Want to use the latest development version?](#snapshot)
 
 ### <a name="linux_local"></a>Linux local docker engine
 
@@ -58,7 +60,7 @@ main services
 |---------------|--------------------------------------------------|
 | ingestion-api | [http://127.0.0.1:9000](http://127.0.0.1:9000)   |
 | kibana        | [http://127.0.0.1:8000 ](http://127.0.0.1:8000)  |
-| graphana	| [http://127.0.0.1:15000](http://127.0.0.1:15000) |
+| graphana      | [http://127.0.0.1:15000](http://127.0.0.1:15000) |
 | elasticsearch | [http://127.0.0.1:9200/_plugin/kopf/](http://127.0.0.1:9200/_plugin/kopf/) |
 | elasticsearch | [http://127.0.0.1:9200/_plugin/HQ/  ](http://127.0.0.1:9200/_plugin/HQ/  ) |
 | elasticsearch | [http://127.0.0.1:9200/_plugin/head/](http://127.0.0.1:9200/_plugin/head/) |
