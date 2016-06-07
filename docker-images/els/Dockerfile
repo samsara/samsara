@@ -5,7 +5,7 @@ MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 #
 # Kafka installation
 #
-ENV ELS_VERSION 2.2.1
+ENV ELS_VERSION 2.3.3
 
 
 RUN wget --progress=dot:mega --no-check-certificate --no-cookies \
