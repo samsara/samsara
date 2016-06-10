@@ -50,8 +50,6 @@ the following main services
 | kibana        | [http://127.0.0.1:8000 ](http://127.0.0.1:8000)  |
 | graphana	| [http://127.0.0.1:15000](http://127.0.0.1:15000) |
 | elasticsearch | [http://127.0.0.1:9200/_plugin/kopf/](http://127.0.0.1:9200/_plugin/kopf/) |
-| elasticsearch | [http://127.0.0.1:9200/_plugin/HQ/  ](http://127.0.0.1:9200/_plugin/HQ/  ) |
-| elasticsearch | [http://127.0.0.1:9200/_plugin/head/](http://127.0.0.1:9200/_plugin/head/) |
 
 **NOTE:** if you running on **boot2docker** (Mac OSX) you have to
 replace 127.0.0.1 with the ip of the docker vm (typically **192.168.59.103**)

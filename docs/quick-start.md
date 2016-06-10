@@ -61,7 +61,6 @@ main services
 | kibana        | [http://127.0.0.1:8000 ](http://127.0.0.1:8000)  |
 | graphana      | [http://127.0.0.1:15000](http://127.0.0.1:15000) |
 | elasticsearch | [http://127.0.0.1:9200/_plugin/kopf/](http://127.0.0.1:9200/_plugin/kopf/) |
-| elasticsearch | [http://127.0.0.1:9200/_plugin/HQ/  ](http://127.0.0.1:9200/_plugin/HQ/  ) |
 | elasticsearch | [http://127.0.0.1:9200/_plugin/head/](http://127.0.0.1:9200/_plugin/head/) |
 
 Data paths and logs are mounted on `/tmp/data` and `/tmp/logs` respectively.
@@ -225,7 +224,6 @@ main services
 | kibana        | [http://192.168.99.100:8000 ](http://192.168.99.100:8000)  |
 | graphana      | [http://192.168.99.100:15000](http://192.168.99.100:15000) |
 | elasticsearch | [http://192.168.99.100:9200/_plugin/kopf/](http://192.168.99.100:9200/_plugin/kopf/) |
-| elasticsearch | [http://192.168.99.100:9200/_plugin/HQ/  ](http://192.168.99.100:9200/_plugin/HQ/  ) |
 | elasticsearch | [http://192.168.99.100:9200/_plugin/head/](http://192.168.99.100:9200/_plugin/head/) |
 
 Data paths and logs are mounted on `/tmp/data` and `/tmp/logs` respectively but they will reside in the **samsara-vm** vm.
@@ -387,7 +385,6 @@ main services
 | kibana        | [http://192.168.59.103:8000 ](http://192.168.59.103:8000)  |
 | graphana      | [http://192.168.59.103:15000](http://192.168.59.103:15000) |
 | elasticsearch | [http://192.168.59.103:9200/_plugin/kopf/](http://192.168.59.103:9200/_plugin/kopf/) |
-| elasticsearch | [http://192.168.59.103:9200/_plugin/HQ/  ](http://192.168.59.103:9200/_plugin/HQ/  ) |
 | elasticsearch | [http://192.168.59.103:9200/_plugin/head/](http://192.168.59.103:9200/_plugin/head/) |
 
 Data paths and logs are mounted on `/tmp/data` and `/tmp/logs` respectively but they will reside in the **boot2docker** vm.
