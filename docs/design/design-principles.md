@@ -14,6 +14,8 @@ Table of contents:
   * [Simple](#simple)
   * [Real-time](#realtime)
   * [Aggregation "on ingestion" vs "on query"](#aggregation)
+    * [Aggregation "on ingestion"](#agg_ingestion)
+    * [Aggregation "on query"](#agg_query)
 
 ---
 
@@ -126,7 +128,7 @@ these systems. We will try to see how these systems work and what are
 the key differences to better understand why picked a particular
 solution with Samsara.
 
-### Aggregation on ingestion.
+### <a name="agg_ingestion"/> Aggregation on ingestion.
 
 The following image depicts what commonly happens in system which perform
 aggregation on ingestion.
@@ -214,14 +216,15 @@ every dimension that we need to track.
 
 For example just for this simple example, if we want to be able to run
 query across this data and retain 1 year worth data we will need to
-create a bucket for every second in a year (31M circa). A common
-strategy is to roll small buckets up into larger one. I could
+create a bucket for every second in a year (31M circa), however
+querying across several weeks or months can become prohibitive. A
+common strategy is to roll small buckets up into larger one. I could
 aggregate buckets at second granularity into minutes, minutes into
 hours, hours into days etc. By doing so, if I'm requesting the number
 of events across the last 3 days I can just aggregate last 3 daily
 buckets, or mix daily buckets with hours, minutes and seconds to get
-finer granularity. So if I need to query across last 3 months
-I have a significant smaller number of buckets to lookup.
+finer granularity. So if I need to query across last 3 months I have a
+significant smaller number of buckets to lookup.
 
 However this has a cost. In this picture there is the breakdown of
 how many buckets will be required to be able to flexibly and efficiently
@@ -229,11 +232,14 @@ query the above simple example.
 
 ![Num Buckets](/docs/images/design-principles/num-buckets.gif)
 
-As you can see we need to keep track of *32 millions* buckets just
-for 1 year worth of data, and this _just for the time buckets_,
-now we have to multiply this figure for every dimension in your dataset
-and every cardinality in each and every dimension.
-For this basic example which only contains 2 dimensions: the event type (4)
-and the colour (2) we will require **over 256 million** buckets.
+As you can see we need to keep track of *32 million* buckets just for
+1 year worth of data, and this _just for the time buckets_, now we
+have to multiply this figure for every dimension in your dataset and
+every cardinality in each and every dimension.  For this basic example
+which only contains 2 dimensions: the event type (4 ctegories) and the
+colour (2 categories) we will require **over 256 million** buckets.
 
 Luckily there is another way.
+
+
+### <a name="agg_query"/> Aggregation on query.
