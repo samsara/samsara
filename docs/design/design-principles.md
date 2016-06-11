@@ -113,7 +113,8 @@ Ultimately in a cloud environment the amount of hardware used reflect the
 infrastructure cost, in such environment you trade latency for cost.
 
 
-![Tuneable latency](/docs/images/design-principles/tuneable-latency.gif)
+![Tuneable latency](/docs/images/design-principles/tuneable-latency.gif)<br/>
+_**[*] You can trade latency for throughput or cheaper hardware..**_
 
 
 ---
@@ -133,7 +134,8 @@ solution with Samsara.
 The following image depicts what commonly happens in system which perform
 aggregation on ingestion.
 
-![Aggregation on ingestion](/docs/images/design-principles/agg-on-ingestion.gif)
+![Aggregation on ingestion](/docs/images/design-principles/agg-on-ingestion.gif)<br/>
+_**[*] Upon ingestion of e new event, counters are updated in memory.**_
 
 On the left side we have the _time_ flowing from top to bottom with a
 number of different events sent to the system. The strategy here is to
@@ -208,7 +210,8 @@ of colour we handle.
 The image below shows the difference between the three queries on the
 same events and the buckets required to compute them.
 
-![Num Buckets explosion](/docs/images/design-principles/agg-explosion.gif)
+![Num Buckets explosion](/docs/images/design-principles/agg-explosion.gif)<br/>
+_**[*] The number of buckets explodes for every new dimension to explore**_
 
 You can easily see how, even in this very simple example, the number
 of buckets and the complexity start to explode exponentially for
@@ -230,7 +233,10 @@ However this has a cost. In this picture there is the breakdown of
 how many buckets will be required to be able to flexibly and efficiently
 query the above simple example.
 
-![Num Buckets](/docs/images/design-principles/num-buckets.gif)
+
+![Num Buckets](/docs/images/design-principles/num-buckets.gif)<br/>
+_**[*] The number of buckets requires even for simple cases is huge**_
+
 
 As you can see we need to keep track of *32 million* buckets just for
 1 year worth of data, and this _just for the time buckets_, now we
