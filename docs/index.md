@@ -3,7 +3,7 @@ layout: page
 
 title: Documentation index
 subtitle:
-cover_image: analytics-cover.jpg
+cover_image: /docs/images/analytics-cover.jpg
 ---
 
 __Getting started:__
@@ -14,6 +14,7 @@ __Getting started:__
 
 __Design documents:__
 
+  * [Design principles](design/design-principles.md)
   * [Events format specification](design/events-spec.md)
   * [Ingestion API](design/ingestion-api.md)
   * How to scale the system
