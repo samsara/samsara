@@ -114,7 +114,7 @@ infrastructure cost, in such environment you trade latency for cost.
 
 
 ![Tuneable latency](/docs/images/design-principles/tuneable-latency.gif)<br/>
-_**[*] You can trade latency for throughput or cheaper hardware..**_
+_**[o] You can trade latency for throughput or less hardware..**_
 
 
 ---
@@ -135,7 +135,7 @@ The following image depicts what commonly happens in system which perform
 aggregation on ingestion.
 
 ![Aggregation on ingestion](/docs/images/design-principles/agg-on-ingestion.gif)<br/>
-_**[*] Upon ingestion of e new event, counters are updated in memory.**_
+_**[o] Upon ingestion of e new event, counters are updated in memory.**_
 
 On the left side we have the _time_ flowing from top to bottom with a
 number of different events sent to the system. The strategy here is to
@@ -211,7 +211,7 @@ The image below shows the difference between the three queries on the
 same events and the buckets required to compute them.
 
 ![Num Buckets explosion](/docs/images/design-principles/agg-explosion.gif)<br/>
-_**[*] The number of buckets explodes for every new dimension to explore**_
+_**[o] The number of buckets explodes for every new dimension to explore**_
 
 You can easily see how, even in this very simple example, the number
 of buckets and the complexity start to explode exponentially for
@@ -233,19 +233,68 @@ However this has a cost. In this picture there is the breakdown of
 how many buckets will be required to be able to flexibly and efficiently
 query the above simple example.
 
-
 ![Num Buckets](/docs/images/design-principles/num-buckets.gif)<br/>
-_**[*] The number of buckets requires even for simple cases is huge**_
-
+_**[o] The number of buckets required even for simple cases is huge**_
 
 As you can see we need to keep track of *32 million* buckets just for
 1 year worth of data, and this _just for the time buckets_, now we
 have to multiply this figure for every dimension in your dataset and
 every cardinality in each and every dimension.  For this basic example
-which only contains 2 dimensions: the event type (4 ctegories) and the
-colour (2 categories) we will require **over 256 million** buckets.
+which only contains 2 dimensions: the event type (4 categories) and the
+colour (2 categories) we will require **over 256 million** buckets,
+and above all __we still haven't store the event itself__.
 
 Luckily there is another way.
 
 
 ### <a name="agg_query"/> Aggregation on query.
+
+If we consider the same situation with a typical aggregation on query
+architecture we see a different story.
+
+Again on the left side we have time flowing from top to bottom, and a
+number of events. This time we consider the _time continuum_ as fluid
+as the reality, no need to create discrete buckets.  As we receive an
+event, at the ingestion we can process it straightaway.  While in the
+previous scenario we have to be mindful of the number of dimensions,
+here we are encourage the enrichment of each events with many more
+dimensions and attributes which makes the event easier to query.
+
+Each event is processed by a custom pipeline in which enrichment,
+correlation and occasionally filtering, take place. At the end of the
+processing pipeline we have a richer event with more dimensions
+possibly denormalised as we might have used some internal dataset to
+join to this stream. The output goes into the storage and indexing
+system where the organisation is radially different.
+
+![Aggregation on query](/docs/images/design-principles/agg-on-query.gif)<br/>
+_**[o] Upon ingestion of e new event, we enrich the event and store into information retrieval inverted index.**_
+
+First major difference is that the indexing system stores the event
+itself.  Then it analyses all its dimensions and create a bucket for
+every property.  In this bucket it add a pointer back to the original
+event.
+
+As the picture show the bucket for the color "red" is pointing to all
+red events in our stream, and as more red events arrive are added to
+this bucket. Same thing happen for the "yellow" events and for the
+different shapes. Virtually, also the time can be considered in a
+similar way, although the time is most system is considered a
+"special" dimension and it is used for physical partitioning.
+But for the purpose of this description we can consider pretty much
+in the same way.
+
+These newly create buckets are just
+[sets](https://en.wikipedia.org/wiki/Set_(mathematics)) and every set
+just contains the ids of the events which have that property.  Now if
+we are looking for all events in a specific timeframe, all we need to
+do is to take all these sets (buckets) with a timestamp within the
+range and to a
+[set union](https://en.wikipedia.org/wiki/Set_(mathematics)#Unions).
+
+While if we want to know all "red" events for the same timeframe, we
+do a union of the sets related to the time and an
+[intersection](https://en.wikipedia.org/wiki/Set_(mathematics)#Intersections)
+of the resulting set with the "reds" set.
+There are plenty of optimisations to this but the idea stays the same.
+This type of index structure is called [Inverted index](https://en.wikipedia.org/wiki/Inverted_index).
