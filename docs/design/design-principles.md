@@ -307,6 +307,30 @@ directly available for query in their correct position.
 
 ### Which approach is best?
 
+Both approaches have advantages and drawbacks. Which one you should
+choose really depends on the use you are going to do of the data.
+
+The aggregation on ingestion offers good performances even for very
+large datasets as you don't store the raw data-points but only
+aggregated values. However a problematic point is that you have to
+know all the queries you will run ahead of time. So if you have a
+_small fix number of queries_ which you have to serve continuously
+then that's a optimal approach.
+
+In the projects I've been working on, I was looking for a system which
+would be flexible and support interactive and fast data exploration.
+In other words you couldn't predict ahead of time all or most of the
+queries which would be performed later. In such cases aggregation on
+ingestion is the wrong approach. The combinatorial explosion of
+dimensions and values would make the ingestion too slow and
+complicated. To perform arbitrary queries on any of the available
+dimensions you need to store the original value and prepare your storage
+for such case.
+
+If query flexibility is what you are looking for, like the ability to
+slice and dice your dataset using any of the available dimensions then
+the aggregation on query is the only solution.
+
 ## Samsara's design overview.
 
 ## Kafka.
