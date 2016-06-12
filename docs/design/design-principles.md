@@ -298,3 +298,17 @@ do a union of the sets related to the time and an
 of the resulting set with the "reds" set.
 There are plenty of optimisations to this but the idea stays the same.
 This type of index structure is called [Inverted index](https://en.wikipedia.org/wiki/Inverted_index).
+
+Because the aggregation happens at query time, the handling of events
+which arrives late is no different than the normal events.  They get
+processed in the same way, enriched and stored like any other event.
+As they are added to the corresponding set for each dimension they are
+directly available for query in their correct position.
+
+### Which approach is best?
+
+## Samsara's design overview.
+
+## Kafka.
+
+## Samsara processing CORE.
