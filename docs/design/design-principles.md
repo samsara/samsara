@@ -16,6 +16,8 @@ Table of contents:
   * [Aggregation "on ingestion" vs "on query"](#aggregation)
     * [Aggregation "on ingestion"](#agg_ingestion)
     * [Aggregation "on query"](#agg_query)
+    * [Which approach is best?](#agg_best)
+  * [Samsara's design overview](#overview)
 
 ---
 
@@ -305,7 +307,7 @@ processed in the same way, enriched and stored like any other event.
 As they are added to the corresponding set for each dimension they are
 directly available for query in their correct position.
 
-### Which approach is best?
+### <a name="agg_best"/> Which approach is best?
 
 Both approaches have advantages and drawbacks. Which one you should
 choose really depends on the use you are going to do of the data.
@@ -324,15 +326,104 @@ queries which would be performed later. In such cases aggregation on
 ingestion is the wrong approach. The combinatorial explosion of
 dimensions and values would make the ingestion too slow and
 complicated. To perform arbitrary queries on any of the available
-dimensions you need to store the original value and prepare your storage
-for such case.
+dimensions you need to store the original value and prepare your
+storage for such case.
 
 If query flexibility is what you are looking for, like the ability to
 slice and dice your dataset using any of the available dimensions then
 the aggregation on query is the only solution.
 
-## Samsara's design overview.
+---
+
+## <a name="overview"/> Samsara's design overview.
+
+In Samsara we focus on agility and flexibility. Even with datasets of
+several billion events we can achieve very good performances and
+maintain the interactive query experience (most of the queries last
+less than 10 seconds).
+
+Let's see how did we managed to implement the "aggregation on query"
+approach with large scale datasets.
+
+![High level design](/docs/images/design-principles/high-level-design.jpeg)<br/>
+_**[o] Samsara's high-level design.**_
+
+On the left side of the diagram we have the clients which might be
+mobile clients, your services or websites, or internet websites
+pushing the data to a RESTful endpoint.
+
+The Ingestion-API will acquire the data and immediately store into
+Kafka topics. The **Kafka** cluster will replicate the records in
+other machines in the cluster for fault-tolerance and durability.
+
+Additionally a process will be continuously listening to the Kafka
+topic and as the stream arrives will push the data into a deep
+storage.  This can be something cloud based such as **Amazon S3** or
+**Azure Storage**, a NAS/SAN in your datacenter or a **HDFS** cluster.
+The idea is to store the raw stream so that no matter what happen to
+the cluster and the processing infrastructure you will always be able
+to retrieve the original data and reprocess it.
+
+The next step is where the enrichment and correlation of the data
+happen.  Samsara CORE is a streaming library which allows you to
+define your data enrichment pipelines in terms of very simple
+functions and streams composition. Stream processing shouldn't be a
+specialist skill, but any developer which is mindful of performance
+should be able to develop highly scalable processing pipelines.  We
+aim to build the full processing pipeline out of plain Clojure
+functions, so that it is not necessary to learn a new programming
+paradigm but just use the language knowledge you already have.
+
+For those who don't know the Clojure programming language, we are
+considering to write language specific bindings with the same
+semantics.
+
+Implementing stateless stream processing is easy. But most of real
+world application need some sort of _stateful stream processing_.
+Unfortunately many stream processing frameworks have little or nothing
+to support the correctness and efficiency of state management for
+streams processing. Samsara's leverages the amazing
+[Clojure's persistent data structures](http://hypirion.com/musings/understanding-persistent-vector-pt-1)
+to provide a very efficient stateful processing. The _in-memory_ state
+is then backed by a Kafka topic or _spilled_ into a external key/value
+store such as **DynamoDB**, **Cassandra** etc.
+
+The processing pipeline takes one or more stream as input and produces
+a richer stream as output. The output stream is stored in Kafka as
+well.  Another component (`Qanal`) consumes the output streams and
+index the data into ElasticSearch. In the same way we store the raw
+data we can decide to store the processed data as well in the deep
+storage.
+
+Once the data is in **ElasticSearch** it is now ready to be queried.
+The powerful query engine of **ElasticSearch** is based on Lucene
+which manages the inverted indexes. **ElasticSearch** implemented a
+large number of queries and aggregations and it makes simple even very
+sophisticated aggregations.
+
+The following picture shows the list of aggregations queries which
+**ElasticSearch** implemented (v1.7.x) and more will come.
+
+![ElasticSearch available aggregations](/docs/images/design-principles/els-aggregations.gif)<br/>
+_**[o] ElasticSearch available aggregations (v1.7.x).**_
+
+Once the data is into **ElasticSearch** you get all the benefits of a
+robust and mature product and the speed of the underlying Lucene
+indexing system via a REST API. Additionally, out of the box, you can
+visualize your data using **Kibana**, creating _ad-hoc_
+visualizations, dashboards which work for both: real-time data and
+historical data as both are in the same repository.
+
+![Kibana visualizations](/docs/images/design-principles/kibana-visualizations.jpeg)<br/>
+_**[o] Kibana visualizations (from the web).**_
+
+Kibana might not be a best visualization tool out there but is a quite
+good solution for providing compelling dashboards with very little
+effort.
+
+---
 
 ## Kafka.
+
 
 ## Samsara processing CORE.
