@@ -11,13 +11,14 @@ author:
 
 Table of contents:
 
-  * [Simple](#simple)
-  * [Real-time](#realtime)
-  * [Aggregation "on ingestion" vs "on query"](#aggregation)
-    * [Aggregation "on ingestion"](#agg_ingestion)
-    * [Aggregation "on query"](#agg_query)
+  * [Simple.](#simple)
+  * [Real-time.](#realtime)
+  * [Aggregation "on ingestion" vs "on query".](#aggregation)
+    * [Aggregation "on ingestion".](#agg_ingestion)
+    * [Aggregation "on query".](#agg_query)
     * [Which approach is best?](#agg_best)
-  * [Samsara's design overview](#overview)
+  * [Samsara's design overview.](#overview)
+    * [Cutting some slack.](#slack)
 
 ---
 
@@ -420,6 +421,52 @@ _**[o] Kibana visualizations (from the web).**_
 Kibana might not be a best visualization tool out there but is a quite
 good solution for providing compelling dashboards with very little
 effort.
+
+### <a name="slack"/> Cutting some slack.
+
+One design principle I was very keen to observe was build around every
+layer some fail-safe. In this case I'm talking about the
+fault-tolerance against machine failures, but specifically fail-safe
+against **human failures**.  If you have ever worked in any larger
+project you know that failures introduced by humans mistakes are by
+large the most frequent type of failure.  The idea of adding some sort
+of resilience against human mistakes is not new.  The old and good
+database backup is probably one of the earliest attempt to deal with
+this issue. For many years, while designing new systems, I tried to
+include some sort of fail-safe here and there, but I wasn't aware of a
+appropriate name for it so when people were asking why, my short
+answer was something like: _"... because, you know; you never know what
+can go wrong"_. It wasn't until 2013 when I watched
+[Nathan Marz talk on "Human Fault-Tolerance"](https://www.youtube.com/watch?v=Ipjrhue5bXs)
+which it came clear to me what was the pattern to follow.  In the same
+way we try to take into account for machine failures, network
+failures, power failures etc in our design we should also account for
+human failures.
+
+In the talk, Nathan illustrates principles which, if applied, could be
+treated as general pattern for human fault-tolerance.  The general
+idea is: **if you are building a data system, and you _build upon
+immutable facts_, then storing the raw data, you can always go back
+and rebuild the entire system based on the raw, immutable facts plus
+the corrected algorithms**. This really resonated with what I was
+trying to do.
+
+Samsara encourages to publish small essential facts. By definition
+they are always "true".  Samsara stores them in durable storage so
+that _no matter what happen later, you always have the possibility to
+go back and reprocess all the data_.
+
+Not only this but we care about making easy to rebuild a consistent
+view of the world, so Samsara's give you support for publishing
+external dataset as streams of event as well. Finally we avoid
+duplicates in the indexes which could be caused by re-processing the
+data by assigning repeatable IDs to every event, at the cost of some
+indexing performance. This is a deliberate choice, and it has is
+foundation in the concept of _human fault-tolerance_.
+
+There are many other little changes have been made to support this
+idea I hope you will agree with me that the system is overall better
+with these changes.
 
 ---
 
