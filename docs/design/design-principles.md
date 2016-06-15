@@ -18,6 +18,7 @@ Table of contents:
     * [Aggregation "on query".](#agg_query)
     * [Which approach is best?](#agg_best)
   * [Samsara's design overview.](#overview)
+    * [Cloud native vs Cloud independent](#cloud)
     * [Cutting some slack.](#slack)
 
 ---
@@ -421,6 +422,37 @@ _**[o] Kibana visualizations (from the web).**_
 Kibana might not be a best visualization tool out there but is a quite
 good solution for providing compelling dashboards with very little
 effort.
+
+### <a name="cloud"/> Cloud native vs Cloud independent.
+
+The discussion around cloud native architectures with their benefits
+versus the drawbacks is always a hot topic while designing a new
+system.  Advocates from both sides have good reasons and valid
+arguments.  Cloud native is usually easier to operate and scale, but
+with the risk of vendor lock-in. Cloud independent has to rely only on
+basic infrastructure when running on a cloud (IAAS) and not use any of
+the proprietary PAAS services.  With Samsara we went a step
+further. We composed the system with tools which have a cloud PAAS
+counterpart.
+
+**Kafka**, **Amazon Kinesis** and **Azure EventHubs** try to solve the
+same problem.  Similarly **Cassandra**, **Riak**, **DynamoDB**,
+**Azure Table Storage** are again very similar from an high level
+view. So while designing Samsara we have take care of not using
+functionalities which were not available in other platforms or which
+couldn't be implemented in some other way.
+
+The result is that the system can preserve some guarantees across the
+different clouds and even provide the same functionality when running
+in your own data-center.
+
+The next picture shows some of the interchangeable parts in Samsara's
+design.
+
+
+![Cloud alternatives](/docs/images/design-principles/cloud-support.jpeg)<br/>
+_**[o] Green parts are available as of 0.5, the other ones soon to come.**_
+
 
 ### <a name="slack"/> Cutting some slack.
 
