@@ -508,5 +508,92 @@ better with them.
 
 ## Kafka.
 
+Samsara's design relies a lot on Kafka primitives. For this reason I'm
+going to quickly introduce Kafka design here detailing why and how we
+use these primitives to build a robust design for our processing
+infrastructure.
+
+[Apache Kafka](http://kafka.apache.org/) is a fast, fault-tolerant,
+append-only distributed log service. At is core there there is the log
+structure. The log is contains messages, every message has an offset,
+a payload and optionally a partition-key. The offset is a
+monotonically increasing number and can be utilized to identify a
+particular message in a specific log.  The payload, from Kafka point
+of view, it is just a byte array, which can have a variable size. The
+partition key is specified by the producer (sender) together with the
+message's payload and it is used for data locality (more on this
+later).
+
+![Kafka log](/docs/images/design-principles/kafka-log.jpeg)<br/>
+_**[o] The log structure of Kafka.**_
+
+The log is not a single continuous file, but is divided into segments
+and every segment is a file on disk.  The consumer (reader) chooses
+which messages to read, and because once written a log is never
+changes (just append new records), the consumer doesn't need to send
+acknowledgments for the messages which it consumed back to the server
+but it need only to store what was the offset of last consumed
+message.
+
+Kafka has the concept of _topics_ which are divided into _partitions_,
+and every partition is just a log. Topics can have multiple partitions
+and they are replicated on multiple machines for fault-tolerance.
+
+![Kafka partitions](/docs/images/design-principles/kafka-partitions.jpeg)<br/>
+_**[o] A topic is composed of partitions (logs) and replicated across the cluster.**_
+
+When a producer sends a message to a topic specifies the _topic name_,
+the message _payload_ and optionally a _partition-key_.  The broker to
+decide which partition must store the given message, hashes the
+message-key and based on the hash fix a partition.  This is a very
+important aspect as _all messages which contains the same partition
+key are guaranteed to be in the same partition_.  In Samsara we use
+the `sourceId` as partition key. The `sourceId` is typically and
+identifier of the agent or device which is producing a event.  So it
+means that all messages sent by a particular source will always end up
+in the same partition which it guarantees a total ordering of the
+messages which have been sent from a single source to the brokers. If
+the partition key is not given (or null) then a random partition is
+picked.
+
+All partitions and replicas are spread across the cluster to guarantee
+high-availability and durability. Every partition has one and only one
+partition leader across the cluster at any point in time, and all
+messages are sent to the partition leader.
+
+It offers a policy based evictions of three kind: based on time,
+on size and a special eviction called _compaction_
+
+![Kafka compaction](/docs/images/design-principles/kafka-compaction.gif)<br/>
+_**[o] Kafka eviction policy: compaction.**_
+
+The **time based eviction** deletes non active segments which have all
+messages beyond a configurable amount of time. For example you can
+configure Kafka to retain all messages for a given topic for one week.
+Once the week is past messages are automatically deleted.
+
+The **size based eviction** deletes the oldest non active segments
+when the total size of a topic exceed a given size. For example you
+can configure Kafka to keep _at most_ 2TB of data for a given topic.
+
+The **compaction based policy** is quite interesting. Again the
+compaction agent only works on non-active segments. For every message
+in older segments, it looks at the partition key and it keeps last
+copy of a message per partition key. Like in the picture, partition
+keys in messages are represented by the different colors, only last
+message for every partition-key is copied into a new segment and the
+old one is then removed. For example if you have three updates from
+"John" and two from "Susanne" then the compacted log will contains
+only two messages: last message from "John" and last message from
+"Susanne".
+
+This type of compaction is very useful when messages represent state
+changes for a given key. Like a transaction log of a database, only
+last change counts. If you have such situation then you can use this
+type of compaction to efficiently store the state changes by key, and
+have Kafka cleaning up the old copies for you automatically.  Then to
+rebuild the state all you need to do in to apply the state of last
+message for every key.
+
 
 ## Samsara processing CORE.
