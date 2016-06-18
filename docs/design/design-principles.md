@@ -739,3 +739,78 @@ directly and verifying the expected output. No mocking require, just
 pure functions.
 
 ### <a name="core_state"/> State management.
+
+So far we have seen how to do **stateless stream processing** which is
+the easiest form.  However most of real-world project require more
+complex processing semantics which often are powered by _transitory
+computational state_.
+
+Some stream processing frameworks have little or nothing to help
+developers to get **stateful stream processing** right.  Without
+support, developers have little or no choice to use their own custom
+approach to **state management**.
+
+In this section we are going to see various approach used by different
+frameworks and then we are going to explore Samsara's approach.
+
+The first approach is to store your processing state using an external
+DB cluster, typically a k/v-store such as: _Cassandra, Dynamo, Riak_
+to name few.
+
+This is the easiest approach but the weakest one as well. Even if your
+database is well tuned, as the processing rate grows, it is likely to
+become a bottleneck in your processing. After a certain stage it will
+become harder and harder to scale your stream processing system due to
+the database. Database are much harder to scale, even system like
+Cassandra which scale very well, soon or later will become the
+dominant part in your execution time. To push the database beyond
+certain points require more nodes. While your stream processing will
+be quite fast with a modest number of machines, your DB, likely will
+require huge clusters.
+
+The following picture shows processing nodes connecting to an external
+k/v-store to persist their transitory state.
+
+![External state management](/docs/images/design-principles/state-external.gif)<br/>
+_**[~] The simplest approach (not good) is to use external k/v-store.**_
+
+One additional challenge is that it is easy, in case of processing
+failures to get your state out-of-sync. For example because the
+processing node stored successfully the data into the k/v-store, but
+it failed to checkpoint it's own progress.
+
+The second approach is to use the data-locality offered by Kafka, and
+the guarantee that all events coming from a given source will always
+be landing in the same partition. Keeping this important fact in mind,
+it is possible to use local (to the node) caches such as: _Redis,
+Memcache and RocksDB_ to name few.
+
+![Local state management](/docs/images/design-principles/state-local.gif)<br/>
+_**[~] A local cache offers better latency and better scalability profile.**_
+
+Because every node is independent form the others it is much easier to
+scale. If with the external database the read/write latencies are in
+the order of _1-10ms_, with the local cache the latency is typically
+around _100𝛍s-2ms_. However you still have to incur the serialization
+and de-serialization costs on every read/write.
+
+In Samsara we designed a _in-memory k/v-store_ using the fabulous
+[Clojure's persistent data structures](http://hypirion.com/musings/understanding-persistent-vector-pt-1)
+to store the state. To guarantee durability we back changes in into a
+Kafka topic which is used to store the state only. Samsara's k/v-store
+produces a _transaction log_ of all the changes made to the in memory
+data and when Samsara write the output of the processing into the
+output topic, it writes the changes to the state into the kv-store
+topic.
+
+
+![Samsara's state management](/docs/images/design-principles/state-samsara.gif)<br/>
+_**[~] Samsara's kv-store is in-memory and in-process.**_
+
+The use of Clojure persistent data structures makes the k/v-store
+friendlier to the GarbageCollection, and being in process there is no
+serialization costs of every read/write. The typical latencies for
+Samsara's k/v-store are _**100ns read, 1𝛍s write**_, additionally
+every thread has his own thread-local k/v-store which eliminates
+contentions and the need of coordination (locks), overall it is just
+better data locality for your process.
