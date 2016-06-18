@@ -21,12 +21,13 @@ Table of contents:
     * [Cloud native vs Cloud independent](#cloud)
     * [Cutting some slack.](#slack)
   * [Kafka.](#kafka)
-  * [Samsara CORE](#core)
+  * [Samsara CORE.](#core)
     * [Filtering](#core_filtering)
     * [Enrichment](#core_enrichment)
     * [Correlation](#core_correlation)
     * [Composition: Pipeline](#core_pipeline)
     * [State management](#core_state)
+  * [Why should you choose Samsara.](#why)
 
 ---
 
@@ -893,3 +894,58 @@ _**[~] Samsara support external datasource as streams.**_
 These _dimesions_ are available in your processing functions as globally accessible
 in-memory k/v-stores, and because they are just streams of changes, they can be
 updated while the application is running without downtime.
+
+
+---
+
+## <a name="why"/> Why should you choose Samsara.
+
+I designed Samsara because I think that although many systems allow
+you to do stream processing, the stream processing part is just a
+small part, albeit important, of delivering a system which provides
+real-time analytics. Samsara is a full stack. We provide clients for
+your devices or your services, we provide a way to ingest the data, we
+provide a easy and scalable solution for events processing, a very
+fast storage, visualization, dashboards, and a number of bult-in
+modules to facilitate common scenarios.
+
+All other alternative solutions are either not providing the full
+stack, or they are proprietary services or very expensive solutions.
+With Samsara you have a open source solution that let you keep your
+own data, and provides all the capabilities to build very
+sophisticated models.
+
+I've used this system to build a real-time recommendation engine.
+Because the processing system is made of just plain Clojure functions
+and its execution model is very clear, you can easily develop extend
+the system to build new products or services with the same platform.
+
+Having a real-time analytics system as part of your services is
+invaluable. You can understand how users interact with your services
+as it is happening. You can use it for general analytics, you can use
+it as a Multi variant testing system, you can use it for monitoring
+KPIs and in many other different way.
+
+Many BI solutions rely on batch systems which have incredibly high
+latencies, Samsara is performing incredibly well in this space.
+Much of the merit has to go to ElasticSearch for this.
+
+In the following picture there is a performance comparison which I
+made for one of my clients. It was performed using the same data on
+the same cluster size with similar machines.  The first query shows
+the time it took Hadoop + Hive to perform a simple filtering query
+with aggregation across **1.8 billion records**. The same query was then
+performed with Spark + Hive and ElasticSearch.
+
+![Query performance comparison](/docs/images/design-principles/performance-comp.gif)<br/>
+_**[~] Query performance comparison.**_
+
+You can see the incredible difference, _6 seconds_ against the 2 hours
+or Hadoop. Samsara with ElasticSearch enables an interactive data
+exploration experience that other products are just not able to
+provide.
+
+I hope the read will find this description interesting and that it
+helped to shed some light on Samsara's internals. Try the
+[open source project ](https://github.com/samsara/samsara) and visit
+the [website](http://samsara-analytics.io/).
