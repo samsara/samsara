@@ -945,7 +945,7 @@ or Hadoop. Samsara with ElasticSearch enables an interactive data
 exploration experience that other products are just not able to
 provide.
 
-I hope the read will find this description interesting and that it
+I hope the reader will find this description interesting and that it
 helped to shed some light on Samsara's internals. Try the
 [open source project ](https://github.com/samsara/samsara) and visit
 the [website](http://samsara-analytics.io/).
