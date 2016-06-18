@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Design principles
-subtitle: "Overview of Samsara's Design Principles and internals"
+subtitle: "Overview of Samsara's Design Principles and internals."
 nav: documentation
 
 author:
@@ -26,6 +26,7 @@ Table of contents:
     * [Enrichment](#core_enrichment)
     * [Correlation](#core_correlation)
     * [Composition: Pipeline](#core_pipeline)
+    * [State management](#core_state)
 
 ---
 
@@ -808,9 +809,87 @@ topic.
 _**[~] Samsara's kv-store is in-memory and in-process.**_
 
 The use of Clojure persistent data structures makes the k/v-store
-friendlier to the GarbageCollection, and being in process there is no
-serialization costs of every read/write. The typical latencies for
-Samsara's k/v-store are _**100ns read, 1𝛍s write**_, additionally
+friendlier to the JVM Garbage Collection, and being in process there
+is no serialization costs of every read/write. The typical latencies
+for Samsara's k/v-store are _**100ns read, 1𝛍s write**_, additionally
 every thread has his own thread-local k/v-store which eliminates
 contentions and the need of coordination (locks), overall it is just
-better data locality for your process.
+better data locality for your process.  If your processing state is
+way bigger than the available memory on your nodes you have two
+options: the first one is to add more nodes and distribute the
+processing across more partitions. If this isn't viable for solution
+cost-wise you can have the k/vs-store to _spill_ into a external db
+cluster. Such solution is still better than making db lookups for
+every event as the k/v-store will only load in case of a cache-miss
+and will only store when the entire batch has been processed (not for
+every single event). Considering that events from a given source tend
+to arrive in batches due to the client buffering it is easy to
+understand the advantages of this approach compared to the first
+approach we discussed. If you are really sensitive to the latencies
+the only solution is to add more nodes.
+
+Finally, let's see how Samsara is fault tolerant in respect to the
+state management. We said earlier that the k/v-store we use is in
+memory, so what happen if a node dies?
+
+The following picture illustrate what are the steps in such case.
+
+![Samsara's state management fault tolerance](/docs/images/design-principles/state-samsara-ft.gif)<br/>
+_**[~] Samsara's state management fault tolerance.**_
+
+  1. The system is running and all nodes are consuming their own share
+     of partitions.
+  2. As events are processed the output is written into the _output
+     topic_ and the state changes are persisted into the k/v-store
+     topic.
+  3. The "node 2" dies for machine failure. The processing of
+     that partition stops. In memory state is lost.
+  4. After some time the machine comes back alive.
+  5. Samsara initializes the k/v-store using the transaction-log
+     in its own topic.
+  6. After the full state is restored, the node starts to process
+     events from the partition as before, with the exact state that
+     was left before the failure.
+
+To avoid that the k/v-store topic becomes huge impacting the
+restart time we use the _Kafka's compaction feature_ for this topic.
+So over time only latest copy of the keys will be kept.
+
+This pattern is used by other processing systems notably Apache Samza and
+the very new Kafka-Streams.
+
+This is the way Samsara maintain state and offers a support for the
+stateful stream development directly in it's core. All functions which
+process events that we seen earlier such as _filtering, enrichment and
+correlation_ they all have a stateful variant as well.  In the
+stateless processing the only accept a event, if you need stateful
+processing, then they will accept the current state and the event.
+
+![Samsara's stateful processing functions](/docs/images/design-principles/stateful-fn.jpeg)<br/>
+_**[~] Samsara's stateful processing functions.**_
+
+Stateful functions and the stateless one can be mixed in the same pipeline.
+The `pipeline` function takes care to pass the state to these function which
+requires one, only the event to the stateless ones.
+
+Earlier we said that the stream processing is a function of the input
+stream to produce an output stream, now for you stateful stream
+processing we can say that is a function of the input stream and the
+state topic, to produce output stream and an update state topic.
+
+![Samsara's stateful processing](/docs/images/design-principles/stateful-proc.jpeg)<br/>
+_**[~] Samsara's stateful processing representation.**_
+
+Finally if you have internal data sources which you want to use to
+enrich your data you can provide them as a stream and Samsara will
+convert them into k/v store.  This is often useful when you have
+internal data-source such as your `users` database or your `products`
+catalog etc with you might want to join with incoming events enriching
+them with additional dimensions.
+
+![Samsara's support for data-sources](/docs/images/design-principles/stateful-dimensions.jpeg)<br/>
+_**[~] Samsara support external datasource as streams.**_
+
+These _dimesions_ are available in your processing functions as globally accessible
+in-memory k/v-stores, and because they are just streams of changes, they can be
+updated while the application is running without downtime.
