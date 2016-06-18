@@ -20,6 +20,12 @@ Table of contents:
   * [Samsara's design overview.](#overview)
     * [Cloud native vs Cloud independent](#cloud)
     * [Cutting some slack.](#slack)
+  * [Kafka.](#kafka)
+  * [Samsara CORE](#core)
+    * [Filtering](#core_filtering)
+    * [Enrichment](#core_enrichment)
+    * [Correlation](#core_correlation)
+    * [Composition: Pipeline](#core_pipeline)
 
 ---
 
@@ -118,7 +124,7 @@ infrastructure cost, in such environment you trade latency for cost.
 
 
 ![Tuneable latency](/docs/images/design-principles/tuneable-latency.gif)<br/>
-_**[o] You can trade latency for throughput or less hardware..**_
+_**[~] You can trade latency for throughput or less hardware..**_
 
 
 ---
@@ -138,7 +144,7 @@ The following image depicts what commonly happens in systems which perform
 aggregation on ingestion.
 
 ![Aggregation on ingestion](/docs/images/design-principles/agg-on-ingestion.gif)<br/>
-_**[o] Upon ingestion of e new event, counters are updated in memory.**_
+_**[~] Upon ingestion of e new event, counters are updated in memory.**_
 
 On the left side we have the _time_ flowing from top to bottom with a
 number of different events sent to the system. The strategy here is to
@@ -214,7 +220,7 @@ The image below shows the difference between the three queries on the
 same events and the buckets required to compute them.
 
 ![Num Buckets explosion](/docs/images/design-principles/agg-explosion.gif)<br/>
-_**[o] The number of buckets explodes for every new dimension to explore**_
+_**[~] The number of buckets explodes for every new dimension to explore**_
 
 You can easily see how, even in this very simple example, the number
 of buckets and the complexity start to explode exponentially for
@@ -237,7 +243,7 @@ how many buckets will be required to be able to flexibly and efficiently
 query the above simple example across 1 year.
 
 ![Num Buckets](/docs/images/design-principles/num-buckets.gif)<br/>
-_**[o] The number of buckets required even for simple cases is huge**_
+_**[~] The number of buckets required even for simple cases is huge**_
 
 As you can see we need to keep track of *32 million* buckets just for
 1 year worth of data, and this _just for the time buckets_, now we
@@ -271,7 +277,7 @@ join to this stream. The output goes into the storage and indexing
 system where the organisation is radially different.
 
 ![Aggregation on query](/docs/images/design-principles/agg-on-query.gif)<br/>
-_**[o] Upon ingestion of e new event, we enrich the event and store into information retrieval inverted index.**_
+_**[~] Upon ingestion of e new event, we enrich the event and store into information retrieval inverted index.**_
 
 First major difference is that the indexing system stores the event
 itself.  Then it analyses all its dimensions and create a bucket for
@@ -352,7 +358,7 @@ Let's see how did we managed to implement the "aggregation on query"
 approach with large scale datasets.
 
 ![High level design](/docs/images/design-principles/high-level-design.jpeg)<br/>
-_**[o] Samsara's high-level design.**_
+_**[~] Samsara's high-level design.**_
 
 On the left side of the diagram we have the clients which might be
 a mobile client, your services or websites, or internet websites
@@ -411,7 +417,7 @@ The following picture shows the list of aggregations queries which
 **ElasticSearch** already implemented (v1.7.x) and more will come.
 
 ![ElasticSearch available aggregations](/docs/images/design-principles/els-aggregations.gif)<br/>
-_**[o] ElasticSearch available aggregations (v1.7.x).**_
+_**[~] ElasticSearch available aggregations (v1.7.x).**_
 
 Once the data is into **ElasticSearch** you get all the benefits of a
 robust and mature product and the speed of the underlying Lucene
@@ -421,7 +427,7 @@ visualizations, dashboards which work for both: real-time data and
 historical data as both are in the same repository.
 
 ![Kibana visualizations](/docs/images/design-principles/kibana-visualizations.jpeg)<br/>
-_**[o] Kibana visualizations (from the web).**_
+_**[~] Kibana visualizations (from the web).**_
 
 Kibana might not be a best visualization tool out there but is a quite
 good solution for providing compelling dashboards with very little
@@ -455,7 +461,7 @@ design.
 
 
 ![Cloud alternatives](/docs/images/design-principles/cloud-support.jpeg)<br/>
-_**[o] Green parts are available as of 0.5, the other ones soon to come.**_
+_**[~] Green parts are available as of 0.5, the other ones soon to come.**_
 
 
 ### <a name="slack"/> Cutting some slack.
@@ -506,7 +512,7 @@ better with them.
 
 ---
 
-## Kafka.
+## <a name="kafka"/> Kafka.
 
 Samsara's design relies a lot on Kafka primitives. For this reason I'm
 going to quickly introduce Kafka design here detailing why and how we
@@ -525,7 +531,7 @@ message's payload and it is used for data locality (more on this
 later).
 
 ![Kafka log](/docs/images/design-principles/kafka-log.jpeg)<br/>
-_**[o] The log structure of Kafka.**_
+_**[~] The log structure of Kafka.**_
 
 The log is not a single continuous file, but is divided into segments
 and every segment is a file on disk.  The consumer (reader) chooses
@@ -540,7 +546,7 @@ and every partition is just a log. Topics can have multiple partitions
 and they are replicated on multiple machines for fault-tolerance.
 
 ![Kafka partitions](/docs/images/design-principles/kafka-partitions.jpeg)<br/>
-_**[o] A topic is composed of partitions (logs) and replicated across the cluster.**_
+_**[~] A topic is composed of partitions (logs) and replicated across the cluster.**_
 
 When a producer sends a message to a topic specifies the _topic name_,
 the message _payload_ and optionally a _partition-key_.  The broker to
@@ -565,7 +571,7 @@ It offers a policy based evictions of three kind: based on time,
 on size and a special eviction called _compaction_
 
 ![Kafka compaction](/docs/images/design-principles/kafka-compaction.gif)<br/>
-_**[o] Kafka eviction policy: compaction.**_
+_**[~] Kafka eviction policy: compaction.**_
 
 The **time based eviction** deletes non active segments which have all
 messages beyond a configurable amount of time. For example you can
@@ -596,4 +602,105 @@ rebuild the state all you need to do in to apply the state of last
 message for every key.
 
 
-## Samsara processing CORE.
+## <a name="core"/> Samsara processing CORE.
+
+Now that we have seen how the fundamentals parts of Kafka works we can
+see how Samsara CORE leverages them to produce a high throughput
+scalable processing system.
+
+Firstly the CORE idea is that your stream processing just a function
+which takes in input a topic and produces the output into another topic.
+In this context we will refer to topic as **streams**, and since streams
+are potentially infinite, then the processing function has to be
+able to process an unbounded stream which it will be chunked as the data
+arrives (chunks will contains one or more events).
+
+![Samsara CORE processing](/docs/images/design-principles/core-processing.gif)<br/>
+_**[~] Samsara CORE processing.**_
+
+The processing function can essentially do one of these three operations:
+
+  - **filtering**: where given one event we decided that this
+    particular event is not of interest for our system.
+  - **enrichment**: where a single event is transformed and new
+    dimensions/properties are added.
+  - **correlation**: where the correlation between events can produce
+    one or more completely new events.
+
+
+### <a name="core_filtering"/> Filtering
+
+This is the simplest processor you can have, given an event you can
+decide whether to keep the event (return it) or drop it (return
+`nil`).
+
+    ƒ(e) -> e | nil
+
+When working with systems which do aggregation on query, you typically
+want to store all events you receive, so isn't very common to have
+loads of filters. However in your processing you might correlate two
+or more simpler events to generate new richer high level events which
+are both: more complete and contains all information which you have on
+the simpler ones.  In such cases you often might want to drop the
+simpler one as they are less informative and harder to query than the
+high level one.  You can build a filtering function also from a
+conventional predicate.
+
+
+### <a name="core_enrichment"/> Enrichment
+
+The enrichment functions are the most common. It is here that you can
+add all the additional information that you know about a particular event.
+The enrichment function is a function which takes one event and it returns
+a richer event or `nil`.
+
+    ƒ(e) -> e' | nil
+
+If an enrichment function return `nil` it means that it doesn't have
+any enrichment to do with this particular event. This semantic sugar
+allows very idiomatic core in Clojure, and avoid accidental dropping
+of events. In fact the only way you can eliminate an event is via a
+filtering function.
+
+Common uses of the enrichment functions are to add calculated
+attributes, or to add additional properties from internal
+data-sources.  For example you might receive an event from a device
+and look up in your company data-sources for the owner. Or is you
+receive an event from a user with its `userId` you could lookup in
+your user's data-source for more information about the particular
+user. Adding this information directly into the event allows you to
+easily make queries based on user's properties.
+
+
+### <a name="core_correlation"/> Correlation
+
+The correlation type of functions allow you to produce completely new
+events.  You typically going to use others events which you might have
+already seen in your processing stream to generate new events. One
+common example could be that your system receives events which denotes
+the _starting_ and the _stopping_ of an activity and you could use a
+correlation function to generate one new event which represent the
+activity itself and its duration (Samsara has a module which provide
+this functionality).
+
+The correlation function is a function which given an event it can
+return zero, one or more events.
+
+    ƒ(e) -> [] | [e1] | [e1 e2 ... en]
+
+Also here if the correlation function returns `nil` is considered as a
+no-operation (no new events are generated).  One interesting aspect of
+correlation functions is that the newly generated events are placed
+in-place in the stream and processed with the entire processing
+pipeline like if they were sent from the client.  This approach
+simplifies a lot the processing pipeline as you have the guarantee
+that **every event will go through the entire pipeline** event if the
+correlation function produced them mid-way in your processing.
+
+The following image shows how the events are processed and what happen
+when a correlation function generates new events.
+
+![Samsara CORE - correlation](/docs/images/design-principles/core-correlation.gif)<br/>
+_**[~] The correlation adds the new event `in-place` in the stream, like if they were sent by the client.**_
+
+### <a name="core_pipeline"/> Composition: Pipeline
