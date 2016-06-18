@@ -628,7 +628,7 @@ The processing function can essentially do one of these three operations:
     one or more completely new events.
 
 
-### <a name="core_filtering"/> Filtering
+### <a name="core_filtering"/> Filtering.
 
 This is the simplest processor you can have, given an event you can
 decide whether to keep the event (return it) or drop it (return
@@ -647,7 +647,7 @@ high level one.  You can build a filtering function also from a
 conventional predicate.
 
 
-### <a name="core_enrichment"/> Enrichment
+### <a name="core_enrichment"/> Enrichment.
 
 The enrichment functions are the most common. It is here that you can
 add all the additional information that you know about a particular event.
@@ -672,7 +672,7 @@ user. Adding this information directly into the event allows you to
 easily make queries based on user's properties.
 
 
-### <a name="core_correlation"/> Correlation
+### <a name="core_correlation"/> Correlation.
 
 The correlation type of functions allow you to produce completely new
 events.  You typically going to use others events which you might have
@@ -703,4 +703,39 @@ when a correlation function generates new events.
 ![Samsara CORE - correlation](/docs/images/design-principles/core-correlation.gif)<br/>
 _**[~] The correlation adds the new event `in-place` in the stream, like if they were sent by the client.**_
 
-### <a name="core_pipeline"/> Composition: Pipeline
+
+### <a name="core_pipeline"/> Composition: Pipeline.
+
+We seen how you can organise your processing semantics into simple
+building blocks like the functions which perform the _filtering,
+enrichment and correlation_. However any non trivial processing will
+require to define many of these different functions.  Samsara allows
+you to compose these simple functions in more complex and structured
+pipelines. Like the Clojure function
+[`comp`](https://clojuredocs.org/clojure.core/comp) which is used to
+compose many functions into one, Samsara offers a function called
+`pipeline` which will compose your filtering, enrichment and
+correlation functions into a single processing pipeline.
+
+Like the picture below shows, `pipeline` can take many different
+functions (with different input/output shapes) and compose them into a
+single function which will be the equivalent of all single functions
+executed one after the other one _in the given order_.
+
+![Samsara CORE - composition: pipeline ](/docs/images/design-principles/core-pipeline.gif)<br/>
+_**[~] Samsara allows you to compose your stream processing from very simple building blocks.**_
+
+Samsara offers also tools to visualize a pipeline and produce a flow
+diagram with the different functions.
+
+Enrichment, filtering, correlation and the ability to compose them
+into pipelines are provided as a library called `moebius` which is
+part of Samsara. I've designed this as a separate library so that your
+processing pipelines can be designed, build, and **tested**, in
+complete isolation using just pure functions without requiring a
+running cluster of complex testing infrastructure. Once your
+processing pipelines are build you can test them by providing events
+directly and verifying the expected output. No mocking require, just
+pure functions.
+
+### <a name="core_state"/> State management.
