@@ -5,4 +5,5 @@ subtitle:
 nav: documentation
 ---
 
-Coming Soon...
+Please read the [design principles](./design-principles.md). More doc
+coming soon.
