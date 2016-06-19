@@ -579,58 +579,57 @@ on size and a special eviction called _compaction_
 ![Kafka compaction](/docs/images/design-principles/kafka-compaction.gif)<br/>
 _**[~] Kafka eviction policy: compaction.**_
 
-The **time based eviction** deletes non active segments which have all
-messages beyond a configurable amount of time. For example you can
-configure Kafka to retain all messages for a given topic for one week.
-Once the week is past messages are automatically deleted.
+The **time based eviction** deletes messages beyond a configurable
+amount of time. For example you can configure Kafka to retain all
+messages for a given topic for one week.  Once the week is past
+messages are automatically deleted.
 
-The **size based eviction** deletes the oldest non active segments
-when the total size of a topic exceed a given size. For example you
-can configure Kafka to keep _at most_ 2TB of data for a given topic.
+The **size based eviction** deletes the oldest messages when the total
+size of a topic exceed a given size. For example you can configure
+Kafka to keep _at most_ 2TB of data for a given topic.
 
-The **compaction based policy** is quite interesting. Again the
-compaction agent only works on non-active segments. For every message
-in older segments, it looks at the partition key and it keeps last
-copy of a message per partition key. Like in the picture, partition
-keys in messages are represented by the different colors, only last
-message for every partition-key is copied into a new segment and the
-old one is then removed. For example if you have three updates from
-"John" and two from "Susanne" then the compacted log will contains
-only two messages: last message from "John" and last message from
-"Susanne".
+The **compaction based policy** is quite interesting. The compaction
+agent only works on non-active segments. For every message in older
+segments, it looks at the partition key and it takes last message for
+every partition key. Like in the picture, partition keys in messages
+are represented by the different colors, only last message for every
+partition-key is copied into a new segment and the old one is then
+removed. For example if you have three updates from "John" and two
+from "Susanne" then the compacted log will contains only two messages:
+last message from "John" and last message from "Susanne".
 
 This type of compaction is very useful when messages represent state
-changes for a given key. Like a transaction log of a database, only
-last change counts. If you have such situation then you can use this
-type of compaction to efficiently store the state changes by key, and
-have Kafka cleaning up the old copies for you automatically.  Then to
-rebuild the state all you need to do in to apply the state of last
-message for every key.
+changes for a given key. Similarly to a transaction log of a database,
+where last change is last state. If you have such situation then you
+can use this type of compaction to efficiently store the state changes
+by key, and have Kafka cleaning up the old copies for you
+automatically.  To rebuild the state all you need to do in to apply
+the state of last message for every key.
 
 
 ## <a name="core"/> Samsara processing CORE.
 
-Now that we have seen how the fundamentals parts of Kafka works we can
-see how Samsara CORE leverages them to produce a high throughput
+Now that we have seen how the fundamentals parts of Kafka do work we
+can see how Samsara CORE leverages them to produce a high throughput
 scalable processing system.
 
 Firstly the CORE idea is that your stream processing just a function
-which takes in input a topic and produces the output into another topic.
-In this context we will refer to topic as **streams**, and since streams
-are potentially infinite, then the processing function has to be
-able to process an unbounded stream which it will be chunked as the data
-arrives (chunks will contains one or more events).
+which takes in input a topic and produces the output into another
+topic.  In this context we will refer to topics as **streams**, and
+since streams are potentially infinite, then the processing function
+has to be able to process an unbounded stream, streams chunked as
+the data arrives and every chunk will contains one or more events.
 
 ![Samsara CORE processing](/docs/images/design-principles/core-processing.gif)<br/>
 _**[~] Samsara CORE processing.**_
 
 The processing function can essentially do one of these three operations:
 
-  - **filtering**: where given one event we decided that this
-    particular event is not of interest for our system.
+  - **filtering**: where given one event it decides whether this
+    particular event isn't of interest for the system and it drops it.
   - **enrichment**: where a single event is transformed and new
     dimensions/properties are added.
-  - **correlation**: where the correlation between events can produce
+  - **correlation**: where the relation between events can produce
     one or more completely new events.
 
 
@@ -649,8 +648,8 @@ or more simpler events to generate new richer high level events which
 are both: more complete and contains all information which you have on
 the simpler ones.  In such cases you often might want to drop the
 simpler one as they are less informative and harder to query than the
-high level one.  You can build a filtering function also from a
-conventional predicate.
+high level one.  You can build a filtering function from a
+conventional predicate functions.
 
 
 ### <a name="core_enrichment"/> Enrichment.
@@ -664,14 +663,14 @@ a richer event or `nil`.
 
 If an enrichment function return `nil` it means that it doesn't have
 any enrichment to do with this particular event. This semantic sugar
-allows very idiomatic core in Clojure, and avoid accidental dropping
+allows very idiomatic code in Clojure, and avoid accidental dropping
 of events. In fact the only way you can eliminate an event is via a
 filtering function.
 
 Common uses of the enrichment functions are to add calculated
 attributes, or to add additional properties from internal
 data-sources.  For example you might receive an event from a device
-and look up in your company data-sources for the owner. Or is you
+and look up in your company data-sources for the owner. Or if you
 receive an event from a user with its `userId` you could lookup in
 your user's data-source for more information about the particular
 user. Adding this information directly into the event allows you to
@@ -696,11 +695,11 @@ return zero, one or more events.
 
 Also here if the correlation function returns `nil` is considered as a
 no-operation (no new events are generated).  One interesting aspect of
-correlation functions is that the newly generated events are placed
+correlation functions is that the newly generated events are inserted
 in-place in the stream and processed with the entire processing
-pipeline like if they were sent from the client.  This approach
+pipeline like if they were received from a client.  This approach
 simplifies a lot the processing pipeline as you have the guarantee
-that **every event will go through the entire pipeline** event if the
+that **every event will go through the entire pipeline** even if the
 correlation function produced them mid-way in your processing.
 
 The following image shows how the events are processed and what happen
@@ -716,11 +715,11 @@ We seen how you can organise your processing semantics into simple
 building blocks like the functions which perform the _filtering,
 enrichment and correlation_. However any non trivial processing will
 require to define many of these different functions.  Samsara allows
-you to compose these simple functions in more complex and structured
+to compose these simple functions in more complex and structured
 pipelines. Like the Clojure function
 [`comp`](https://clojuredocs.org/clojure.core/comp) which is used to
 compose many functions into one, Samsara offers a function called
-`pipeline` which will compose your filtering, enrichment and
+`pipeline` which will compose filtering, enrichment and
 correlation functions into a single processing pipeline.
 
 Like the picture below shows, `pipeline` can take many different
@@ -739,15 +738,15 @@ into pipelines are provided as a library called `moebius` which is
 part of Samsara. I've designed this as a separate library so that your
 processing pipelines can be designed, build, and **tested**, in
 complete isolation using just pure functions without requiring a
-running cluster of complex testing infrastructure. Once your
+running cluster or complex testing infrastructure. Once your
 processing pipelines are build you can test them by providing events
-directly and verifying the expected output. No mocking require, just
+directly and verifying the expected output. No mocking required, just
 pure functions.
 
 ### <a name="core_state"/> State management.
 
 So far we have seen how to do **stateless stream processing** which is
-the easiest form.  However most of real-world project require more
+the easiest form.  However most of real-world projects require more
 complex processing semantics which often are powered by _transitory
 computational state_.
 
@@ -763,13 +762,13 @@ The first approach is to store your processing state using an external
 DB cluster, typically a k/v-store such as: _Cassandra, Dynamo, Riak_
 to name few.
 
-This is the easiest approach but the weakest one as well. Even if your
-database is well tuned, as the processing rate grows, it is likely to
-become a bottleneck in your processing. After a certain stage it will
-become harder and harder to scale your stream processing system due to
-the database. Database are much harder to scale, even system like
-Cassandra which scale very well, soon or later will become the
-dominant part in your execution time. To push the database beyond
+This is the easiest approach but also the weakest one as well. Even if
+your database is well tuned, as the processing rate grows, it is
+likely to become a bottleneck in your processing. After a certain
+stage it will become harder and harder to scale your stream processing
+system due to the database. Database are much harder to scale, even
+system like Cassandra which scale very well, soon or later will become
+the dominant part in your execution time. To push the database beyond
 certain points require more nodes. While your stream processing will
 be quite fast with a modest number of machines, your DB, likely will
 require huge clusters.
@@ -780,10 +779,10 @@ k/v-store to persist their transitory state.
 ![External state management](/docs/images/design-principles/state-external.gif)<br/>
 _**[~] The simplest approach (not good) is to use external k/v-store.**_
 
-One additional challenge is that it is easy, in case of processing
-failures to get your state out-of-sync. For example because the
-processing node stored successfully the data into the k/v-store, but
-it failed to checkpoint it's own progress.
+One additional challenge in case of processing failures is that the
+state can get easily out-of-sync. For example the processing
+node might have stored successfully the data into the k/v-store, but it failed to
+checkpoint it's own progress.
 
 The second approach is to use the data-locality offered by Kafka, and
 the guarantee that all events coming from a given source will always
@@ -795,8 +794,8 @@ Memcache and RocksDB_ to name few.
 _**[~] A local cache offers better latency and better scalability profile.**_
 
 Because every node is independent form the others it is much easier to
-scale. If with the external database the read/write latencies are in
-the order of _1-10ms_, with the local cache the latency is typically
+scale. While the external database the read/write latencies are in the
+order of _1-10ms_, with the local cache the latency is typically
 around _100𝛍s-2ms_. However you still have to incur the serialization
 and de-serialization costs on every read/write.
 
@@ -818,24 +817,24 @@ friendlier to the JVM Garbage Collection, and being in process there
 is no serialization costs of every read/write. The typical latencies
 for Samsara's k/v-store are _**100ns read, 1𝛍s write**_, additionally
 every thread has his own thread-local k/v-store which eliminates
-contentions and the need of coordination (locks), overall it is just
+contentions and the need of coordination (locks), overall it has just
 better data locality for your process.  If your processing state is
 way bigger than the available memory on your nodes you have two
 options: the first one is to add more nodes and distribute the
 processing across more partitions. If this isn't viable for solution
 cost-wise you can have the k/vs-store to _spill_ into a external db
 cluster. Such solution is still better than making db lookups for
-every event as the k/v-store will only load in case of a cache-miss
-and will only store when the entire batch has been processed (not for
-every single event). Considering that events from a given source tend
-to arrive in batches due to the client buffering it is easy to
-understand the advantages of this approach compared to the first
-approach we discussed. If you are really sensitive to the latencies
-the only solution is to add more nodes.
+every event as the k/v-store will only go to the external db in case
+of a cache-miss and will only store when the entire batch has been
+processed (not for every single event). Considering that events from a
+given source tend to arrive in batches due to the client buffering it
+is easy to understand the advantages of this approach compared to the
+first approach we discussed. If you are really sensitive to the
+latencies the only solution is to add more nodes.
 
 Finally, let's see how Samsara is fault tolerant in respect to the
 state management. We said earlier that the k/v-store we use is in
-memory, so what happen if a node dies?
+memory, so what happens if a node dies?
 
 The following picture illustrate what are the steps in such case.
 
@@ -847,7 +846,7 @@ _**[~] Samsara's state management fault tolerance.**_
   2. As events are processed the output is written into the _output
      topic_ and the state changes are persisted into the k/v-store
      topic.
-  3. The "node 2" dies for machine failure. The processing of
+  3. The "node 2" dies due to a machine failure. The processing of
      that partition stops. In memory state is lost.
   4. After some time the machine comes back alive.
   5. Samsara initializes the k/v-store using the transaction-log
@@ -864,7 +863,7 @@ This pattern is used by other processing systems notably Apache Samza and
 the very new Kafka-Streams.
 
 This is the way Samsara maintain state and offers a support for the
-stateful stream development directly in it's core. All functions which
+stateful stream development directly in its core. All functions which
 process events that we seen earlier such as _filtering, enrichment and
 correlation_ they all have a stateful variant as well.  In the
 stateless processing the only accept a event, if you need stateful
@@ -873,9 +872,10 @@ processing, then they will accept the current state and the event.
 ![Samsara's stateful processing functions](/docs/images/design-principles/stateful-fn.jpeg)<br/>
 _**[~] Samsara's stateful processing functions.**_
 
-Stateful functions and the stateless one can be mixed in the same pipeline.
-The `pipeline` function takes care to pass the state to these function which
-requires one, only the event to the stateless ones.
+Stateful functions and the stateless one can be mixed in the same
+pipeline.  The `pipeline` function takes care of passing the state to
+these function which requires one and only the event to the stateless
+ones.
 
 Earlier we said that the stream processing is a function of the input
 stream to produce an output stream, now for you stateful stream
@@ -889,7 +889,7 @@ Finally if you have internal data sources which you want to use to
 enrich your data you can provide them as a stream and Samsara will
 convert them into k/v store.  This is often useful when you have
 internal data-source such as your `users` database or your `products`
-catalog etc with you might want to join with incoming events enriching
+catalog etc which you might want to join with incoming events enriching
 them with additional dimensions.
 
 ![Samsara's support for data-sources](/docs/images/design-principles/stateful-dimensions.jpeg)<br/>
@@ -910,11 +910,11 @@ small part, albeit important, of delivering a system which provides
 real-time analytics. Samsara is a full stack. We provide clients for
 your devices or your services, we provide a way to ingest the data, we
 provide a easy and scalable solution for events processing, a very
-fast storage, visualization, dashboards, and a number of bult-in
+fast storage, visualization, dashboards, and a number of built-in
 modules to facilitate common scenarios.
 
 All other alternative solutions are either not providing the full
-stack, or they are proprietary services or very expensive solutions.
+stack, or they are proprietary services and very expensive solutions.
 With Samsara you have a open source solution that let you keep your
 own data, and provides all the capabilities to build very
 sophisticated models.
@@ -945,7 +945,7 @@ performed with Spark + Hive and ElasticSearch.
 _**[~] Query performance comparison.**_
 
 You can see the incredible difference, _6 seconds_ against the 2 hours
-or Hadoop. Samsara with ElasticSearch enables an interactive data
+for Hadoop. Samsara with ElasticSearch enables an interactive data
 exploration experience that other products are just not able to
 provide.
 
