@@ -3,6 +3,11 @@
 # it pushes the snapshot containers to docker hub
 #
 
+if [[ "$CIRCLE_BRANCH" =~ pull/[0-9]+ ]] ; then
+
+    echo "Disallowing artifacts publishing for pull requests."
+    exit 0
+fi
 
 [ "$1" == "CI" ] && docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
 
