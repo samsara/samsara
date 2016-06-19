@@ -49,7 +49,7 @@ lot of time and effort in low-level fine tuning.
 The choice of the language was easy, most of the tooling picked was on
 the JVM, and [Clojure](http://clojure.org) is a very good choice when
 the system is primarily data oriented. Its properties of immutable,
-functional, LISP dialect made it a excellent choice for this project.
+functional, LISP dialect made it an excellent choice for this project.
 Most of all, the ability to do
 [REPL Driven Development](http://blog.jayfields.com/2014/01/repl-driven-development.html)
 allowed us to cut the development time enormously maintaining fairly
@@ -88,7 +88,7 @@ environment as the semantic of stream processing were encapsulated
 in our core; but to begin with we wrote our own Kafka consumers.
 
 This choice became fundamentally important later on as it forged the
-base for deciding how to scale the system, providing strong guarantees
+basis for deciding how to scale the system, providing strong guarantees
 (ordering) for event processing and high data locality.
 
 
@@ -112,8 +112,7 @@ In such systems you can typically trade _latency_ for _throughput_.
 Which means that if you accept to have slightly longer latencies, you
 can gain in system throughput. This is simply achieved by packing more
 events in batches.  However if you need shorter latencies you can
-configure Samsara to sacrifice some of the throughput to gain shorter
-latencies.
+configure Samsara to sacrifice some of the throughput.
 
 In most of real life projects the throughput is not a variable that you
 can control, you have a number of users which will send a number of events
@@ -121,8 +120,9 @@ and the system has to cope with it. So if we _lock_ the throughput dimension,
 there is another dimension which can be influenced, and it is the amount
 of hardware necessary to deliver a given throughput/latency value.
 
-Ultimately in a cloud environment the amount of hardware used reflects the
-infrastructure cost, in such environment you trade latency for cost.
+Ultimately in a cloud environment the amount of hardware used reflects
+the infrastructure cost, in such environment you trade latency for
+service cost.
 
 
 ![Tuneable latency](/docs/images/design-principles/tuneable-latency.gif)<br/>
@@ -517,20 +517,19 @@ better with them.
 ## <a name="kafka"/> Kafka.
 
 Samsara's design relies a lot on Kafka primitives. For this reason I'm
-going to quickly introduce Kafka design here detailing why and how we
-use these primitives to build a robust design for our processing
+going to quickly introduce Kafka design detailing why and how we use
+these primitives to build a robust system for our processing
 infrastructure.
 
 [Apache Kafka](http://kafka.apache.org/) is a fast, fault-tolerant,
-append-only distributed log service. At is core there there is the log
-structure. The log is contains messages, every message has an offset,
-a payload and optionally a partition-key. The offset is a
-monotonically increasing number and can be utilized to identify a
-particular message in a specific log.  The payload, from Kafka point
-of view, it is just a byte array, which can have a variable size. The
-partition key is specified by the producer (sender) together with the
-message's payload and it is used for data locality (more on this
-later).
+append-only distributed log service. At is core there is the log
+structure. The log contains messages, every message has an offset, a
+payload and optionally a partition-key. The offset is a monotonically
+increasing number and can be utilized to identify a particular message
+in a specific log.  The payload, from Kafka point of view, is just a
+byte array, which can have a variable size. The partition key is
+specified by the producer (sender) together with the message's payload
+and it is used for data locality (more on this later).
 
 ![Kafka log](/docs/images/design-principles/kafka-log.jpeg)<br/>
 _**[~] The log structure of Kafka.**_
@@ -539,37 +538,42 @@ The log is not a single continuous file, but is divided into segments
 and every segment is a file on disk.  The consumer (reader) chooses
 which messages to read, and because once written a log is never
 changes (just append new records), the consumer doesn't need to send
-acknowledgments for the messages which it consumed back to the server
+acknowledgments, for the messages which it consumed back, to the server
 but it need only to store what was the offset of last consumed
 message.
 
-Kafka has the concept of _topics_ which are divided into _partitions_,
-and every partition is just a log. Topics can have multiple partitions
-and they are replicated on multiple machines for fault-tolerance.
+Kafka has the concept of _topics_. Topics are used to divide messages
+for different domains. For example a topic called _"users"_ could
+contains users updates, while a topic called _"metrics"_ could
+contains devices sensors reading or services events.  Topics are
+divided into _partitions_, and every partition is just a log. Topics
+can have multiple partitions and they are replicated on multiple
+machines for fault-tolerance.
 
 ![Kafka partitions](/docs/images/design-principles/kafka-partitions.jpeg)<br/>
 _**[~] A topic is composed of partitions (logs) and replicated across the cluster.**_
 
 When a producer sends a message to a topic specifies the _topic name_,
-the message _payload_ and optionally a _partition-key_.  The broker to
-decide which partition must store the given message, hashes the
-message-key and based on the hash fix a partition.  This is a very
+the message _payload_ and optionally a _partition-key_.  The broker,
+to decide which partition must store the given message, hashes the
+message-key and based on the hash fixes a partition.  This is a very
 important aspect as _all messages which contains the same partition
-key are guaranteed to be in the same partition_.  In Samsara we use
-the `sourceId` as partition key. The `sourceId` is typically and
+key are guaranteed to be in the same partition_. Such data locality is
+very important to implement aggressive caching and perform stream
+processing without requiring coordination. In Samsara we use the
+`sourceId` as partition key. The `sourceId` is typically and
 identifier of the agent or device which is producing a event.  So it
 means that all messages sent by a particular source will always end up
-in the same partition which it guarantees a total ordering of the
-messages which have been sent from a single source to the brokers. If
-the partition key is not given (or null) then a random partition is
-picked.
+in the same partition, therefore it guarantees a total ordering of the
+messages. If the partition key is not given (or null) then a random
+partition is picked.
 
 All partitions and replicas are spread across the cluster to guarantee
 high-availability and durability. Every partition has one and only one
 partition leader across the cluster at any point in time, and all
 messages are sent to the partition leader.
 
-It offers a policy based evictions of three kind: based on time,
+Kafka offers policy based evictions of three kind: based on time,
 on size and a special eviction called _compaction_
 
 ![Kafka compaction](/docs/images/design-principles/kafka-compaction.gif)<br/>
@@ -923,8 +927,8 @@ the system to build new products or services with the same platform.
 Having a real-time analytics system as part of your services is
 invaluable. You can understand how users interact with your services
 as it is happening. You can use it for general analytics, you can use
-it as a Multi variant testing system, you can use it for monitoring
-KPIs and in many other different way.
+it as a Multi Variant Testing (MTV) system, you can use it for
+monitoring KPIs and in many other different way.
 
 Many BI solutions rely on batch systems which have incredibly high
 latencies, Samsara is performing incredibly well in this space.
