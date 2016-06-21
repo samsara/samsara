@@ -2,6 +2,7 @@
   (:require [cheshire.core :as json])
   (:require [taoensso.timbre :as log])
   (:require [clojure.java.io :as io])
+  (:require [safely.core :refer [safely]])
   (:import [java.io ByteArrayOutputStream ByteArrayInputStream]
            [java.util.zip GZIPInputStream GZIPOutputStream]
            [java.nio ByteBuffer]))
@@ -57,20 +58,9 @@
 
 
 
-(defmacro safely [message & body]
-  `(let [message# ~message]
-     (try
-       ~@body
-       (catch Throwable x#
-         (log/warn x# "Exception during" message#)
-         nil))))
-
-
-
 (defn invariant [invf]
   (fn [x]
-    (safely "invariant operation"
-            (invf x))
+    (safely (invf x) :on-error :default nil)
     x))
 
 
@@ -130,11 +120,17 @@
            (loop [state nil]
 
              (let [new-state
-                   (safely name
-                    (if with-state (f state) (f)))]
+                   (safely
+                    (if with-state (f state) (f))
+                    :on-error
+                    :message name
+                    :default nil)]
 
-               (safely "sleeping"
-                (Thread/sleep sleep-time))
+               (safely
+                (Thread/sleep sleep-time)
+                :on-error
+                :message (str name "/sleeping")
+                :default nil)
 
                ;; if the thread is interrupted then exit
                (when-not @stopped
