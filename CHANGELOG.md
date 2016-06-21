@@ -13,7 +13,7 @@ __(most recent on top)__
 
 ### Other changes
 
-  * docker: all containers migrated to Alpine Linux 3.3 for smaller footprint
+  * docker: all containers migrated to Alpine Linux 3.4 for smaller footprint
   * ingestion-api: major code refactoring and cleanup
   * Configuration templates migrated to
     [synapse](https://github.com/BrunoBonacci/synapse)
