@@ -5,8 +5,8 @@ MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 #
 # Kafka installation
 #
-ENV KAFKA_VERSION 0.9.0.1
-ENV SCALA_VERSION 2.10
+ENV KAFKA_VERSION 0.10.0.0
+ENV SCALA_VERSION 2.11
 
 # http://apache.mirrors.pair.com/kafka
 RUN curl -sSL "http://mirrors.ukfast.co.uk/sites/ftp.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" | tar -zxvf - -C /opt && \

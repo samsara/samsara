@@ -13,6 +13,10 @@ if [ "$KAFKA_BROKER_PROTOCOL_VERSION" != "" ] ; then
    export KAFKA_BROKER_PROTOCOL_VERSION_LINE="inter.broker.protocol.version=$KAFKA_BROKER_PROTOCOL_VERSION"
 fi
 
+if [ "$KAFKA_MESSAGE_FORMAT_VERSION" != "" ] ; then
+    export KAFKA_MESSAGE_FORMAT_VERSION_LINE="log.message.format.version=$KAFKA_MESSAGE_FORMAT_VERSION"
+fi
+
 # Configure server
 synapse /opt/kafka/config/server.properties.tmpl
 

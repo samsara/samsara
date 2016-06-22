@@ -5,7 +5,7 @@ __(most recent on top)__
 
 ### Breaking changes
 
-  * Kafka migrated to **0.9.0.1** (for cluster migration see [official kafka documentation](http://kafka.apache.org/documentation.html#upgrade_9)
+  * Kafka migrated to **0.10.0.0** (for cluster migration see [official kafka documentation](http://kafka.apache.org/documentation.html#upgrade_10)
   * ingestion-api: metrics names changed
     [see new ones](/ingestion-api/README.md)
   * ingestion-api: separated client endpoint from admin endpoint
