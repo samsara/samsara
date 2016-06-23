@@ -39,10 +39,24 @@ Whether the system should send tracking metrics to Statsd
 * `STATSD_PORT_8125_TCP_ADDR` (default: `localhost`)
 If the `KAFKA_ENABLE_REPORTING_STATSD` is true, then the IP of a Statsd daemon.
 
-* `$KAFKA_BROKER_PROTOCOL_VERSION` (default: *empty*)
-If you are upgrade your cluster from different versions
-you need to set the `inter.broker.protocol.version=0.8.2.X` property.
-Please check the official [Kafka documentation](http://kafka.apache.org/documentation.html#upgrade_9) for more info.
+* `KAFKA_BROKER_PROTOCOL_VERSION` (default: *empty*)
+This is protocol version used by brokers for communication.
+Leaving it empty will actually mean a default value of `0.10.0-IV1`
+for kafka 0.10.0.0
+This setting is mainly used when doing a rolling update of your cluster.
+Please check the official [Kafka documentation](http://kafka.apache.org/documentation.html#upgrade_10) for more info.
+
+* `KAFKA_MESSAGE_FORMAT_VERSION` (default: *empty*)
+This is the format version that the messages are written in, when appending
+to the kafka log.
+Leaving it empty will actually mean a default value of `0.10.0-IV1`
+for kafka 0.10.0.0
+This setting is mainly used when doing a rolling update of your cluster, and
+should be set to a value equal or less than the above `KAFKA_BROKER_PROTOCOL_VERSION`.
+Please check the official [Kafka documentation](http://kafka.apache.org/documentation.html#upgrade_10)
+
+* `KAFKA_BROKER_RACK` (default: *empty*)
+The rack (for AWS, availability zone) that the broker is placed on.
 
 ## Usage
 
@@ -58,11 +72,11 @@ docker run -d -p 9092:9092 -p 15000:15000 \
 ## Versions
 
 * Samsara-`0.5.5.0`, `kafka-0.8.2.1` - Kafka with enabled compaction and topic delete
-* Samsara-`0.x.x.x`, `kafka-0.9.0.1` - New Kafka version.
+* Samsara-`0.x.x.x`, `kafka-0.10.0.0` - New Kafka version.
 
 
 ## Copyright & License
 
-Copyright © 2015 Samsara's authors.
+Copyright © 2016 Samsara's authors.
 
 Distributed under the Apache License v 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
