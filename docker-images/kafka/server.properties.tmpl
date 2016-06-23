@@ -177,3 +177,7 @@ delete.topic.enable=true
 ## log.message.format.version determines the format that the message
 ## is written when appended to the logs
 %%KAFKA_MESSAGE_FORMAT_VERSION_LINE||%%
+
+## the rack (or aws availability zone) where the broker will be placed
+## the rack value is also used in spreading the replicas
+%%KAFKA_BROKER_RACK_LINE||%%
