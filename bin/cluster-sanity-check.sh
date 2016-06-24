@@ -23,12 +23,13 @@ echo "           Samsara's cluster sanity check"
 echo '------------------------------------------------------------------'
 
 function container-ip(){
-    if [ `uname` == "Darwin" ] ; then
-        echo $DOCKER_HOST | grep -oE '[0-9]+(\.[0-9]+){3}'
-    else
-        CNTID=`docker ps | grep $1 | cut -d' ' -f1`
-        docker inspect $CNTID | grep '"IPAddress"' | grep -oE '[0-9]+(\.[0-9]+){3}'
-    fi
+    # if [ "$DOCKER_HOST" != "" ] ; then
+    #     echo $DOCKER_HOST | grep -oE '[0-9]+(\.[0-9]+){3}'
+    # else
+    #     CNTID=`docker ps | grep $1 | cut -d' ' -f1`
+    #     docker inspect $CNTID | grep '"IPAddress"' | head -1 | grep -oE '[0-9]+(\.[0-9]+){3}'
+    # fi
+    echo ${DOCKER_HOST:-127.0.0.1} | grep -oE '[0-9]+(\.[0-9]+){3}'
 }
 
 function wait_for {
