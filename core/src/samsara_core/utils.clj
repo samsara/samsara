@@ -4,7 +4,12 @@
             [moebius.kv :as kv]
             [samsara.utils :refer [from-json to-json]]
             [taoensso.timbre :as log]
-            [clj-kafka.producer :as kp]))
+            [clj-kafka.producer :as kp]
+            [clj-kafka.admin :as ka]))
+
+(def STATE-TOPIC-CONFIG {:partitions 5
+                         :replication-factor 1
+                         :config {"cleanup.policy" "compact"}})
 
 (defn gzip-input-stream-wrapper [file]
   (let [in (io/input-stream file)]
@@ -51,11 +56,20 @@
           (kv/restore kvstore)))))
 
 
+(defn ensure-topic-exists
+  "If topic doesn't already exists, create it
+   with the provided configurations"
+  [zks topic topic-config]
+  (let [zk-cli (ka/zk-client zks)]
+    (when-not (ka/topic-exists? zk-cli topic)
+      (ka/create-topic zk-cli topic topic-config))))
+
 
 (defn send-txlog-to-topic
   "it pushed the txlog of a kv-store into a kafka topic.
    This is useful to bootstrap a topic with some data."
-  [brokers topic txlog]
+  [zks brokers topic txlog]
+  (ensure-topic-exists zks topic STATE-TOPIC-CONFIG)
   (let [prodx  (kp/producer
                 {"metadata.broker.list" brokers
                  "request.required.acks"  "-1"
@@ -71,14 +85,14 @@
 (defn send-kvstore-to-topic
   "it pushed the txlog of a kv-store into a kafka topic.
    This is useful to bootstrap a topic with some data."
-  [brokers topic kvstore]
-  (send-txlog-to-topic brokers topic (kv/tx-log kvstore)))
+  [zks brokers topic kvstore]
+  (send-txlog-to-topic zks brokers topic (kv/tx-log kvstore)))
 
 
 
 (defn bootstrap-dimension-from-file
-  [brokers topic file]
+  [zks brokers topic file]
   (log/info "Reading txlog from file:" file "and sending to topic:" topic "via:" brokers)
   (with-open [rdr (io/reader (gzip-input-stream-wrapper file))]
     (doseq [log-batch (partition-all 5000 (map from-json (line-seq rdr)))]
-      (send-txlog-to-topic brokers topic log-batch))))
+      (send-txlog-to-topic zks brokers topic log-batch))))

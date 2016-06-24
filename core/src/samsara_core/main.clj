@@ -2,6 +2,7 @@
   (:require [samsara-core.samza :as samza]
             [samsara-core.kernel :as kern])
   (:require [samsara.utils :refer [stoppable-thread]])
+  (:require [samsara-core.utils :as utils])
   (:require [clojure.java.io :as io])
   (:require [taoensso.timbre :as log])
   (:require [samsara.trackit :refer [start-reporting! set-base-metrics-name!
@@ -211,6 +212,12 @@ DESCRIPTION
     (log/info "nREPL disabled...!")))
 
 
+(defn ensure-state-topics! [config]
+  (let [zks (get-in config [:job :zookeepers])
+        topics (mapv (fn [[k v]] (:state-topic v)) (:streams config))]
+    (run! #(utils/ensure-topic-exists zks %1 utils/STATE-TOPIC-CONFIG) topics)
+    (log/info "State topics" topics "exist or have been created")))
+
 
 (defn start-processing! [config]
   ;; TODO: it is only displaying the first stream
@@ -219,6 +226,7 @@ DESCRIPTION
     ;; starting nrepl
     (start-nrepl! (:nrepl config))
     ;; starting server
+    (ensure-state-topics! config)
     (samza/start! config)
     #_(log/info "Samsara CORE processing started: " input-topic
               "/" input-partitions "->" output-topic)
