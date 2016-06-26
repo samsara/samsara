@@ -13,7 +13,6 @@ BASE=$(cd $(dirname $0)/../docker-images && pwd)
 SAM=$BASE/..
 VER=${1:-latest}
 BVER=${2:-master}
-[ `uname` == "Darwin" ] && export SED=gsed || export SED=sed
 
 
 echo ''
@@ -23,12 +22,6 @@ echo "           Samsara's cluster sanity check"
 echo '------------------------------------------------------------------'
 
 function container-ip(){
-    # if [ "$DOCKER_HOST" != "" ] ; then
-    #     echo $DOCKER_HOST | grep -oE '[0-9]+(\.[0-9]+){3}'
-    # else
-    #     CNTID=`docker ps | grep $1 | cut -d' ' -f1`
-    #     docker inspect $CNTID | grep '"IPAddress"' | head -1 | grep -oE '[0-9]+(\.[0-9]+){3}'
-    # fi
     echo ${DOCKER_HOST:-127.0.0.1} | grep -oE '[0-9]+(\.[0-9]+){3}'
 }
 
