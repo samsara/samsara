@@ -215,8 +215,8 @@ DESCRIPTION
 (defn ensure-state-topics! [config]
   (let [zks (get-in config [:job :zookeepers])
         topics (mapv (fn [[k v]] (:state-topic v)) (:streams config))]
-    (run! #(utils/ensure-topic-exists zks %1 utils/STATE-TOPIC-CONFIG) topics)
-    (log/info "State topics" topics "exist or have been created")))
+    (run! #(utils/ensure-topic-compacted zks %1) topics)
+    (log/info "State topics" topics "exist and are compacted")))
 
 
 (defn start-processing! [config]
