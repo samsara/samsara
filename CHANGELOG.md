@@ -24,6 +24,7 @@ __(most recent on top)__
   * elasticsearch: removed grmblfrz/elasticsearch-zookeeper plugin
   * elasticsearch: added marvel plugin
   * elasticsearch: added sense plugin
+  * Updated/migrated the timbre logging library to **4.0.2**
   * Remaining GOALS:
     - qanal elastic scale on new kafka client
     - core elastic scale

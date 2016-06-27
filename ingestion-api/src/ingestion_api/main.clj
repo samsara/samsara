@@ -16,7 +16,10 @@
    :admin-server {:port 9010 :auto-reload false}
    :mqtt   {:port 10010 :enabled true}
 
-   :log   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}
+   :log   {:timestamp-opts
+           {:pattern     "yyyy-MM-dd HH:mm:ss.SSS zzz"
+            :locale      (java.util.Locale. "en")
+            :timezone    (java.util.TimeZone/getDefault)}}
 
    :backend  {:type :console :pretty? true}
    ;;:backend {:type :kafka :topic "ingestion" :metadata.broker.list "192.168.59.103:9092"}
@@ -113,18 +116,27 @@ DESCRIPTION
        (merge-with merge DEFAULT-CONFIG)))
 
 
+
+(defn- log-output-fn
+  ([data] (log-output-fn nil data))
+  ([{:keys [no-stacktrace?] :as opts}
+    {:keys [level ?err_ msg_ timestamp_ hostname_ ?ns-str] :as data}]
+   ;; <timestamp> <LEVEL> [<ns>] - <message> <throwable>
+   (format "%s %s [%s] - %s%s"
+           (force timestamp_)
+           (clojure.string/upper-case (name level))
+           ?ns-str
+           (or (force msg_) "")
+           (if-let [err (and (not no-stacktrace?) (force ?err_))]
+             (str "\n" (log/stacktrace err opts))
+             ""))))
+
 (defn- init-log!
   "Initializes log settings"
   [cfg]
-  (log/set-config! [:fmt-output-fn]
-                   (fn [{:keys [level throwable message timestamp hostname ns]}
-                       ;; Any extra appender-specific opts:
-                       & [{:keys [nofonts?] :as appender-fmt-output-opts}]]
-                     ;; <timestamp> <hostname> <LEVEL> [<ns>] - <message> <throwable>
-                     (format "%s %s [%s] - %s%s"
-                             timestamp (-> level name clojure.string/upper-case) ns (or message "")
-                             (or (log/stacktrace throwable "\n" (when nofonts? {})) ""))))
+  (log/swap-config! #(assoc % :output-fn log-output-fn))
   (log/merge-config! cfg))
+
 
 
 (defn- init-tracking!

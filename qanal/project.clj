@@ -11,7 +11,7 @@
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/tools.cli "0.3.3"]
-                 [com.taoensso/timbre "3.4.0"]
+                 [com.taoensso/timbre "4.0.2"]
                  [clj-kafka "0.3.2"]
                  [clojurewerkz/elastisch "2.1.0"]
                  [cheshire "5.5.0"]

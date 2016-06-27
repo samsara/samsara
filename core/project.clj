@@ -20,7 +20,7 @@
                  [samsara/samsara-utils
                   #=(clojure.string/trim #=(slurp "../samsara.version"))]
                  [samsara/trackit "0.3.0"]
-                 [com.taoensso/timbre "3.4.0"]
+                 [com.taoensso/timbre "4.0.2"]
                  [org.clojure/tools.cli "0.3.1"]
                  [digest "1.4.4"]
                  [org.clojure/tools.nrepl "0.2.11"]

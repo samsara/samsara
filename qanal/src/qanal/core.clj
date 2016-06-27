@@ -17,7 +17,7 @@
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.edn :as edn]
             [taoensso.timbre :as log]
-            [taoensso.timbre.appenders.rotor :as rotor]
+            [taoensso.timbre.appenders.3rd-party.rotor :as rotor]
             [qanal.kafka :as kafka]
             [qanal.elasticsearch :as els]
             [qanal.utils :refer :all]
@@ -28,6 +28,7 @@
             [clojure.java.io :as io])
   (:import [kafka.common InvalidMessageSizeException OffsetOutOfRangeException])
   (:gen-class))
+
 
 (def DEFAULT-CONFIG
   {:kafka-source
@@ -48,8 +49,6 @@
                      :backlog 10}})
 
 
-(def ^:private default-rotor-config
-  {:level :info :path "qanal.log" :max-size (* 10 1024 1024) :backlog 10})
 
 
 (def ^:private known-options
@@ -102,11 +101,7 @@
 
 
 
-(defn- apply-logging-options [logging-options]
-  (let [log-level (:min-level logging-options)
-        appender-config (dissoc logging-options :min-level)]
-    (log/set-config! [:appenders :rotor :min-level] log-level)
-    (log/set-config! [:shared-appender-config :rotor] appender-config)))
+
 
 
 (defn parse-opt-errors->str [errors]
@@ -288,17 +283,13 @@
 
 
 
-(defn- init-log! [config]
-  (log/set-config! [:timestamp-pattern]
-                   "yyyy-MM-dd HH:mm:ss.SSS zzz")
+(defn- init-log! [{:keys [min-level] :as log-opts}]
+  (log/swap-config! #(assoc-in % [:timestamp-opts :pattern] "yyyy-MM-dd HH:mm:ss.SSS zzz"))
 
-  (log/set-config! [:appenders :rotor]
-                   {:min-level :info
-                    :enabled?  true
-                    :async? false     ; should be always false for rotor
-                    :fn rotor/appender-fn})
-
-  (apply-logging-options (or config default-rotor-config)))
+  (let [appender (assoc (rotor/rotor-appender log-opts)
+                        :async? false ; must always be false for rotor
+                        :min-level min-level)]
+    (log/swap-config! #(assoc-in % [:appenders :rotor] appender))))
 
 
 

@@ -33,8 +33,10 @@
    {:enabled true :display-every 3000}
 
    ;; logging
-   :log
-   {:timestamp-pattern "yyyy-MM-dd HH:mm:ss.SSS zzz"}
+   :log {:timestamp-opts
+         {:pattern     "yyyy-MM-dd HH:mm:ss.SSS zzz"
+          :locale      (java.util.Locale. "en")
+          :timezone    (java.util.TimeZone/getDefault)}}
 
    ;; nREPL
    :nrepl
@@ -141,19 +143,25 @@ DESCRIPTION
        (kern/normalize-streams-with-defaults)))
 
 
+(defn- log-output-fn
+  ([data] (log-output-fn nil data))
+  ([{:keys [no-stacktrace?] :as opts}
+    {:keys [level ?err_ msg_ timestamp_ hostname_ ?ns-str] :as data}]
+   ;; <timestamp> <LEVEL> [<ns>] - <message> <throwable>
+   (format "%s %s [%s] - %s%s"
+           (force timestamp_)
+           (clojure.string/upper-case (name level))
+           ?ns-str
+           (or (force msg_) "")
+           (if-let [err (and (not no-stacktrace?) (force ?err_))]
+             (str "\n" (log/stacktrace err opts))
+             ""))))
+
 (defn- init-log!
   "Initializes log settings"
   [cfg]
-  (log/set-config! [:fmt-output-fn]
-                   (fn [{:keys [level throwable message timestamp hostname ns]}
-                       ;; Any extra appender-specific opts:
-                       & [{:keys [nofonts?] :as appender-fmt-output-opts}]]
-                     ;; <timestamp> <hostname> <LEVEL> [<ns>] - <message> <throwable>
-                     (format "%s %s [%s] - %s%s"
-                             timestamp (-> level name clojure.string/upper-case) ns (or message "")
-                             (or (log/stacktrace throwable "\n" (when nofonts? {})) ""))))
+  (log/swap-config! #(assoc % :output-fn log-output-fn))
   (log/merge-config! cfg))
-
 
 
 (defn show-console-progress!
