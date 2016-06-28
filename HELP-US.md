@@ -58,9 +58,9 @@ We have built some deployment descriptors for early versions
 of Kubernetes, we need now to revisit these and provide a
 production ready solution for various sizes.
 
-## Qanal re-design
+## Qanal redesign
 
-_Skills required: Kafka, ElasticSearch, Clojure_
+_Skills required: Kafka, Cloud, ElasticSearch, Clojure, Distributed System design_
 
 We started to redesign a new implementation of our indexing system
 (Qanal).  Qanal takes processed data from Kafka topics and index the
@@ -71,17 +71,43 @@ you just need to add more nodes).
 Some of the new design description and implementation are already
 on their way and you can see more [here](https://github.com/samsara/samsara/blob/qanal-refactor/qanal/doc/state-machine.md)
 
-However following the recent release of
-[Kafka Connectors](http://www.confluent.io/developers/connectors) we
-are thinking that probably we could use this new technology and one of
-the ready made component to better achieve our goals.
+Much of the work here will be in common with the redesign of the CORE.
+The key decisions for the redesign are:
 
-The work to do here is to understand better the capabilities of the
-Kafka-ElasticSearch Connector and see if this fits what we are trying
-to achieve. In the best option we can replace completely Qanal with a
-ready-made connector. In the worst case, we will need to develop
-ourselves.
+  - Platform independence: it should be able to to run in the same
+    way whether it is running with Kafka, with Kinesis or Azure
+    MessageHubs
+  - Elastically Scalable: Design a protocol for sharing the topics
+    and partitions to process across all available processing resources
+  - Fault-tolerant: make sure it is able to recover from any sort
+    of issue.
 
-### Core re-design.
+### Core redesign.
 
-_Skills required: Kafka, Kafka-Streams, Clojure_
+See: Qanal redesign
+
+Additional goal for core is to simplify the processing subsystem to use
+just simple function and produce less garbage during the processing.
+
+_Skills required: Kafka, Cloud, ElasticSearch, Clojure, Distributed System design_
+
+
+### Module system design.
+
+The pluggable modules are the real long term benefit of Samsara.
+The aim is to design a number of common functions required
+by many analytics systems and provide them as built-in modules.
+Modules must be loadable dynamically and be configurable.
+
+Modules have to compile a pipeline, and since pipelines may
+contains more pipelines modules can compose indefinitely.
+
+When we talk about pipeline here we mean Moebius' pipelines.
+From a high level view a module should be seen just a function
+which takes a configuration and returns a pipeline, such as:
+
+    (my-module config) -> pipeline
+
+A way to configure modules and load them must be designed.
+Initially thought about Components, but now not sure it is
+actually the right idea.
