@@ -110,12 +110,12 @@
          (update-in [:snapshot sourceId] f)
          ;; add a tx-log record
          ((fn [{:keys [version tx-log snapshot] :as data}]
-            (update-in data [:tx-log] conj
-                       {:timestamp (System/currentTimeMillis)
-                        :sourceId sourceId
-                        :eventName EVENT-STATE-UPDATED
-                        :version (version sourceId)
-                        :value (snapshot sourceId)}))))))
+            (update data :tx-log conj
+                    {:timestamp (System/currentTimeMillis)
+                     :sourceId sourceId
+                     :eventName EVENT-STATE-UPDATED
+                     :version (version sourceId)
+                     :value (snapshot sourceId)}))))))
 
 
   (tx-log [kvstore]
@@ -142,7 +142,7 @@
   (flush-tx-log [kvstore tx-log]
     (InMemoryKVstore.
      (-> (:data kvstore)
-         (update-in [:tx-log] #(apply vector (drop (count tx-log) %)))))))
+         (update :tx-log #(apply vector (drop (count tx-log) %)))))))
 
 
 (defn make-in-memory-kvstore []

@@ -178,8 +178,8 @@
        ;; when :a is 2 then emits a.2, a.3, a.4
        (let [f (fn [{a :a :as e}]
                  (when (= a 2)
-                   [(update-in e [:a] inc)
-                    (update-in e [:a] (comp inc inc))]))]
+                   [(update e :a inc)
+                    (update e :a (comp inc inc))]))]
 
          (cycler (pipeline (as-correlator- f))
           1 [{:a 1} {:a 2} {:a 5}])
@@ -203,8 +203,8 @@
                nob4 (as-filterer- (fn [{b :b :as e}] (not= 4 b)))
                cor  (as-correlator- (fn [{a :a :as e}]
                                       (when (= a 2)
-                                        [(update-in e [:a] inc)
-                                         (update-in e [:a] (comp inc inc))])))
+                                        [(update e :a inc)
+                                         (update e :a (comp inc inc))])))
                cor2 (as-correlator- (fn [{a :a :as e}]
                                       (when (= a 3)
                                         [{:a 5}
@@ -406,8 +406,8 @@
              nob4 (as-filterer- (fn [{b :b :as e}] (not= 4 b)))
              cor  (as-correlator- (fn [{a :a :as e}]
                                 (when (= a 2)
-                                  [(update-in e [:a] inc)
-                                   (update-in e [:a] (comp inc inc))])))
+                                  [(update e :a inc)
+                                   (update e :a (comp inc inc))])))
              cor2 (as-correlator- (fn [{a :a :as e}]
                                 (when (= a 3)
                                   [{:a 5}

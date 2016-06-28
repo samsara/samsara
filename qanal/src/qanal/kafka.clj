@@ -82,7 +82,7 @@
 (defn unmarshall-values
   "Decodes json messages into clojures maps, or set it to nil if it can't"
   [msg]
-  (update-in msg [:value] (comp from-json-safe bytes->string)))
+  (update msg :value (comp from-json-safe bytes->string)))
 
 (defn get-messages
   "Uses the provided arguments to consume kafka messages and return the messages in a lazy sequence.
@@ -212,7 +212,7 @@
     (with-open [consumer (zs/consumer host port (get config :group-id "metadata-consumer"))]
       (->>
        (zs/topic-meta-data consumer topics)
-       (map #(update-in % [:partition-metadata] (partial index-by :partition-id)))
+       (map #(update % :partition-metadata (partial index-by :partition-id)))
        (index-by :topic)))))
 
 
