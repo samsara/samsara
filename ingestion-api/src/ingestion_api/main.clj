@@ -5,6 +5,7 @@
             [com.stuartsierra.component :as component]
             [ingestion-api.system :refer [ingestion-api-system]]
             [samsara.trackit :refer [set-base-metrics-name! start-reporting!]]
+            [samsara.utils :refer [log-fmt-fn]]
             [synapse.synapse :refer [load-config-file!]]
             [taoensso.timbre :as log]))
 
@@ -117,24 +118,10 @@ DESCRIPTION
 
 
 
-(defn- log-output-fn
-  ([data] (log-output-fn nil data))
-  ([{:keys [no-stacktrace?] :as opts}
-    {:keys [level ?err_ msg_ timestamp_ hostname_ ?ns-str] :as data}]
-   ;; <timestamp> <LEVEL> [<ns>] - <message> <throwable>
-   (format "%s %s [%s] - %s%s"
-           (force timestamp_)
-           (clojure.string/upper-case (name level))
-           ?ns-str
-           (or (force msg_) "")
-           (if-let [err (and (not no-stacktrace?) (force ?err_))]
-             (str "\n" (log/stacktrace err opts))
-             ""))))
-
 (defn- init-log!
   "Initializes log settings"
   [cfg]
-  (log/swap-config! #(assoc % :output-fn log-output-fn))
+  (log/swap-config! #(assoc % :output-fn log-fmt-fn))
   (log/merge-config! cfg))
 
 

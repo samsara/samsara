@@ -1,7 +1,7 @@
 (ns samsara-core.main
   (:require [samsara-core.samza :as samza]
             [samsara-core.kernel :as kern])
-  (:require [samsara.utils :refer [stoppable-thread]])
+  (:require [samsara.utils :refer [stoppable-thread log-fmt-fn]])
   (:require [samsara-core.utils :as utils])
   (:require [clojure.java.io :as io])
   (:require [taoensso.timbre :as log])
@@ -143,24 +143,10 @@ DESCRIPTION
        (kern/normalize-streams-with-defaults)))
 
 
-(defn- log-output-fn
-  ([data] (log-output-fn nil data))
-  ([{:keys [no-stacktrace?] :as opts}
-    {:keys [level ?err_ msg_ timestamp_ hostname_ ?ns-str] :as data}]
-   ;; <timestamp> <LEVEL> [<ns>] - <message> <throwable>
-   (format "%s %s [%s] - %s%s"
-           (force timestamp_)
-           (clojure.string/upper-case (name level))
-           ?ns-str
-           (or (force msg_) "")
-           (if-let [err (and (not no-stacktrace?) (force ?err_))]
-             (str "\n" (log/stacktrace err opts))
-             ""))))
-
 (defn- init-log!
   "Initializes log settings"
   [cfg]
-  (log/swap-config! #(assoc % :output-fn log-output-fn))
+  (log/swap-config! #(assoc % :output-fn log-fmt-fn))
   (log/merge-config! cfg))
 
 

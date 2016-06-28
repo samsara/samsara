@@ -171,3 +171,21 @@
                  in  (GZIPInputStream. (ByteArrayInputStream. gzipped-string))]
        (io/copy in out)
        (.toString out encoding)))))
+
+(defn log-fmt-fn
+  "This function is for use by the timbre logging library.
+   It's used by associating it with the :output-fn keyword in timbre's config.
+   It returns a log message in the following format.
+   \"<timestamp> <LEVEL> [<ns>] - <message> <throwable>\""
+  ([data] (log-fmt-fn nil data))
+  ([{:keys [no-stacktrace?] :as opts}
+    {:keys [level ?err_ msg_ timestamp_ hostname_ ?ns-str] :as data}]
+   ;; <timestamp> <LEVEL> [<ns>] - <message> <throwable>
+   (format "%s %s [%s] - %s%s"
+           (force timestamp_)
+           (clojure.string/upper-case (name level))
+           ?ns-str
+           (or (force msg_) "")
+           (if-let [err (and (not no-stacktrace?) (force ?err_))]
+             (str "\n" (log/stacktrace err opts))
+             ""))))
