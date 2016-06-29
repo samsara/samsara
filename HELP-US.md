@@ -111,3 +111,9 @@ which takes a configuration and returns a pipeline, such as:
 A way to configure modules and load them must be designed.
 Initially thought about Components, but now not sure it is
 actually the right idea.
+
+
+### Leiningen template
+
+To simplify development of stream processing create a leiningen
+template with a basic skeleton for samsara-core.
