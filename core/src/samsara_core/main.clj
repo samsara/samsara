@@ -146,7 +146,7 @@ DESCRIPTION
 (defn- init-log!
   "Initializes log settings"
   [cfg]
-  (log/swap-config! #(assoc % :output-fn log-fmt-fn))
+  (log/swap-config! assoc :output-fn log-fmt-fn)
   (log/merge-config! cfg))
 
 

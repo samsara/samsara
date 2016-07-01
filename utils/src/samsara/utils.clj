@@ -179,13 +179,13 @@
    \"<timestamp> <LEVEL> [<ns>] - <message> <throwable>\""
   ([data] (log-fmt-fn nil data))
   ([{:keys [no-stacktrace?] :as opts}
-    {:keys [level ?err_ msg_ timestamp_ hostname_ ?ns-str] :as data}]
+    {:keys [level ?err msg_ timestamp_ ?ns-str] :as data}]
    ;; <timestamp> <LEVEL> [<ns>] - <message> <throwable>
    (format "%s %s [%s] - %s%s"
            (force timestamp_)
            (clojure.string/upper-case (name level))
            ?ns-str
            (or (force msg_) "")
-           (if-let [err (and (not no-stacktrace?) (force ?err_))]
+           (if-let [err (and (not no-stacktrace?) ?err)]
              (str "\n" (log/stacktrace err opts))
              ""))))

@@ -10,7 +10,7 @@
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [prismatic/schema "0.4.3"]                ;; schema validation
-                 [com.taoensso/timbre "4.0.2"]             ;; logging
+                 [com.taoensso/timbre "4.5.1"]             ;; logging
                  ;;[samsara/trackit "0.2.0"]
                  [org.clojure/core.match "0.3.0-alpha4"]   ;; pattern-matching
                  [potemkin "0.3.13"]                       ;; import-var

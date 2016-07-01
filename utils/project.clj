@@ -10,7 +10,7 @@
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [cheshire "5.5.0"]
-                 [com.taoensso/timbre "4.0.2"]
+                 [com.taoensso/timbre "4.5.1"]
                  [com.brunobonacci/safely "0.2.1"]]
 
   :profiles {:dev {:dependencies [[midje "1.8.2"]]
