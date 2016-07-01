@@ -282,7 +282,7 @@
 (defmacro forever-do [name sleep & body]
   `(let [_sleep#   (or ~sleep 1000)
          _name#    ~name]
-     (async/thread
+     (future
        (while true
          (safe-exec (str "" _name# ", will retry in " _sleep# "ms")
            ~@body)
