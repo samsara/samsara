@@ -32,6 +32,10 @@ This configures the `-Xmx` Java option.
 It is recommended to give some memory for the off-heap
 data and the page-cache.
 
+* `ELS_NUMBER_OF_REPLICAS` : (default: 2)
+For each primary shard, this configures the number
+of replicas that elasticsearch will create by default.
+
 * `ADV_IP`: (default to conatiner ip)
 The IP address to advertise to the clients
 
@@ -83,11 +87,11 @@ docker run -d -p 9200:9200 -p 9300:9300 -p 15000:15000 \
 * `1.5.2b` - ELS `1.5.2` patch update
 * `1.6.2`  - ELS `1.6.2` Minor ELS version update
 * `1.6.2b` - ELS `1.6.2b` Added AWS plugin
-
+* `2.3.3`  - ELS `2.3.3` Major ELS version update
 
 
 ## Copyright & License
 
-Copyright © 2015 Samsara's authors.
+Copyright © 2016 Samsara's authors.
 
 Distributed under the Apache License v 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
