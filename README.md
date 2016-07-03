@@ -30,6 +30,8 @@ Samsara is a big projects and we need help. If you are interested
 in contributing please have a look to the [contribution list](HELP-US.md) and
 find something you can help us to develop.
 
+If you wish contribute please read [Getting involved with development](/docs/development/get-involved.md)
+
 ## License
 
 Copyright © 2015 Samsara's authors.
