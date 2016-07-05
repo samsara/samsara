@@ -24,3 +24,7 @@ __Deploy and run:__
   * [Deployment options](operations/cloud-templates.md)
   * Monitoring
   * Operations
+
+__Get involved:__
+
+  * [Get involved](development/get-involved.md) with Samsara's development.

@@ -2,9 +2,11 @@
 
 If you wish to get involved with the Samsara's development, follow these steps.
 
-   - Read the `HELP-US.md` to see what contributions we are looking for.
-   - If you have found something you wish contribute or you have something
-     else in mind speak to us by writing a mail to: `samsara [dot] systems+info at gmail [dot] com`
+   - Read the `HELP-US.md` (in the project's root) to see what
+     contributions we are looking for.
+   - If you have found something you wish contribute or you have
+     something else in mind speak to us by writing a mail to: `samsara
+     [dot] systems+info at gmail [dot] com`
    - We will invite you to our Slack channel where you can talk with
      the authors and other contributors and propose your suggestions.
    - Then try to run the system following the [Quick Start guide](/docs/quick-start.md)
