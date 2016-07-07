@@ -1,4 +1,10 @@
-# Get Involved
+---
+layout: page
+title: Get Involved
+subtitle: Get Involved with Samsara's developemnt
+nav: documentation
+---
+
 
 If you wish to get involved with the Samsara's development, follow these steps.
 
