@@ -112,12 +112,14 @@ A way to configure modules and load them must be designed.
 Initially thought about Components, but now not sure it is
 actually the right idea.
 
+_Skills required: Clojure_
 
 ### Leiningen template
 
 To simplify development of stream processing create a leiningen
 template with a basic skeleton for samsara-core.
 
+_Skills required: Clojure_
 
 ### Improving website
 
@@ -127,7 +129,10 @@ dynamic, and fresh like any modern website.
 Also on the documentation side there is much need of help with good clear
 guides as well as examples.
 
+_Skills required: HTML, CSS, Jekyll_
 
 ### Logo
 
 Are you a web designer? Samsara is looking for a logo as well.
+
+_Skills required: Web-design_
