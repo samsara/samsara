@@ -117,3 +117,17 @@ actually the right idea.
 
 To simplify development of stream processing create a leiningen
 template with a basic skeleton for samsara-core.
+
+
+### Improving website
+
+We would greatly appreciate help on getting the website look more polished,
+dynamic, and fresh like any modern website.
+
+Also on the documentation side there is much need of help with good clear
+guides as well as examples.
+
+
+### Logo
+
+Are you a web designer? Samsara is looking for a logo as well.
