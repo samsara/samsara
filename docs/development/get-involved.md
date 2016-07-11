@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Get Involved
-subtitle: Get Involved with Samsara's developemnt
+subtitle: "Get Involved with Samsara's development"
 nav: documentation
 ---
 
