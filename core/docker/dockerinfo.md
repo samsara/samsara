@@ -6,35 +6,46 @@ Starts a processing pipeline node which will start consuming messages from the I
 
 | Port  | Description             |
 |-------|-------------------------|
+| 4500  | nREPL                   |
 | 15000 | Supervisord web console |
+
 
 
 ## Dependencies
   - Kafka broker **REQUIRED**
   - Zookeeper **REQUIRED**
-
+  - Reinmann
 
 ## Volumes used
 
 *  `/logs` for application logs
 
 
-## Configuration
+## Configurable options
 
-The configuration is a EDN file with the following format.
+* `SAMZA_CONFIG`: (default `""`)
+Configuration options to override default Samza options.
 
-```
-{:topics
-	{:job-name "Samsara"
-	 :input-topic "ingestion"
-	 :output-topic "events"
-	 ;; a CSV list of hosts and ports (and optional path)
-	 :zookeepers "127.0.0.1:2181"
-	 ;; a CSV list of host and ports of kafka brokers
-	 :brokers "127.0.0.1:9092"
-	 :offset :smallest}
-}
-```
+* `SINGLE_BROKER`: (default `false`)
+A flag for whether to use a single kafta broker or not
+
+* `INPUT_TOPIC`: (default: `ingestion`)
+The kafka topic where the events are ingested.
+
+* `INPUT_PARTITIONS`: (default `:all`)
+The kafta topic partitions to ingest from.
+
+* `JOB_NAME`: (default `Samsara`)
+The name of the job to be executed.
+
+* `OFFSET_RESET`:
+The topic's log offset to start fetching from.
+
+* `TRACKING_ENABLED` (default: `false`)
+Whether the system should send tracking metrics to Riemann.
+
+* `HOSTNAME` (default: `samsara-core`)
+The prefix to use in Reimann, prepended with `samsara.core.`
 
 ## Usage
 

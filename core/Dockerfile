@@ -13,7 +13,7 @@ ADD ./docker/samsara-core-supervisor.conf /etc/supervisor/conf.d/
 # 4500  - nREPL
 EXPOSE 15000 4555
 
-# ingestion-api logs
+# pipeline logs
 VOLUME ["/logs"]
 
 CMD /configure-and-start.sh
