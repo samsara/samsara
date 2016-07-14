@@ -12,9 +12,9 @@ Starts a processing pipeline node which will start consuming messages from the I
 
 
 ## Dependencies
-  - Kafka broker **REQUIRED**
-  - Zookeeper **REQUIRED**
-  - Reinmann
+  - 1 or more Kafka brokers **REQUIRED**
+  - 1 or more Zookeepers **REQUIRED**
+  - Reinmann **REQUIRED if TRACKING_ENABLED**
 
 ## Volumes used
 
@@ -22,6 +22,14 @@ Starts a processing pipeline node which will start consuming messages from the I
 
 
 ## Configurable options
+
+* `KAFKA_1_PORT_9092_TCP_ADDR` .. `KAFKA_n_PORT_9092_TCP_ADDR` : **REQUIRED*
+The IP address of the Kafka broker, you can specify more than one broker.
+This also supports the Docker link format.
+
+* `ZOOKEEPER_1_PORT_2181_TCP_ADDR` .. `ZOOKEEPER_n_PORT_2181_TCP_ADDR` : **REQUIRED*
+The IP address of the Zookeeper client, you can specify more than one broker.
+This also supports the Docker link format.
 
 * `SAMZA_CONFIG`: (default `""`)
 Configuration options to override default Samza options.
@@ -38,11 +46,17 @@ The kafta topic partitions to ingest from.
 * `JOB_NAME`: (default `Samsara`)
 The name of the job to be executed.
 
-* `OFFSET_RESET`:
-The topic's log offset to start fetching from.
+* `OFFSET_RESET`: (default `:smallest`)
+The topic's log offset to start fetching from, can be in `:smallest` or `:largest`.
 
 * `TRACKING_ENABLED` (default: `false`)
 Whether the system should send tracking metrics to Riemann.
+
+* `RIEMANN_PORT_5555_TCP_ADDR` (default: `localhost`)
+If the `TRACKING_ENABLED` is true, then the IP of a Riemann.
+
+* `RIEMANN_PORT_5555_TCP_PORT` (default: `5555`)
+The Riemann port where to send all the metrics.
 
 * `HOSTNAME` (default: `samsara-core`)
 The prefix to use in Reimann, prepended with `samsara.core.`
