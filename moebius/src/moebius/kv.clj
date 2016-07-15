@@ -1,7 +1,7 @@
 (ns moebius.kv
   "This namespace provides the protocols for a Key/Value store
   and the operations necessary to persist and restore its state.
-  There is also an implementation for of an in-memory store
+  There is also an implementation of an in-memory store
   which relies on Clojure immutable maps."
   (:refer-clojure :exclude [set get update]))
 
@@ -14,7 +14,7 @@
 ;;
 ;; The core of the state management is done via this KeyValue store.
 ;; As a normal K/V store you can `set`/`get` or delete (`del`)
-;; an arbitrary key. The value will stored and persisted together
+;; an arbitrary key. The value is stored and persisted together
 ;; with the output events in such way that if the process fail
 ;; before persisting the values, the state will be restored
 ;; to the value they had before processing the requests.
@@ -25,19 +25,19 @@
 ;; The K/V store is distributed across all processing machines.
 ;; The sharding strategy follows the same strategy of the events
 ;; processing.
-;; Part of the key is the `sourceId` of the event you are processing
-;; it is required. It is really important to provide the same `sourceId`
-;; of the events in order to guarantee that the state is restored in
+;; Part of the key is the `sourceId` of the event you are processing.
+;; It is really important to provide the same `sourceId`
+;; across the events in order to guarantee that the state is restored in
 ;; the same place.
 ;;
 ;; In order worlds the Distributed K/V Store will be distributed
-;; in the exact same way of the events, guaranteeing that a certain
-;; key will always be local to a the task which is processing a certain
-;; event with the same `sourceId`.
+;; in the exact same way as the events, guaranteeing that a certain
+;; key will always be local to the task which is processing events
+;; with the same `sourceId`.
 ;;
 
 ;;
-;; This protocol contains the function to manage the state
+;; This protocol contains the functions to manage the state
 ;; from a pipeline user perspective. The KeyValue store
 ;; can be backed by several different implementations
 ;; depending on the runtime configuration.

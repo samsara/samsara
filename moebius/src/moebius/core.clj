@@ -14,8 +14,8 @@
 
 (defn- stepper
   "It returns a function which performs a single step in the cycle. It
-  process the first event from the `to-process` and put the result in
-  `processed` if not `nil`. When the result is expanded with multiple
+  processes the first event from the `to-process` and puts the result in
+  `processed` if it's not `nil`. When the result is expanded with multiple
   events then these are added to head of `to-process`."
   [f]
   (fn [{:keys [to-process processed state] :as domain}]
@@ -29,18 +29,18 @@
 
 
 (defn- cycler
-  "It takes a functional and a list of events.
-  The function `f` must return a list of 0, 1 or more elements.  When
-  the `f` returns an empty list, the event it has been filtered
-  out. When the function `f` returns only 1 element it is commonly
-  referred as enrichment process. When the `f` returns more than one
-  elements the first one is typically the event which has been
-  processed and any additional are correlated events which will be put
-  back in the cycle to to follow the same process. If you whish to
-  just `expand` and event (given an event produce 2 or more events and
-  discard the original event) then all you need to do is return a list
-  of events in which the first element is `nil`.  This is called
-  expansion.
+  "It takes a function and a list of events.
+  The function `f` takes a single event and must return a list
+  of 0 or more elements. When `f` returns an empty list,
+  the element has been filtered out. When the function `f` returns
+  only 1 element it is commonly referred as an enrichment process.
+  When the `f` returns more than one elements the first one is typically
+  the event which has been processed and any additional are correlated
+  events which will be put back in the cycle to to follow the same process.
+  If you wish to just `expand` the event (given an event produce 2 or
+  more events and discard the original event) then all you need to
+  do is return a list of events in which the first element is `nil`.
+  This is called expansion.
   "
   [f state events]
   (->> (stepper f)
@@ -77,7 +77,7 @@
 
 (defn- generic-wrapper
   "Generic wrapper to transform the output of processing functions
-  into the format accepted by the `cycler`.  The internal cycle expect
+  into the format accepted by the `cycler`.  The internal cycle expects
   a function which takes one parameter composed of
   `[state [event & tail]]` and return the new state and a new list
   of events."
@@ -118,11 +118,11 @@
 
 
 (defn- correlator-wrapper
-  "Takes a function which accept an event and turns the output into
+  "Takes a function which accepts an event and turns the output into
   something expected by the cycler.
-  If the correlation function return nil, the state in left
+  If the correlation function return nil, the state is left
   unchanged and no event is generated.
-  If the state is changed, it need to be propagated even if no
+  If the state is changed, it needs to be propagated even if no
   events are generated. If the state is changed and 1 or more
   events are generated then the new state must be returned
   and all events must be added to the processing queue.

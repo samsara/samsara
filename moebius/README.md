@@ -1,6 +1,6 @@
 # Möbius (Moebius)
 
-A system to process and enrich and correlate events in realtime.
+A system to process, enrich and correlate events in realtime.
 
 
 ![Moebius strip](./doc/images/Moebius_strip.png)
@@ -8,18 +8,18 @@ A system to process and enrich and correlate events in realtime.
 
 ## Usage
 
-Moebius contains a set of function which helps you to perform
-tranformations on a stream of events.  Moebius processes Samsara's
+Moebius contains a set of functions which help you to perform
+tranformations on a stream of events. Moebius processes Samsara's
 events which are defined as follow.
 
 ```Clojure
-{:timestamp 1430760258405           ; milliseconds from EPOC
+{:timestamp 1430760258405           ; milliseconds from EPOCH
  :eventName "any.meaningful.name"   ; a descriptive name for an event (typically dotted)
  :sourceId  "any-identifier"}       ; an identifier of the who is sending the event (such as: userId, deviceId, clientId etc)
 ```
 
 This is the minimal event which could be sent to Samsara. However you
-can speficfy additional properties as part of the event such as:
+can specify additional properties as part of the event such as:
 
 ```Clojure
 {:timestamp   1430760258405
@@ -33,7 +33,7 @@ can speficfy additional properties as part of the event such as:
 
 How Moebius works is better explained with an example.
 
-Let's assume we have an imaginary game called "Apocalypse now" which sends
+Let's assume we have an imaginary game called "Apocalypse Now" which sends
 to Samsara the following events:
 
 ```Clojure
@@ -50,7 +50,7 @@ to Samsara the following events:
 
 ### Enrichment
 
-Let's say that in our server we manage multiple game, and we want to be able to distinguish
+Let's say that in our server we manage multiple games, and we want to be able to distinguish
 the events coming from this game from those of other games. To do so we can `enrich` every
 incoming event from a specific endpoint with an attribute `:game-name`.
 To do so we use an enrichment function which takes an event as argument and injects the game name.
@@ -78,7 +78,7 @@ This function will add the `:game-name` attribute with the value
 ```
 
 Easy enough. Next thing we would like to do is to inject the current
-level to all "game.level.completed" events. By doing so we will simplify
+level to all "game.level.completed" events. By doing so we simplify
 queries such as "Average current level over time".
 
 ```Clojure
@@ -90,7 +90,7 @@ queries such as "Average current level over time".
 
 This is another enrichment example as we `enrich` a particular set of
 events with additional information. `when-event-name-is` compares the `eventName`
-to a given name. `inject-as` it assoc the `:level` property into the event,
+to a given name. `inject-as` ingests the `:level` property into the event,
 as long as the value is not `nil`. Now every "game.level.completed" event
 will be enriched with this new property. All others will be left unchanged.
 Let's try it out.
@@ -115,10 +115,10 @@ Let's try it out.
 ;;=> nil
 ```
 
-When applied to a non matching event, the `when`-like clause will
+When applied to a non-matching event, the `when`-like clause will
 return `nil` and the pipeline processor will interpret this as if you
 don't want to change the event. This is just a little simplification
-to avoid having to return the original event when you do want to
+to avoid having to return the original event when you don't want to
 change it. In case you want to discard the event, then you can use
 the `deffilter` macro to define a filter.
 
@@ -129,7 +129,7 @@ Sometimes you want to filter out some of the events you receive. Although
 this is not very frequent it might still happen. Usually is better to store
 everything as you never know if in the future you will need these events.
 
-So if you want to fiter some events you can create a filter with `deffilter`.
+So if you want to filter some events you can create a filter with `deffilter`.
 Let's assume that we want to remove all events called "game.ad.displayed":
 
 
@@ -157,14 +157,14 @@ Let's assume that we want to remove all events called "game.ad.displayed":
 
 Another interesting capability of a stream processing system is to
 generate/derive new events from a given event.  The capability to
-generate new events is very important in order to keep client small and
+generate new events is very important in order to keep the client small and
 send only a minimal number of significant events and do the hard work
 on the server side.
 
 In our example let's assume that every time a user starts from the
 `level 1` it means that a new user is starting the game. Obviously most
 of the time there are better ways to find if there are new users playing
-with your new game, but for the sake of this example let's assume that
+with your new game, but for the sake of this example let's assume that to
 derive this information in this way it make sense. So let's write a
 correlation function.
 
@@ -177,11 +177,11 @@ correlation function.
     [{:timestamp timestamp :sourceId sourceId :eventName "game.new.player"}]))
 ```
 
-A correlation function can return `nil`, `[]`, *1 or more events`.
+A correlation function can return `nil`, `[]`, or 1 or more events.
 **Every new event generated here will be processed by the same
 Moebius pipeline as if was send by the client**.
 In this case when the event matches the criteria selected,
-an new event is returned. Let's try it into the REPL.
+a new event is returned. Let's try it into the REPL.
 
 ```Clojure
 (new-player {:eventName "game.started"
@@ -212,7 +212,7 @@ Now let's put all the things together into a single streaming function.
          new-player))
 ```
 
-`moebius` return a function which will apply all composed functions to
+`moebius` returns a function which will apply all composed functions to
 **all given events**. It takes an initial state as well, however if
 all processing functions are stateless, the state will be returned
 unchanged. We will explore more about the stateful processing later.
@@ -249,15 +249,15 @@ batches of any size.
 
 ## Pattern matching
 
-Sometimes it is easier to express the complicate conditions in terms of
+Sometimes it is easier to express complicated conditions in terms of
 pattern matching. For this purpose we integrate
-[core.match](https://github.com/clojure/core.match).  The macro
-`when-event-match` allows to match an event based on its
-properties. Pattern are processed in order of appearance so if you have
-multiple pattern matching the first one appearing in the list is going
-to be matched and the associated expression will be executed.
+[core.match](https://github.com/clojure/core.match). The macro
+`when-event-match` matches an event based on its
+properties. Patterns are processed in order of appearance so if you have
+multiple pattern matches the the associated expression of the
+first one appearing in the list is will be executed.
 If nothing matches, then the event is return unchanged.
-To support this an implicit `:else` statement is included in the match,
+To support this, an implicit `:else` statement is included in the match,
 so you can't use it in your match expressions.
 
 
@@ -284,7 +284,7 @@ leverage the glob matching facilities provided by the framework.
 The glob matching works by matching `*` _to any single segment_ and
 matching `**` to _multiple segments_.
 
-Here some example of glob matching.
+Here are some examples of glob matching.
 
 ```Clojure
 (match-glob "game.*.started"  "game.level.started")   ;;=> truthy
@@ -295,7 +295,7 @@ Here some example of glob matching.
 (match-glob "game.**.ended"   "game.1.2.3.ended")     ;;=> truthy
 ```
 
-To use you simply use in a condition statement:
+To use, you simply use it in a condition statement:
 
 ```Clojure
 (defenrich current-level
