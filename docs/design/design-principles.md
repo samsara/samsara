@@ -736,7 +736,7 @@ diagram with the different functions.
 Enrichment, filtering, correlation and the ability to compose them
 into pipelines are provided as a library called `moebius` which is
 part of Samsara. I've designed this as a separate library so that your
-processing pipelines can be designed, build, and **tested**, in
+processing pipelines can be designed, built, and **tested**, in
 complete isolation using just pure functions without requiring a
 running cluster or complex testing infrastructure. Once your
 processing pipelines are build you can test them by providing events
