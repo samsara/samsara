@@ -11,6 +11,10 @@ __(most recent on top)__
   * ingestion-api: separated client endpoint from admin endpoint
   * ElasticSearch: updated to **v2.3.3** (TODO: migration notes)
 
+### Deprecated APIs
+  * `moebius.kv/tx-log` deprecated in favor of checkpointing
+  * `moebius.kv/flush-tx-log` deprecated in favor of `checkpoint-tx-log`
+
 ### Other changes
 
   * docker: all containers migrated to Alpine Linux 3.4 for smaller footprint

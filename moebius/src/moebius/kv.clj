@@ -70,14 +70,29 @@
   (snapshot [kvstore]
     "Return the current value of the kvstore")
 
-  (tx-log [kvstore]
-    "Return the current Transaction log")
+  (tx-log
+    [kvstore] ;; deprecated use next
+    [kvstore checkpoint?]
+    "Return the current Transaction log with a optional checkpoint mark")
 
   (restore [kvstore tx-log]
     "restore the state of a KV store from a given txlog")
 
-  (flush-tx-log [kvstore tx-log]
-    "Flushes out the given tx-log from the pending transactions."))
+  (flush-tx-log [kvstore tx-log] ;; use checkpoint-tx-log instead
+    "Flushes out the given tx-log from the pending transactions.")
+
+  (checkpoint-tx-log [kvstore checkpoint]
+    "Flushes out the given tx-log from the pending transactions.")
+  )
+
+
+
+(defn- pop-while
+  "like drop-while but for the queue"
+  [pred queue]
+  (if (and (peek queue) (pred (peek queue)))
+    (recur pred (pop queue))
+    queue))
 
 
 
@@ -105,21 +120,31 @@
     (InMemoryKVstore.
      (-> (:data kvstore)
          ;; increment version number
-         (update-in [:version sourceId] #(inc (or % 0)))
+         (update-in [:version sourceId] (fnil inc 0))
          ;; update the given key
          (update-in [:snapshot sourceId] f)
+         ;; update tx-log counter
+         (clojure.core/update :tx-checkpoint inc)
          ;; add a tx-log record
-         ((fn [{:keys [version tx-log snapshot] :as data}]
+         ((fn [{:keys [version tx-log snapshot tx-checkpoint] :as data}]
             (clojure.core/update data :tx-log conj
-                                 {:timestamp (System/currentTimeMillis)
-                                  :sourceId sourceId
-                                  :eventName EVENT-STATE-UPDATED
-                                  :version (version sourceId)
-                                  :value (snapshot sourceId)}))))))
+                                 [tx-checkpoint
+                                  {:timestamp (System/currentTimeMillis)
+                                   :sourceId sourceId
+                                   :eventName EVENT-STATE-UPDATED
+                                   :version (version sourceId)
+                                   :value (snapshot sourceId)}]))))))
 
 
   (tx-log [kvstore]
-    (-> kvstore :data :tx-log))
+    (->> kvstore :data :tx-log (map second)))
+
+
+  (tx-log [kvstore checkpoint?]
+    (if checkpoint?
+      (let [checkpoint (->> kvstore :data :tx-checkpoint)]
+        [checkpoint (->> kvstore :data :tx-log (map second))])
+      (tx-log kvstore)))
 
 
   (snapshot [kvstore]
@@ -142,8 +167,16 @@
   (flush-tx-log [kvstore tx-log]
     (InMemoryKVstore.
      (-> (:data kvstore)
-         (clojure.core/update :tx-log #(apply vector (drop (count tx-log) %)))))))
+         (clojure.core/update :tx-log #(apply vector (drop (count tx-log) %))))))
+
+
+  (checkpoint-tx-log [kvstore checkpoint]
+    (InMemoryKVstore.
+     (-> (:data kvstore)
+         (clojure.core/update :tx-log (partial pop-while #(<= (first %) checkpoint)))))))
 
 
 (defn make-in-memory-kvstore []
-  (InMemoryKVstore. {:version {} :snapshot {} :tx-log []}))
+  (InMemoryKVstore.
+   {:version {} :snapshot {}
+    :tx-log (clojure.lang.PersistentQueue/EMPTY) :tx-checkpoint 0}))

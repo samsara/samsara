@@ -23,6 +23,8 @@
                                   [org.clojure/test.check "0.8.2"]]
                    :plugins [[lein-midje "3.1.3"]]}}
 
+  :jvm-opts ["-server" "-Dfile.encoding=utf-8"]
+
   :aliases {"test-check" ["midje" ":filters" "test-check"]
             "test"       ["midje"]
             "quick-test" ["midje" ":filters" "-slow"]})

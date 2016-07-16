@@ -243,6 +243,48 @@
 
 
 
+(facts "about Tx-Log protocol: checkpoint-tx-log must be able to flush the transactions up to the given checkpoint"
+
+       ;; flushing a tx-log which hasn't changed should empty it
+       (let [kv0 (kv/make-in-memory-kvstore)
+             kv1 (-> kv0
+                     (kv/set "s1" "key1" "v1")
+                     (kv/set "s2" "key1" "vB")
+                     (kv/set "s1" "key1" "v2")
+                     (kv/del "s1" "key1")
+                     (kv/set "s2" "key2" "vC"))
+
+             [checkpoint txlog] (kv/tx-log kv1 true)
+
+             kvf (kv/checkpoint-tx-log kv1 checkpoint)]
+
+         (second (kv/tx-log kvf true)) => [])
+
+
+
+       ;; flushing a tx-log which has changed should remove
+       ;; only the given tx
+       ;; this test isn't nice as expose inner structure
+       (let [kv0 (kv/make-in-memory-kvstore)
+             kv1 (-> kv0
+                     (kv/set "s1" "key1" "v1")
+                     (kv/set "s2" "key1" "vB")
+                     (kv/set "s1" "key1" "v2")
+                     (kv/del "s1" "key1")
+                     (kv/set "s2" "key2" "vC"))
+
+             kv2 (-> kv1
+                     (kv/set "s1" "key1" "vz")
+                     (kv/set "s2" "key1" "vz"))
+
+             [checkpoint txlog] (kv/tx-log kv1 true)
+
+             kvf (kv/checkpoint-tx-log kv2 checkpoint)]
+
+         (-> (kv/tx-log kvf true) second count) => 2))
+
+
+
 (facts "about Tx-Log protocol: restore must flushed the tx-log after restore"
 
        ;; mix instructions restore
@@ -297,23 +339,23 @@
                      (kv/set "s1" "key1" "v3")
                      (kv/set "s2" "key2" "vC"))
 
-             txlog1 (conj (kv/tx-log kv1) {:timestamp (System/currentTimeMillis)
-                                           :eventName kv/EVENT-STATE-UPDATED
-                                           :sourceId  "s1"
-                                           :version   1
-                                           :value     {"key1" "DONT-PLAY-ME"}})
+             txlog1 (concat (kv/tx-log kv1) [{:timestamp (System/currentTimeMillis)
+                                               :eventName kv/EVENT-STATE-UPDATED
+                                               :sourceId  "s1"
+                                               :version   1
+                                               :value     {"key1" "DONT-PLAY-ME"}}])
 
-             txlog2 (conj (kv/tx-log kv1) {:timestamp (System/currentTimeMillis)
-                                           :eventName kv/EVENT-STATE-UPDATED
-                                           :sourceId  "s1"
-                                           :version   3
-                                           :value     {"key1" "DONT-PLAY-ME"}})
+             txlog2 (concat (kv/tx-log kv1) [{:timestamp (System/currentTimeMillis)
+                                               :eventName kv/EVENT-STATE-UPDATED
+                                               :sourceId  "s1"
+                                               :version   3
+                                               :value     {"key1" "DONT-PLAY-ME"}}])
 
-             txlog3 (conj (kv/tx-log kv1) {:timestamp (System/currentTimeMillis)
-                                           :eventName kv/EVENT-STATE-UPDATED
-                                           :sourceId  "s1"
-                                           :version   4
-                                           :value     {"key1" "PLAY-ME"}})
+             txlog3 (concat (kv/tx-log kv1) [{:timestamp (System/currentTimeMillis)
+                                               :eventName kv/EVENT-STATE-UPDATED
+                                               :sourceId  "s1"
+                                               :version   4
+                                               :value     {"key1" "PLAY-ME"}}])
              ]
 
          (fact "shouldn't replay a tx log with a smaller version value for s1/key1"
