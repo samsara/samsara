@@ -1,3 +1,10 @@
+---
+layout: page
+title: Samsara Stream processing
+subtitle:
+nav: documentation
+---
+
 Moebius contains a set of functions which help you to perform
 tranformations on a stream of events. Moebius processes Samsara's
 events which are defined as follow.

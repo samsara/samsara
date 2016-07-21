@@ -20,6 +20,11 @@ __Design documents:__
   * [Ingestion API](design/ingestion-api.md)
   * How to scale the system
 
+__Development:__
+
+  * [Getting started with development](development/get-started-core.md)
+  * [Develop your stream processing pipelines](development/stream-processing.md)
+
 __Deploy and run:__
 
   * [Deployment options](operations/cloud-templates.md)
