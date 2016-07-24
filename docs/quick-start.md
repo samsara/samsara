@@ -128,6 +128,14 @@ Finally, to stop all services.
 docker-compose stop
 ```
 
+#### What's next?
+
+If you would like to know more, I would suggest to read a bit more
+about the general [Design principles](/docs/design/design-principles.md)
+and start developing your own stream processing pipeline as described
+in [Getting started with development](/docs/development/get-started-core.md)
+and [Samsara Stream processing](/docs/development/stream-processing.md).
+
 #### Troubleshooting
 
 If something goes wrong and you want a clean start run:
@@ -292,6 +300,14 @@ Finally, to stop all services.
 docker-compose stop
 ```
 
+#### What's next?
+
+If you would like to know more, I would suggest to read a bit more
+about the general [Design principles](/docs/design/design-principles.md)
+and start developing your own stream processing pipeline as described
+in [Getting started with development](/docs/development/get-started-core.md)
+and [Samsara Stream processing](/docs/development/stream-processing.md).
+
 #### Troubleshooting
 
 If something goes wrong and you want a clean start run:
@@ -452,6 +468,14 @@ Finally, to stop all services.
 ```
 docker-compose stop
 ```
+
+#### What's next?
+
+If you would like to know more, I would suggest to read a bit more
+about the general [Design principles](/docs/design/design-principles.md)
+and start developing your own stream processing pipeline as described
+in [Getting started with development](/docs/development/get-started-core.md)
+and [Samsara Stream processing](/docs/development/stream-processing.md).
 
 #### Troubleshooting
 
