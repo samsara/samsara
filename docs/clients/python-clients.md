@@ -1,6 +1,10 @@
-# samara-sdk
-
-A python client sdk for Samsara.
+---
+layout: page
+title: Samsara Python Client
+subtitle: Python Client for Samsara.
+nav: documentation
+tab_bar: clients
+---
 
 ## Usage
 
@@ -158,6 +162,7 @@ DEFAULT_CONFIG = {
 ## TODO
 
 - [ ] support `"send_client_stats"` option
+
 
 ## License
 
