@@ -11,11 +11,10 @@ from setuptools import setup, find_packages
 
 def get_long_description():
         with open('README.md') as f:
-            readme = f.read()
-            return readme
+            return f.read()
 
 setup(
-    name='samsara-sdk',
+    name='samsara_sdk',
     version='0.0.1',
     url='https://github.com/samsara/samsara',
     author='Samsara Developers',

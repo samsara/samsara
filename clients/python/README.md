@@ -35,7 +35,7 @@ periodically. To record an event in the Samasara buffer:
 > client.record_event(event_name="user.logged", source_id="device1", timestamp=1234567890)
 ```
 
-If the `source_id` is not provided then the one set int the configuration will be used.
+If the `source_id` is not provided then the one set in the configuration will be used.
 If the `timestamp` is not provided then it will be used the current system time.
 So this mean that you can record a event just as follow:
 

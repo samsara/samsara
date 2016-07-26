@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-    samsara-sdk.client
+    samsara_sdk.client
     ~~~~~~~~~~~~~~~~~~
 
     Samsara SDK client
+    TODO: use proper ring buffer
+use from threading import Timer for interval thread execution
 """
 
 from cerberus import Validator
@@ -11,6 +13,7 @@ import gzip
 import json
 import time
 import requests
+from collections import deque, Iterable
 
 
 class InvalidEvent(Exception):
@@ -18,6 +21,10 @@ class InvalidEvent(Exception):
 
 
 class InvalidArguement(Exception):
+    pass
+
+
+class InvalidConfiguration(Exception):
     pass
 
 
@@ -89,48 +96,72 @@ DEFAULT_CONFIG = {
 
 event_validator = Validator(
     schema={
-        'source_id': {'required': True, 'type': 'string'},
+        'sourceId': {'required': True, 'type': 'string'},
         'timestamp': {'required': True, 'type': 'integer', 'min': 0},
-        'event_name': {'required': True, 'type': 'string'}
+        'eventName': {'required': True, 'type': 'string'}
     }, allow_unknown=True)
 
 
 def validate_events(events):
+    if not isinstance(events, Iterable):
+        events = [events]
     for e in events:
         if not event_validator.validate(e):
             raise InvalidEvent(
                 "Invalid event found, errors:\n{}"
                 .format(event_validator.errors))
-        yield e
 
 
 def publish_events(url, events,
                    send_timeout=DEFAULT_CONFIG['send_timeout'],
                    compression=DEFAULT_CONFIG['compression']):
-    shared_headers = {
+    validate_events(events)
+    headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
         "Content-Encoding": compression or "identity",
-
+        PUBLISHED_TIMESTAMP: str(time.time())
     }
     compress = COMPRESSION.get_compressor(compression)
-    for e in validate_events(events):
-        headers = dict({
-            PUBLISHED_TIMESTAMP: str(time.time())
-        }, **shared_headers)
-        requests.post(
-            url + "/v1/events",
-            headers=headers,
-            data=compress(e),
-            timeout=send_timeout
-        )
+
+    requests.post(
+        url + "/v1/events",
+        headers=headers,
+        data=compress(events),
+        timeout=send_timeout
+    )
 
 
 class SamasaraClient(object):
-    def __init__(url, source_id=None, **DEFAULT_CONFIG):
+    def __init__(self, **config):
         # init client with config
-        pass
+        config = dict(DEFAULT_CONFIG, **config)
 
-    def record_event(event):
+        if not config['url']:
+            raise InvalidConfiguration(
+                "Missing Samsara's ingestion api endpoint url.")
+        if config['publish_interval'] < 0:
+            raise InvalidConfiguration(
+                "Publish interval needs to be above 0, not {}"
+                .format(config['publish_interval']))
+        if config['min-buffer-size'] > config['max-buffer-size'] \
+           or config['min-buffer-size'] == 0:
+            config['min-buffer-size'] = 1
+
+        self.buffer = deque(maxlen=config['max-buffer-size'])
+
+        self.config = config
+
+    def record_event(self, event):
         # add to buffer, if buffer is at capacity, flush then add
-        pass
+        if not event.get('sourceId'):
+            event['sourceId'] = self.config['sourceId']
+        if not event.get('timestamp'):
+            event['timestamp'] = time.time()
+        validate_events(event)
+        self.deque.append(event)
+
+    def publish_events(self, events):
+        publish_events(self.config['url'], events,
+                       send_timeout=self.config['send_timeout'],
+                       compression=self.config['compression'])
