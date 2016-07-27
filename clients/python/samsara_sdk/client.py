@@ -9,9 +9,7 @@
 from time import time
 from urllib.parse import urljoin
 
-from collections import deque
 import logging
-from threading import RLock
 from .helpers import (
     millis_to_seconds,
     InvalidConfiguration,
@@ -19,7 +17,8 @@ from .helpers import (
     validate_events,
     publish,
     seconds_to_millis,
-    COMPRESSION_HANDLERS
+    COMPRESSION_HANDLERS,
+    MonotonicDeque
 )
 
 from .constants import (
@@ -79,10 +78,9 @@ class SamsaraClient(object):
         """
         self._init_config(config)
 
-        self._buffer = deque(
+        self._buffer = MonotonicDeque(
             maxlen=self.config['max_buffer_size'])
         self.publisher = None
-        self.lock = RLock()
         if self.config['start_publishing_thread']:
             self.start_consuming()
 
@@ -136,7 +134,7 @@ class SamsaraClient(object):
         """
         self._enrich_event(event)
         validate_events(event)
-        self._buffer.append(event)
+        self._buffer.enqueue(event)
 
     def publish_events(self, events):
         """
@@ -192,18 +190,17 @@ class SamsaraClient(object):
         """
         # popleft is atomic and allows the local thread with safe
         # access to the elements
-        with self.lock:
-            success = self.publish_events(self._buffer)
-            count = len(self._buffer)
-            if success:
-                logging.debug(
-                    'Successfully submitted {} events'
-                    .format(count))
-                self._buffer.clear()
-            else:
-                logging.error(
-                    '{} events were not successfully submitted'
-                    .format(count))
+        success = self.publish_events(self._buffer)
+        last_id, count = self._buffer.last_event_id, len(self._buffer)
+        if success:
+            logging.debug(
+                'Successfully submitted {} events'
+                .format(count))
+            self._buffer.drop_until(last_id)
+        else:
+            logging.error(
+                '{} events were not successfully submitted'
+                .format(count))
 
     def _buffer_is_ready(self):
         return len(self._buffer) >= self.config['min_buffer_size']

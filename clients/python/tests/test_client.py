@@ -34,6 +34,7 @@ def test_client(fake_data):
     for e in registers_and_gains:
         client.record_event(**e)
 
+    assert client._buffer
     assert client._buffer_is_ready()
     client._flush_buffer_if_ready()
     assert not client._buffer

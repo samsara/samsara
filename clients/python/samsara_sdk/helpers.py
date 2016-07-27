@@ -12,6 +12,7 @@ from cerberus import Validator
 import gzip
 import json
 import requests
+from collections import deque
 
 from .constants import DEFAULT_CONFIG
 
@@ -110,3 +111,25 @@ class IntervalTimer(Thread):
 
     def stop(self):
         self.stopped.set()
+
+
+class MonotonicDeque(deque):
+    """
+    A limited deque with an monotonic counter
+    """
+
+    def __init__(self, maxlen):
+        iterable = ()
+        deque.__init__(self, iterable, maxlen)
+        self.last_event_id = 0
+
+    def enqueue(self, el):
+        el['__id__'] = self.last_event_id
+        self.last_event_id += 1
+        self.append(el)
+
+    def drop_until(self, last_id):
+        while self[0]['__id__'] <= last_id:
+            self.popleft()
+            if not self:
+                break
