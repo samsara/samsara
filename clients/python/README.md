@@ -1,6 +1,6 @@
 # samara-sdk
 
-A python client sdk for Samsara.
+A Python 3 client sdk for Samsara.
 
 ## Usage
 
@@ -126,9 +126,9 @@ DEFAULT_CONFIG = {
     "start_publishing_thread": True,
 
     # how often should the events being sent to samsara
-    # in seconds
+    # in milliseconds
     # default 30s
-    "publish_interval": 30,
+    "publish_interval": 30000,
 
     # max size of the buffer, when buffer is full
     # older events are dropped.
@@ -138,9 +138,9 @@ DEFAULT_CONFIG = {
     # before attempting to publish them
     "min_buffer_size": 100,
 
-    # network timeout for send operaitons (in seconds)
+    # network timeout for send operaitons (in milliseconds)
     # default 30s
-    "send_timeout": 30,
+    "send_timeout": 30000,
 
     # whether of not the payload should be compressed
     # allowed values "gzip" "none"
@@ -155,7 +155,28 @@ DEFAULT_CONFIG = {
 }
 ```
 
-## TODO
+
+## Contributing
+
+Follow the [Quick-Start guide](/../../docs/quick-start.md) to get Samsara & friends set up.
+
+Install requirements in a [virtualenv](https://virtualenv.pypa.io/en/stable/):
+
+```
+$
+$ pip install -r requirements.txt
+$ pip install -r requirements-dev.txt
+```
+
+To run integration tests:
+
+```
+$ export INGESTION_API_NETLOC={network location of ingestion api to be tested}
+# If you're using Samsara on Docker, http://$(docker-machine ip samsara-vm):9000 works
+$ py.test
+```
+
+### TODO
 
 - [ ] support `"send_client_stats"` option
 

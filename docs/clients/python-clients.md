@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Samsara Python Client
-subtitle: Python Client for Samsara.
+title: Samsara Python 3 Client
+subtitle: Python 3 Client for Samsara.
 nav: documentation
 tab_bar: clients
 ---
@@ -130,9 +130,9 @@ DEFAULT_CONFIG = {
     "start_publishing_thread": True,
 
     # how often should the events being sent to samsara
-    # in seconds
+    # in milliseconds
     # default 30s
-    "publish_interval": 30,
+    "publish_interval": 30000,
 
     # max size of the buffer, when buffer is full
     # older events are dropped.
@@ -142,9 +142,9 @@ DEFAULT_CONFIG = {
     # before attempting to publish them
     "min_buffer_size": 100,
 
-    # network timeout for send operaitons (in seconds)
+    # network timeout for send operaitons (in milliseconds)
     # default 30s
-    "send_timeout": 30,
+    "send_timeout": 30000,
 
     # whether of not the payload should be compressed
     # allowed values "gzip" "none"
@@ -158,11 +158,6 @@ DEFAULT_CONFIG = {
     # "send_client_stats": True
 }
 ```
-
-## TODO
-
-- [ ] support `"send_client_stats"` option
-
 
 ## License
 
