@@ -7,6 +7,10 @@ __(most recent on top)__
 
   * Thanks to the external contributors of this version: [@purez](https://github.com/puhrez), [@ndrluis](https://github.com/ndrluis)
 
+### New features
+
+  * NEW: added Python client
+
 ### Breaking changes
 
   * Kafka migrated to **0.10.0.0** (for cluster migration see [official kafka documentation](http://kafka.apache.org/documentation.html#upgrade_10)
