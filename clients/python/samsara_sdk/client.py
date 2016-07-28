@@ -8,7 +8,7 @@
 """
 from time import time
 from urllib.parse import urljoin
-
+from threading import RLock
 import logging
 from .helpers import (
     millis_to_seconds,
@@ -77,7 +77,7 @@ class SamsaraClient(object):
         merged with DEFAULT_CONFIG.
         """
         self._init_config(config)
-
+        self._lock = RLock()
         self._buffer = MonotonicDeque(
             maxlen=self.config['max_buffer_size'])
         self.publisher = None
@@ -190,8 +190,9 @@ class SamsaraClient(object):
         """
         # popleft is atomic and allows the local thread with safe
         # access to the elements
-        success = self.publish_events(self._buffer)
-        last_id, count = self._buffer.last_event_id, len(self._buffer)
+        with self._lock:
+            success = self.publish_events(self._buffer)
+            last_id, count = self._buffer.last_event_id, len(self._buffer)
         if success:
             logging.debug(
                 'Successfully submitted {} events'

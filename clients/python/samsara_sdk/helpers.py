@@ -6,7 +6,7 @@
     Samsara SDK client helpers
 """
 import logging
-from threading import Thread, Event
+from threading import Thread, Event, RLock
 from types import GeneratorType
 from cerberus import Validator
 import gzip
@@ -122,14 +122,17 @@ class MonotonicDeque(deque):
         iterable = ()
         deque.__init__(self, iterable, maxlen)
         self.last_event_id = 0
+        self._lock = RLock()
 
     def enqueue(self, el):
-        el['__id__'] = self.last_event_id
-        self.last_event_id += 1
-        self.append(el)
+        with self._lock:
+            el['__id__'] = self.last_event_id
+            self.last_event_id += 1
+            self.append(el)
 
     def drop_until(self, last_id):
         while self[0]['__id__'] <= last_id:
+            del self[0]['__id__']
             self.popleft()
             if not self:
                 break
