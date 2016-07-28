@@ -9,12 +9,19 @@
 import Foundation
 
 func SSJSONStringify(value: AnyObject, prettyPrinted: Bool = false) -> String {
-    var options = prettyPrinted ? NSJSONWritingOptions.PrettyPrinted : nil
+
+    //FIXME:
+    var options = prettyPrinted ? NSJSONWritingOptions.PrettyPrinted : NSJSONWritingOptions(rawValue: 0)
+
     if NSJSONSerialization.isValidJSONObject(value) {
-        if let data = NSJSONSerialization.dataWithJSONObject(value, options: options, error: nil) {
+        do {
+            var data = try NSJSONSerialization.dataWithJSONObject(value, options: options)
+
             if let string = NSString(data: data, encoding: NSUTF8StringEncoding) {
-                return string as String
+               return string as String
             }
+        } catch _ {
+           //TODO: Error handling
         }
     }
     return ""
@@ -35,7 +42,7 @@ extension Dictionary {
             self.updateValue(value, forKey:key)
         }
     }
-    
+
     /**
     Adds contents of the dictionary supplied
     without overwriting existing keys.

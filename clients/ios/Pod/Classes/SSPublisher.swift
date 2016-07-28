@@ -16,29 +16,29 @@ public class SSPublisher : NSObject {
             completionHandler(events, err, err_msg)
         }
     }
-    
+
     class func send(events: [SSEvent], samsaraConfig: SSConfig, completionHandler: ([SSEvent], Bool, String) -> Void) {
-        var eventsURL = NSURL(string: SSURLForPath("events", samsaraConfig))
-        
+        var eventsURL = NSURL(string: SSURLForPath("events", config: samsaraConfig))
+
         if let url = eventsURL {
             var req = NSMutableURLRequest(URL: url)
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
             req.setValue("application/json", forHTTPHeaderField: "Accept")
-            
+
             var timestamp = NSNumber(longLong: Int64(NSDate().timeIntervalSince1970 * 1000))
             req.setValue(timestamp.stringValue, forHTTPHeaderField:"X-Samsara-publishedTimestamp")
-            
+
             req.HTTPMethod = "POST"
-            
+
             var body:String = SSJSONStringify(events, prettyPrinted: false)
-            
+
             req.HTTPBody = body.dataUsingEncoding(NSUTF8StringEncoding)
-            
+
             let task = NSURLSession.sharedSession().dataTaskWithRequest(req) { (data,response,error) -> Void in
-                
+
                 var isError = false
                 var errorMessage:String = ""
-                
+
                 if let resp = response {
                     var httpResponse = resp as! NSHTTPURLResponse
                     if (httpResponse.statusCode != 202) {
@@ -46,15 +46,15 @@ public class SSPublisher : NSObject {
                         errorMessage = "Samsara returned HTTP:\(httpResponse.statusCode)"
                         NSLog("SSPublisher: Error: \(errorMessage)")
                     }
-                } else if error != nil {
+                } else if let err = error {
                     isError = true
-                    errorMessage = error.localizedDescription
-                    NSLog("SSPublisher: Error: \(error.localizedDescription)")
+                    errorMessage = err.localizedDescription
+                    NSLog("SSPublisher: Error: \(err.localizedDescription)")
                 }
-        
+
                 completionHandler(events, isError, errorMessage)
             }
-            
+
             task.resume()
         } else {
             NSLog("SSPublisher: Unable to create URL. This should never happen unless the URL passed is invalid.")
