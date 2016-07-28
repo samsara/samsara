@@ -11,13 +11,13 @@ tab_bar: clients
 To use the Samsara SDK, pip install it via:
 
 ```bash
-$ pip install samsara-sdk
+$ pip install samsara_sdk
 ```
 
 To bring it into the repl:
 
 ```python
-> from samsara-sdk import SamsaraClient
+> from samsara_sdk import SamsaraClient
 ```
 
 And then to configure:

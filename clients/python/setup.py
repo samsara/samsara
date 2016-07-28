@@ -10,12 +10,17 @@ from setuptools import setup, find_packages
 
 
 def get_long_description():
-        with open('README.md') as f:
+        with open('../../docs/clients/python-client.md') as f:
+            return f.read()
+
+
+def get_version():
+        with open('../../samsara.version') as f:
             return f.read()
 
 setup(
     name='samsara_sdk',
-    version='0.0.1',
+    version=get_version(),
     url='https://github.com/samsara/samsara',
     author='Samsara Developers',
     author_email='samsara.systems+info@gmail.com',

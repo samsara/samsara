@@ -6,7 +6,6 @@
     Samsara SDK client
     TODO: support send-client-stats
 """
-from time import time
 from urllib.parse import urljoin
 from threading import RLock
 import logging
@@ -16,9 +15,9 @@ from .helpers import (
     IntervalTimer,
     validate_events,
     publish,
-    seconds_to_millis,
     COMPRESSION_HANDLERS,
-    MonotonicDeque
+    MonotonicDeque,
+    current_time_millis
 )
 
 from .constants import (
@@ -124,7 +123,7 @@ class SamsaraClient(object):
         if not event.get('sourceId'):
             event['sourceId'] = self.config['sourceId']
         if not event.get('timestamp'):
-            event['timestamp'] = seconds_to_millis(time())
+            event['timestamp'] = current_time_millis()
         return event
 
     def record_event(self, **event):
@@ -152,7 +151,7 @@ class SamsaraClient(object):
             "Accept": "application/json",
             "Content-Type": "application/json",
             "Content-Encoding": self.config['compression'] or "identity",
-            PUBLISHED_TIMESTAMP_HEADER: str(seconds_to_millis(time()))
+            PUBLISHED_TIMESTAMP_HEADER: str(current_time_millis())
         }
 
     def start_consuming(self):
@@ -191,8 +190,10 @@ class SamsaraClient(object):
         # popleft is atomic and allows the local thread with safe
         # access to the elements
         with self._lock:
-            success = self.publish_events(self._buffer)
-            last_id, count = self._buffer.last_event_id, len(self._buffer)
+            events = self._buffer
+            last_id, count = self._buffer.last_event_id, len(events)
+
+        success = self.publish_events(events)
         if success:
             logging.debug(
                 'Successfully submitted {} events'

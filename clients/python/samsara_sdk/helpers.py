@@ -9,6 +9,7 @@ import logging
 from threading import Thread, Event, RLock
 from types import GeneratorType
 from cerberus import Validator
+from time import time
 import gzip
 import json
 import requests
@@ -17,6 +18,10 @@ from collections import deque
 from .constants import DEFAULT_CONFIG
 
 logging.basicConfig(level=logging.DEBUG)
+
+
+def current_time_millis():
+    return int(time() * 1000)
 
 
 def seconds_to_millis(s):
