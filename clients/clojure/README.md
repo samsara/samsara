@@ -4,7 +4,7 @@ A Clojure Client SDK for Samsara.
 
 ## Usage
 
-To see how to use this client please [read the documentation](/../../docs/clients/clojure-client.md)
+To see how to use this client please [read the documentation](/docs/clients/clojure-client.md)
 
 ## License
 

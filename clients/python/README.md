@@ -4,11 +4,11 @@ A Python 3 client sdk for Samsara.
 
 ## Usage
 
-To see how to use this client please [read the documentation](/../../docs/clients/python-client.md)
+To see how to use this client please [read the documentation](/docs/clients/python-client.md)
 
 ## Contributing
 
-Follow the [Quick-Start guide](/../../docs/quick-start.md) to get Samsara & friends set up.
+Follow the [Quick-Start guide](/docs/quick-start.md) to get Samsara & friends set up.
 
 Install requirements in a [virtualenv](https://virtualenv.pypa.io/en/stable/):
 

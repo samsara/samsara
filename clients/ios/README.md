@@ -7,4 +7,4 @@
 
 ## Usage
 
-To see how to use this client please [read the documentation](/../../docs/clients/ios-client.md)
+To see how to use this client please [read the documentation](/docs/clients/ios-client.md)

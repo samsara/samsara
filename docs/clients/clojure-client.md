@@ -24,7 +24,7 @@ or as part of your namespace
 
 ```clojure
 (ns my.project
-	(:require [samsara.client :as samsara]))
+    (:require [samsara.client :as samsara]))
 ```
 
 To set your configuration with:
