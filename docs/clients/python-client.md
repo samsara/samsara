@@ -29,7 +29,7 @@ And then to configure:
 
 Now you can publish events to samsara!
 
-### Publish an Event
+### Record and Publish an Event
 
 Samsara SDK buffers events and published them to the Ingestion API
 periodically. To record an event in the Samsara buffer:
@@ -150,7 +150,7 @@ DEFAULT_CONFIG = {
     # allowed values "gzip" "none"
     "compression": COMPRESSION.GZIP
 
-	# NOT SUPPORTED
+    # NOT SUPPORTED
     # add samsara client statistics events
     # this helps you to understand whether the
     # buffer size and publish-intervals are
