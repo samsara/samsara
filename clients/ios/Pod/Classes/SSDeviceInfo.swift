@@ -13,10 +13,10 @@ import SystemConfiguration
 class SSDeviceInfo {
 
     private static let ssUDIDIdentifier = "samsara.io.udid"
-    
+
     class func getDeviceInfo() -> [String:String] {
         var udid = getUDID()
-        
+
         var deviceInfo = [
             "device_name": UIDevice.currentDevice().name,
             "system_name": UIDevice.currentDevice().systemName,
@@ -24,23 +24,26 @@ class SSDeviceInfo {
             "model": UIDevice.currentDevice().model,
             "localizedModel": UIDevice.currentDevice().localizedModel,
         ]
-        
+
         deviceInfo["UDID"] = udid
-        
+
         return deviceInfo
     }
-    
+
     class func getUDID () -> String {
-        var (dictionary, error) = Locksmith.loadDataForUserAccount(ssUDIDIdentifier)
-        
+        var dictionary = Locksmith.loadDataForUserAccount(ssUDIDIdentifier)
+
         var s_uid = NSUUID().UUIDString
         dictionary = dictionary ?? [:] //Yuck !!
-        
-        if let uid = dictionary!.valueForKey("UDID") as? String {
+
+        if let uid = dictionary!["UDID"] as? String {
             s_uid = uid
         } else {
-            let error = Locksmith.saveData(["UDID": s_uid], forUserAccount: ssUDIDIdentifier)
-            //TODO Handle error
+            do {
+                let error = try Locksmith.saveData (["UDID": s_uid], forUserAccount: ssUDIDIdentifier)
+            } catch _ {
+                //TODO Handle error
+            }
         }
         return s_uid
     }

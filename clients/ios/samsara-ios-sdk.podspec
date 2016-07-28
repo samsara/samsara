@@ -9,7 +9,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "samsara-ios-sdk"
-  s.version          = "0.1.0"
+  s.version          = "0.5.5.0"
   s.summary          = "Samsara client library for iOS devices"
   s.description      = <<-DESC
                         samsara-ios-sdk is a client library for the Samsara Analytics platform. For more information visit the github page.
@@ -17,17 +17,18 @@ Pod::Spec.new do |s|
   s.homepage         = "https://github.com/samsara/samsara-ios-sdk"
   s.license          = 'Apache'
   s.author           = { "Sathyavijayan Vittal" => "sathyavijayan@gmail.com" }
-  s.source           = { :git => "https://github.com/samsara/samsara-ios-sdk.git", :tag => s.version.to_s }
+  s.source           = { :git => "https://github.com/samsara/samsara.git", :tag => s.version.to_s }
 
   s.platform     = :ios, '8.0'
   s.requires_arc = true
 
-  s.source_files = 'Pod/Classes/**/*'
-  s.resource_bundles = {
-    'samsara-ios-sdk' => ['Pod/Assets/*.png']
-  }
+  s.source_files = 'Pod/Classes/*'
 
-  s.dependency 'Locksmith', '1.2.1'
+  # s.resource_bundles = {
+  #  'samsara-ios-sdk' => ['clients/ios/Pod/Assets/*.png']
+  # }
+
+  s.dependency 'Locksmith', '2.0.8' # '1.2.1'
   s.dependency 'OHHTTPStubs', '4.0.2'
   s.dependency 'OCMock', '3.1.2'
   s.dependency 'Reachability', '3.2'
