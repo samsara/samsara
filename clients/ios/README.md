@@ -22,7 +22,7 @@ pod "samsara-ios-sdk"
 To initialize the Samsara client with default configuration, just do:
 
 ```swift
-import samsara-ios-sdk 
+import samsara_ios_sdk 
 
 var config:SSConfig = ["url": "http://samsara.io",
 "publishInterval": 60,
