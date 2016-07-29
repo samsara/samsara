@@ -5,19 +5,9 @@
 [![License](https://img.shields.io/cocoapods/l/samsara-ios-sdk.svg?style=flat)](http://cocoapods.org/pods/samsara-ios-sdk)
 [![Platform](https://img.shields.io/cocoapods/p/samsara-ios-sdk.svg?style=flat)](http://cocoapods.org/pods/samsara-ios-sdk)
 
-## Installation
-
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
-
-samsara-ios-sdk is available through [CocoaPods](http://cocoapods.org). To install
-it, simply add the following line to your Podfile:
-
-```swift
-pod "samsara-ios-sdk"
-```
-
 ## Usage
 
+<<<<<<< HEAD
 ### Initialization
 To initialize the Samsara client with default configuration, just do:
 
@@ -141,3 +131,6 @@ NSLog("Failed to initialise Samsara")
 * Archive events to a file when 'willTerminate' event is received.
 * Automatically resume uploads when network is available.
 * If user allows capturing location automatically derive the location and append it with the event.
+=======
+To see how to use this client please [read the documentation](/docs/clients/ios-client.md)
+>>>>>>> master

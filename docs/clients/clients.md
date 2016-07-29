@@ -23,11 +23,8 @@ If you want to find more about the clients you can read the [clients common desi
 ## Feature Matrix
 
 | Client     | Available   | Bulk Publish | Buffer events | Compression | Device Info | Location |
-| | | | | | |
+|------------|-------------|--------------|---------------|-------------|-------------|----------|
 | Clojure    | Y           | Y            | Y             | GZIP        | N           | N        |
+| Python3    | Y           | Y            | Y             | GZIP        | N           | N        |
 | iOS        | Y           | Y            | Y             | N           | Y           | Y        |
 | Logger     | Y           | Y            | Y             | GZIP        | N           | N        |
-| Android    | Coming soon | | | | | |
-| Ruby       | Coming soon | | | | | |
-| Javascript | Coming soon | | | | | |
-| Java       | Coming soon | | | | | |
