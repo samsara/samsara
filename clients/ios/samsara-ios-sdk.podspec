@@ -24,11 +24,7 @@ Pod::Spec.new do |s|
 
   s.source_files = 'Pod/Classes/*'
 
-  # s.resource_bundles = {
-  #  'samsara-ios-sdk' => ['clients/ios/Pod/Assets/*.png']
-  # }
-
-  s.dependency 'Locksmith', '2.0.8' # '1.2.1'
+  s.dependency 'Locksmith', '2.0.8'
   s.dependency 'OHHTTPStubs', '4.0.2'
   s.dependency 'OCMock', '3.1.2'
   s.dependency 'Reachability', '3.2'
