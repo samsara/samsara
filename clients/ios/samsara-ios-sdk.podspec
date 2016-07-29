@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.description      = <<-DESC
                         samsara-ios-sdk is a client library for the Samsara Analytics platform. For more information visit the github page.
                        DESC
-  s.homepage         = "https://github.com/samsara/samsara-ios-sdk"
+  s.homepage         = "https://github.com/samsara/samsara"
   s.license          = 'Apache'
   s.author           = { "Sathyavijayan Vittal" => "sathyavijayan@gmail.com" }
   s.source           = { :git => "https://github.com/samsara/samsara.git", :tag => s.version.to_s }
@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
   s.platform     = :ios, '8.0'
   s.requires_arc = true
 
-  s.source_files = 'Pod/Classes/*'
+  s.source_files = 'clients/ios/Pod/Classes/*'
 
   s.dependency 'Locksmith', '2.0.8'
   s.dependency 'OHHTTPStubs', '4.0.2'
