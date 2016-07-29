@@ -74,9 +74,9 @@ class SSRingBuffer<T> {
             var ids_to_remove:[Int] = items.map{ $0.0 }
 
             self.buffer = self.buffer.filter { (item) -> Bool in
-                //FIX return !contains(ids_to_remove, item.0)
                 return !ids_to_remove.contains(item.0)
             }
+
             //call completion handler.
             if let ch = completionHandler {
                 ch()

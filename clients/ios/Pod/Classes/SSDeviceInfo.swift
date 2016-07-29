@@ -40,9 +40,9 @@ class SSDeviceInfo {
             s_uid = uid
         } else {
             do {
-                let error = try Locksmith.saveData (["UDID": s_uid], forUserAccount: ssUDIDIdentifier)
+                let error = try Locksmith.saveData(["UDID": s_uid], forUserAccount: ssUDIDIdentifier)
             } catch _ {
-                //TODO Handle error
+                NSLog("SSDeviceInfo: Error: Unable to save UDID to keychain")
             }
         }
         return s_uid
