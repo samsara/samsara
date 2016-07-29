@@ -5,7 +5,7 @@ __(most recent on top)__
 
 ### Contributors
 
-  * Thanks to the external contributors of this version: [@purez](https://github.com/puhrez), [@ndrluis](https://github.com/ndrluis)
+  * Thanks to the external contributors of this version: [@ChallenHB](https://github.com/ChallenHB), [@ndrluis](https://github.com/ndrluis), [@purez](https://github.com/puhrez)
 
 ### New features
 
