@@ -363,7 +363,6 @@ public class Samsara : NSObject {
         //This is called when the app restarts. Even if unarchive failed, the best
         //course of action is to delete the file to avoid consistency issues
         //and sending stale events to samsara.
-        //var error: NSError?
         do {
           try NSFileManager.defaultManager().removeItemAtPath(kSSArchiveFileName)
         } catch {

@@ -9,8 +9,6 @@
 import Foundation
 
 func SSJSONStringify(value: AnyObject, prettyPrinted: Bool = false) -> String {
-
-    //FIXME:
     var options = prettyPrinted ? NSJSONWritingOptions.PrettyPrinted : NSJSONWritingOptions(rawValue: 0)
 
     if NSJSONSerialization.isValidJSONObject(value) {
@@ -21,7 +19,7 @@ func SSJSONStringify(value: AnyObject, prettyPrinted: Bool = false) -> String {
                return string as String
             }
         } catch _ {
-           //TODO: Error handling
+            NSLog("SSJSONStringify: Error: JSON Serialization failed")
         }
     }
     return ""
@@ -56,5 +54,4 @@ extension Dictionary {
             }
         }
     }
-
 }
