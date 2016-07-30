@@ -88,6 +88,7 @@ def publish(url, events, headers=None,
             send_timeout=millis_to_seconds(
                 DEFAULT_CONFIG['send_timeout']
             )):
+
     req = requests.post(
         url,
         headers=headers or {},
@@ -135,9 +136,20 @@ class MonotonicDeque(deque):
             self.last_event_id += 1
             self.append(el)
 
+    def get_buffer(self):
+        """
+        Helper function for getting a generator
+        of buffered elements without "__id__"
+        """
+        buffer = []
+        for x in self:
+            copy = x.copy()
+            copy.pop('__id__')
+            buffer.append(copy)
+        return buffer
+
     def drop_until(self, last_id):
         while self[0]['__id__'] <= last_id:
-            del self[0]['__id__']
             self.popleft()
             if not self:
                 break

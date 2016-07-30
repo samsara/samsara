@@ -190,7 +190,7 @@ class SamsaraClient(object):
         # popleft is atomic and allows the local thread with safe
         # access to the elements
         with self._lock:
-            events = self._buffer
+            events = self._buffer.get_buffer()
             last_id, count = self._buffer.last_event_id, len(events)
 
         success = self.publish_events(events)

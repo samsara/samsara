@@ -10,13 +10,13 @@ from setuptools import setup, find_packages
 
 
 def get_long_description():
-        with open('../../docs/clients/python-client.md') as f:
+        with open('python-client.md') as f:
             return f.read()
 
 
 def get_version():
-        with open('../../samsara.version') as f:
-            return f.read()
+        with open('samsara.version') as f:
+            return f.read().split('-')[0]
 
 setup(
     name='samsara_sdk',
@@ -27,8 +27,8 @@ setup(
     description="A Python Client for Samsaza's Ingestion-API",
     long_description=get_long_description(),
     packages=find_packages(),
-    zip_safe=False,
     include_package_data=True,
     platforms='any',
+    keywords=['analytics', 'client', 'samsara'],
     tests_require=find_packages(include=['*-dev'])
 )
