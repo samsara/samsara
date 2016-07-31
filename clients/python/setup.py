@@ -10,12 +10,12 @@ from setuptools import setup, find_packages
 
 
 def get_long_description():
-        with open('python-client.md') as f:
+        with open('./info/python-client.md') as f:
             return f.read()
 
 
 def get_version():
-        with open('samsara.version') as f:
+        with open('./info/samsara.version') as f:
             return f.read().split('-')[0]
 
 setup(

@@ -12,10 +12,18 @@ Follow the [Quick-Start guide](/docs/quick-start.md) to get Samsara & friends se
 
 Install requirements in a python3 [virtualenv](https://virtualenv.pypa.io/en/stable/):
 
+### Build
+
 ```
-$ mkvirtualenv mkvirtualenv samsara -p $(which python3)
+$ mkvirtualenv samsara -p $(which python3)
 $ pip install -r requirements.txt
 $ pip install -r requirements-dev.txt
+```
+
+Then run the build script:
+
+```
+./bin/build.sh
 ```
 
 To run integration tests:
