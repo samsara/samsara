@@ -9,6 +9,7 @@ import logging
 from threading import Thread, Event, RLock
 from types import GeneratorType
 from cerberus import Validator
+from time import time
 import gzip
 import json
 import requests
@@ -17,6 +18,10 @@ from collections import deque
 from .constants import DEFAULT_CONFIG
 
 logging.basicConfig(level=logging.DEBUG)
+
+
+def current_time_millis():
+    return int(time() * 1000)
 
 
 def seconds_to_millis(s):
@@ -83,6 +88,7 @@ def publish(url, events, headers=None,
             send_timeout=millis_to_seconds(
                 DEFAULT_CONFIG['send_timeout']
             )):
+
     req = requests.post(
         url,
         headers=headers or {},
@@ -130,9 +136,20 @@ class MonotonicDeque(deque):
             self.last_event_id += 1
             self.append(el)
 
+    def get_buffer(self):
+        """
+        Helper function for getting a generator
+        of buffered elements without "__id__"
+        """
+        buffer = []
+        for x in self:
+            copy = x.copy()
+            copy.pop('__id__')
+            buffer.append(copy)
+        return buffer
+
     def drop_until(self, last_id):
         while self[0]['__id__'] <= last_id:
-            del self[0]['__id__']
             self.popleft()
             if not self:
                 break

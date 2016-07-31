@@ -11,19 +11,21 @@ tab_bar: clients
 To use the Samsara SDK, pip install it via:
 
 ```bash
-$ pip install samsara-sdk
+$ pip install samsara_sdk
 ```
 
 To bring it into the repl:
 
 ```python
-> from samsara-sdk import SamsaraClient
+> from samsara_sdk import SamsaraClient
+> # helper function which return the current time in milliseconds.
+> from samsara_sdk.helpers import current_time_millis
 ```
 
 And then to configure:
 
 ```python
-> client = SamsaraClient(url="https://my.samsara.server:9000/", sourceId="source identifier")
+> client = SamsaraClient(url="http://my.samsara.server:9000/", sourceId="source identifier")
 ```
 
 
@@ -36,7 +38,7 @@ periodically. To record an event in the Samsara buffer:
 
 
 ```python
-> client.record_event(eventName="user.logged", sourceId="device1", timestamp=1234567890)  # note that timestamp is in milliseconds
+> client.record_event(eventName="user.logged", sourceId="device1", timestamp=current_time_millis())
 ```
 
 If the `source_id` is not provided then the one set in the configuration will be used.
@@ -56,8 +58,8 @@ Alternatively, you can publish bulk events immediately to the
 Ingestion API using the publish-events function.
 
 ```python
-> client.publish_events([{"eventName": "user.logged"
-                          "timestamp": 1431261991023
+> client.publish_events([{"eventName": "user.logged",
+                          "timestamp": current_time_millis(),
                           "sourceId": "e6f01efd-04a9-4c18-a210-2806718b6d43"}])
 ```
 
@@ -121,10 +123,10 @@ the app restarts.
 ```python
 DEFAULT_CONFIG = {
     # a samsara ingestion api endpoint  "http://samsara.io/"
-    # url  - REQUIRED
+    # "url": ""       # - REQUIRED
 
     # the identifier of the source of these events
-    # source_id  - OPTIONAL only for record-event
+    # "sourceId": ""  # - OPTIONAL only for record-event
 
     # whether to start the publishing thread.
     "start_publishing_thread": True,
@@ -148,7 +150,7 @@ DEFAULT_CONFIG = {
 
     # whether of not the payload should be compressed
     # allowed values "gzip" "none"
-    "compression": COMPRESSION.GZIP
+    "compression": "gzip"
 
     # NOT SUPPORTED
     # add samsara client statistics events

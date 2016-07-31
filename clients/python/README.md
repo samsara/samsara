@@ -10,12 +10,20 @@ To see how to use this client please [read the documentation](/docs/clients/pyth
 
 Follow the [Quick-Start guide](/docs/quick-start.md) to get Samsara & friends set up.
 
-Install requirements in a [virtualenv](https://virtualenv.pypa.io/en/stable/):
+Install requirements in a python3 [virtualenv](https://virtualenv.pypa.io/en/stable/):
+
+### Build
 
 ```
-$
+$ mkvirtualenv samsara -p $(which python3)
 $ pip install -r requirements.txt
 $ pip install -r requirements-dev.txt
+```
+
+Then run the build script:
+
+```
+./bin/build.sh
 ```
 
 To run integration tests:
