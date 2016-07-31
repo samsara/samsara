@@ -11,7 +11,7 @@ beside adding an id to every event.
 To implement your custom processing you have to follow these steps:
 
 ```
-lein new my-streaming-app
+lein new samsara my-streaming-app
 ```
 
 This will create a project with the default structure:
@@ -263,6 +263,8 @@ Build with:
 This will build a executable jar using the [lein-binplus](https://github.com/BrunoBonacci/lein-binplus) plugin.
 
 The easiest way to run it locally is to create a local development cluster with `docker-compose`. Here is a sample file:
+**NOTE: in ADV_IP you are required to put your machine's local ip address but not the localhost (127.0.0.1) to enable
+your processing job to communicate with Zookeeper and Kafka.**
 
 ```
 #
@@ -275,6 +277,7 @@ zookeeper:
     - "15001:15000"
   environment:
     ZK_SERVER_ID: 1
+    # Your ip but NOT 127.0.0.1
     ADV_IP: "192.168.0.2"
   volumes:
     - /tmp/logs/zk1:/logs
@@ -292,6 +295,7 @@ kafka:
     - zookeeper:zookeeper
   environment:
     KAFKA_BROKER_ID: 1
+    # Your ip but NOT 127.0.0.1
     ADV_IP: "192.168.0.2"
   volumes:
     - /tmp/logs/kafka1:/logs
