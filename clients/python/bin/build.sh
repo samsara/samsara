@@ -1,9 +1,9 @@
 #!/bin/bash
 
 export BASE=$(dirname $0)/..
+[ `uname` == "Darwin" ] && export SED=gsed || export SED=sed
 
-mkdir -p $BASE/info
-cp $BASE/../../docs/clients/python-client.md $BASE/info
-cp $BASE/../../samsara.version $BASE/info
+export VER=$($SED 's/-.*//g' $BASE/../../samsara.version)
+$SED -i "s/version=.*/version='$VER',/g" setup.py
 
 python setup.py install

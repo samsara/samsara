@@ -132,3 +132,18 @@ append `-SNAPSHOT`. For example:
     0.5.5.0 --becomes--> 0.5.6.0-SNAPSHOT
 
 Finally make an announcement of the new release in Slack and other channels.
+
+
+## How to release the clients
+
+### python client
+
+To release the python client follow these steps:
+
+     cd clients/python
+     ./bin/build.sh
+     # if you haven't logged in use
+     python setup.py register
+     python setup.py sdist upload
+
+Now it should be available to install with `pip install`.
