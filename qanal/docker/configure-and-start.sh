@@ -3,6 +3,7 @@
 
 # REQUIRED:
 #   ZOOKEEPER_PORT_2181_TCP (one or more)
+#   KAFKA_PORT  (one or more)
 #   KAFKA_TOPICS_SPEC
 #   ELS_PORT_9200_TCP_ADDR
 

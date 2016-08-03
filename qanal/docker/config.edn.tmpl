@@ -1,23 +1,8 @@
-{:kafka-source
- {:zookeeper-connect  "%%>>ZOOKEEPER.*:2181%%"
-  :connect-retry      5000
-  :group-id           "qanal"
-  :auto-offset-reset  :earliest         ; Can only be earliest or latest
-  :fetch-size         10485760          ; size in bytes (10mb)
-  }
+{
+ :coordinator {:type :zookeeper
+               :config {:zk-connect "%%>>ZOOKEEPER.*:2181%%"}}
 
- :topics [ %%KAFKA_TOPICS_SPEC%% ]
-
- :elasticsearch-target
- {:end-point "http://%%>ELS:9200%%"}
-
- :tracking {:enabled %%TRACKING_ENABLED||false%% :type :riemann
-            :host "%%[addr]>RIEMANN:5555||localhost%%"
-            :port %%[port]>RIEMANN:5555||5555%%
-            :prefix "samsara.indexing.%%HOSTNAME||qanal%%" }
-
- :logging-options
- {:min-level          :info
-  :path               "/logs/qanal.log"
-  :max-size           10485760                     ; size in bytes (10mb)
-  :backlog            10}}
+ :worker {:type :kafka-elastic
+          :config {:kafka-brokers "%%>>KAFKA.*%%"
+                   :topics %%KAFKA_TOPICS_SPEC%%}}
+}
