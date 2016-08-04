@@ -18,6 +18,7 @@ that the language primitives offers the required capabilities.
 _**[~] Clients design.**_
 
 ## Lower level API (`publish-events`) The first lower level it is just
+
 a wrapper on top of the communication protocol with the
 **ingestion-api** (HTTP POST). See the
 [ingestion-api spec](/ingestion-api/spec/ingestion-api-spec.yaml) for
@@ -35,6 +36,7 @@ At this stage the `publish-events` does the following three things:
    - and finally performs the HTTP POST to the given endpoint URL
 
 ## Higher level API (`record-event`) The second level is the buffering
+
 layer. For clients which wish to buffer locally the events before
 posting them to the ingestion-api we want to provide another API.
 This api is called `record-event(Event)` and it takes a single event.
