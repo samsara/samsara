@@ -4,17 +4,7 @@ Samsara is a real-time analytics platform.
 
 ## Description
 
-```
------------------------------------------------
-   _____
-  / ___/____ _____ ___  _________ __________ _
-  \__ \/ __ `/ __ `__ \/ ___/ __ `/ ___/ __ `/
- ___/ / /_/ / / / / / (__  ) /_/ / /  / /_/ /
-/____/\__,_/_/ /_/ /_/____/\__,_/_/   \__,_/
-
-  Samsara the fast access to analytics
------------------------------------------------
-```
+![Samsara logo](/docs/logos/logo1/samsara-logo-400.png)
 
 Please see documentation at: http://samsara-analytics.io/
 
