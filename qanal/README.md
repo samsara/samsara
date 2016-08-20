@@ -239,7 +239,7 @@ To run the program, build an executable uberjar
 
 ## License
 
-Copyright © 2015 Samsara's team
+Copyright © 2015-2016 Samsara's team
 
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file

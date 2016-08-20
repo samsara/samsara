@@ -96,6 +96,6 @@ A Simple Example Application can be seen [here](https://github.com/samsara/samsa
 
 ## License
 
-Copyright © 2015 Samsara's authors.
+Copyright © 2015-2016 Samsara's authors.
 
 Distributed under the Apache License v2.0 (http://www.apache.org/licenses/LICENSE-2.0)
