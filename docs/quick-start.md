@@ -10,12 +10,12 @@ Samsara provides production quality Docker images for those components to help y
 
 ## How to start a local environment
 
-  * [Linux local docker engine](#linux_local)
+  * [Local docker engine (Linux, Mac OS X, Windows)](#local)
   * [Using docker machine (Windows, OSX & Linux)](#docker_machine)
   * [Mac OS X with boot2docker](#osx_boot2docker)
   * [Want to use the latest development version?](#snapshot)
 
-### <a name="linux_local"></a>Linux local docker engine
+### <a name="local"></a>Local docker engine (Linux, Mac OS X, Windows)
 
 A local environment is ideal for development and testing purposes.
 It setup a fully running cluster with all components but without
