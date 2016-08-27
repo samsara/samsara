@@ -74,5 +74,11 @@ cd $BASE/qanal
 lein do clean, $TEST, bin
 
 
+## build qanal-refactor
+banner qanal-refactor
+cd $BASE/qanal-refactor
+lein do clean, compile :all, $TEST
+
+
 # restoring initial dir
 cd $CUR
