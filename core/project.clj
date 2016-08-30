@@ -11,7 +11,7 @@
 
   :java-source-paths ["java"]
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.slf4j/slf4j-log4j12 "1.7.12"]
                  [org.apache.samza/samza-api        "0.9.1"]
                  [org.apache.samza/samza-kafka_2.10 "0.9.1"]

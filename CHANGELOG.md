@@ -25,6 +25,7 @@ __(most recent on top)__
 
 ### Other changes
 
+  * Migrated to Clojure 1.8
   * docker: all containers migrated to Alpine Linux 3.4 for smaller footprint
   * ingestion-api: major code refactoring and cleanup
   * Configuration templates migrated to

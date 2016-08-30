@@ -9,10 +9,10 @@
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [samsara/samsara-utils
                   #=(clojure.string/trim #=(slurp "../samsara.version"))]
-                 [aleph "0.4.0"]
+                 [aleph "0.4.1"]
                  [gloss "0.2.5"]
                  [ring/ring-core "1.4.0"]
                  [ring/ring-json "0.4.0"]

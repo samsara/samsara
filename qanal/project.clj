@@ -9,18 +9,18 @@
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.cli "0.3.3"]
                  [com.taoensso/timbre "4.5.1"]
                  [clj-kafka "0.3.2"]
-                 [clojurewerkz/elastisch "2.1.0"]
+                 [clojurewerkz/elastisch "2.2.2"]
                  [cheshire "5.5.0"]
                  [prismatic/schema "0.4.4"]
                  [samsara/trackit "0.3.0"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [clj-time "0.11.0"]
 
-                 [com.brunobonacci/safely "0.2.1"]]
+                 [com.brunobonacci/safely "0.2.2"]]
 
   :main qanal.core
 
