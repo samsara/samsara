@@ -10,9 +10,14 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [com.brunobonacci/safely "0.2.1"]]
+                 [org.clojure/tools.cli "0.3.3"]
+                 [com.taoensso/timbre "4.7.0"]
+                 [prismatic/schema "0.4.4"]
+                 [com.brunobonacci/safely "0.2.1"]
+                 [curator "0.0.6"]
+                 [com.dayooliyide/kafkian "0.1.0"]]
 
-  :main qanal.core
+  :main samsara.qanal.core
 
   :profiles {:uberjar {:aot :all}
              :dev {:dependencies [[midje "1.7.0"]

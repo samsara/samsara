@@ -1,0 +1,8 @@
+{
+ :coordinator {:type :zookeeper
+               :config {:zk-connect "localhost:2181"}}
+
+ :worker {:type :kafka-elastic
+          :config {:kafka-brokers "localhost:9092"
+                   :topics ["topic-a" "topic-b"]}}
+ }

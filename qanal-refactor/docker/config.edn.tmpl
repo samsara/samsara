@@ -1,0 +1,8 @@
+{
+ :coordinator {:type :zookeeper
+               :config {:zk-connect "%%>>ZOOKEEPER.*:2181%%"}}
+
+ :worker {:type :kafka-elastic
+          :config {:kafka-brokers "%%>>KAFKA.*%%"
+                   :topics %%KAFKA_TOPICS_SPEC%%}}
+}
