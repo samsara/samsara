@@ -44,7 +44,7 @@ This is protocol version used by brokers for communication.
 Leaving it empty will actually mean a default value of `0.10.0-IV1`
 for kafka 0.10.0.0
 This setting is mainly used when doing a rolling update of your cluster.
-Please check the official [Kafka documentation](http://kafka.apache.org/documentation.html#upgrade_10) for more info.
+Please check the official [Kafka documentation](http://kafka.apache.org/documentation.html#upgrade) for more info.
 
 * `KAFKA_MESSAGE_FORMAT_VERSION` (default: *empty*)
 This is the format version that the messages are written in, when appending
@@ -53,7 +53,7 @@ Leaving it empty will actually mean a default value of `0.10.0-IV1`
 for kafka 0.10.0.0
 This setting is mainly used when doing a rolling update of your cluster, and
 should be set to a value equal or less than the above `KAFKA_BROKER_PROTOCOL_VERSION`.
-Please check the official [Kafka documentation](http://kafka.apache.org/documentation.html#upgrade_10)
+Please check the official [Kafka documentation](http://kafka.apache.org/documentation.html#upgrade)
 
 * `KAFKA_BROKER_RACK` (default: *empty*)
 The rack (for AWS, availability zone) that the broker is placed on.
@@ -72,7 +72,7 @@ docker run -d -p 9092:9092 -p 15000:15000 \
 ## Versions
 
 * Samsara-`0.5.5.0`, `kafka-0.8.2.1` - Kafka with enabled compaction and topic delete
-* Samsara-`0.x.x.x`, `kafka-0.10.0.0` - New Kafka version.
+* Samsara-`0.x.x.x`, `kafka-0.10.1.0` - New Kafka version.
 
 
 ## Copyright & License

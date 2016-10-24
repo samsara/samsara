@@ -5,7 +5,7 @@ MAINTAINER Samsara's team (https://github.com/samsara/samsara/docker-images)
 #
 # Kafka installation
 #
-ENV KAFKA_VERSION 0.10.0.0
+ENV KAFKA_VERSION 0.10.1.0
 ENV SCALA_VERSION 2.11
 
 # http://apache.mirrors.pair.com/kafka
