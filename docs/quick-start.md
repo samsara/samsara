@@ -5,8 +5,10 @@ subtitle: Get started quickly with ready-made docker images.
 nav: documentation
 ---
 
-Samsara uses several third-party components, such as Apache ZooKeeper, Apache Kafka, ElasticSearch, Kibana etc.
-Samsara provides production quality Docker images for those components to help you get started quickly.
+Samsara uses several third-party components, such as Apache ZooKeeper,
+Apache Kafka, ElasticSearch, Kibana etc.  Samsara provides production
+quality Docker images for those components to help you get started
+quickly.
 
 ## How to start a local environment
 
@@ -25,7 +27,14 @@ Please make sure you have latest [`docker`](https://docs.docker.com/)
 and [`docker-compose`](https://docs.docker.com/compose/install/)
 installed.
 
-Once docker and docker-compose are installed, run the following to pull the required samsara docker images
+_If you are on OSX we strongly recommend to use
+[Docker for Mac](https://docs.docker.com/engine/installation/mac/)._
+
+Once docker and docker-compose are installed, run the following to
+pull the required samsara docker images
+
+**IMPORTANT: Make sure that the docker engine has 4GB of memory
+in order to proceed.**
 
 ```bash
 git clone https://github.com/samsara/samsara.git
@@ -161,13 +170,15 @@ and [`docker-machine`](https://docs.docker.com/machine/install-machine/)
 installed.
 
 
-After you've installed docker and docker-machine on your os, you should create a virtual box vm for samsara
+After you've installed docker and docker-machine on your os, you
+should create a virtual box vm for samsara
 
 ``` bash
 docker-machine create samsara-vm --driver virtualbox --virtualbox-memory 4096
 ```
 
-*Samsara currently needs more than the default VM memory of 1024*
+**IMPORTANT: Make sure that the docker engine has 4GB of memory
+in order to proceed.**
 
 Set up the docker client to use your `samsara-vm` vm by setting some docker environment variables.
 
