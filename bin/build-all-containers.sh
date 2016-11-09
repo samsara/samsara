@@ -50,8 +50,8 @@ docker-build $BASE/kafka        samsara/kafka           $VER
 docker-build $BASE/els          samsara/elasticsearch   $VER
 docker-build $BASE/kibana       samsara/kibana          $VER
 docker-build $BASE/monitoring   samsara/monitoring      $VER
-docker-build $BASE/spark/master samsara/spark-master    $VER
-docker-build $BASE/spark/worker samsara/spark-worker    $VER
+#docker-build $BASE/spark/master samsara/spark-master    $VER
+#docker-build $BASE/spark/worker samsara/spark-worker    $VER
 
 # build internal
 docker-build $SAM/ingestion-api samsara/ingestion-api   $VER
