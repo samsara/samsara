@@ -19,15 +19,13 @@ module SamsaraSDK
       https = Net::HTTP.new(uri.host, uri.port)
       https.use_ssl = true
 
-      request = Net::HTTP::Post.new(prepare data)
+      request = Net::HTTP::Post.new(prepare(data))
       request = request.merge generate_headers
 
-      response = https.request(request)
-      return response
+      https.request(request)
     end
 
     def prepare(data)
-
     end
 
     private
@@ -36,17 +34,17 @@ module SamsaraSDK
     # @return [Hash] headers
     def generate_headers
       {
-          'Accept' => 'application/json',
-          'Content-Type' => 'application/json',
-          'Content-Encoding' => @options['compression'] || 'identity',
-          'PUBLISHED_TIMESTAMP_HEADER' => generate_timestamp.to_s
+        'Accept' => 'application/json',
+        'Content-Type' => 'application/json',
+        'Content-Encoding' => @options['compression'] || 'identity',
+        'PUBLISHED_TIMESTAMP_HEADER' => generate_timestamp.to_s
       }
     end
 
     # Helper method to generate current timestamp.
     # @return [Integer] timestamp in milliseconds
     def generate_timestamp
-      (Time.now.to_f.round(3)*1000).to_i
+      (Time.now.to_f.round(3) * 1000).to_i
     end
   end
 end

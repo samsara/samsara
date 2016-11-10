@@ -6,10 +6,16 @@ Gem::Specification.new do |spec|
   spec.description = 'Ruby client library for Samsara Analytics platform.'
   spec.email = %w(samsara.systems+info@gmail.com)
   spec.homepage = 'https://github.com/samsara/samsara'
-  spec.licenses = ['Apache License 2.0']
+  spec.license = 'Apache License 2.0'
   spec.name = 'samsara_sdk'
   spec.require_paths = %w(lib)
   spec.required_ruby_version = '>= 1.9.3'
   spec.summary = spec.description
-  spec.version = '1.0.0'
+  spec.version = File.read('../../samsara.version').strip.sub(/[A-za-z-]/, '')
+  spec.files = %w(.yardopts CHANGELOG.md CONTRIBUTING.md LICENSE.md README.md twitter.gemspec) + Dir['lib/**/*.rb']
+
+  spec.add_development_dependency 'bundler'
+  spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'simplecov'
 end
