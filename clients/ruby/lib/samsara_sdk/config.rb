@@ -1,3 +1,4 @@
+# Samsara SDK
 module SamsaraSDK
   # Samsara SDK default configuration and request constants.
   class Config
@@ -7,7 +8,8 @@ module SamsaraSDK
     # Samsara API endpoint
     API_PATH = '/v1/events'.freeze
 
-    # Default configuration values
+    # Default configuration values.
+    # @return [Hash] Default configuration values.
     def self.defaults
       {
         # Samsara ingestion api endpoint "http://samsara.io/"
@@ -39,8 +41,8 @@ module SamsaraSDK
         send_timeout_ms: 30_000,
 
         # Should the payload be compressed?
-        # allowed values 'gzip', 'none'
-        compression: 'gzip',
+        # allowed values :gzip, :none
+        compression: :gzip,
 
         # NOT CURRENTLY SUPPORTED
         # Add Samsara client statistics events
@@ -49,6 +51,22 @@ module SamsaraSDK
         # adequately configured.
         # send_client_stats: TRUE
       }
+    end
+
+    # Validates given configuration values.
+    #
+    # @param config [Hash] Configuration values.
+    # @raise [ArgumentError] if any config option is incorrect.
+    def self.validate(config)
+      config.each do |k, v|
+        raise TypeError, "#{option} should be #{defaults[k].class}" unless v.is_a? defaults[k].class
+      end
+
+      raise ArgumentError, 'URL for Ingestion API should be specified.' if config[:url].nil?
+      raise ArgumentError, 'Incorrect compression option.' unless [:gzip, :none].include? config[:compression]
+      raise ArgumentError, 'Invalid interval time for Samsara client.' if config[:publish_interval_ms] <= 0
+      raise ArgumentError, 'max_buffer_size can not be less then min_buffer_size.' if
+          config[:max_buffer_size] < config[:min_buffer_size]
     end
   end
 end

@@ -1,7 +1,11 @@
+require 'json'
+require 'zlib'
+require 'stringio'
 require 'uri'
 require 'net/http'
 require 'config'
 
+# Samsara SDK
 module SamsaraSDK
   # Physical connector that Publishes messages to Samsara Ingestion API.
   class Publisher
@@ -25,10 +29,23 @@ module SamsaraSDK
       https.request(request)
     end
 
-    def prepare(data)
-    end
-
     private
+
+    # Wraps data in JSON and optionally compresses it.
+    #
+    # @param data [Array<Hash>] Data to prepare.
+    # @return [String] Prepared data.
+    def prepare(data)
+      data = JSON.generate data
+      if @options[:compression] == :gzip
+        wio = StringIO.new('w')
+        w_gz = Zlib::GzipWriter.new(wio)
+        w_gz.write(data)
+        w_gz.close
+        data = wio.string
+      end
+      data
+    end
 
     # Helper method to generate HTTP request headers for Ingestion API.
     # @return [Hash] headers
@@ -37,11 +54,12 @@ module SamsaraSDK
         'Accept' => 'application/json',
         'Content-Type' => 'application/json',
         'Content-Encoding' => @options['compression'] || 'identity',
-        'PUBLISHED_TIMESTAMP_HEADER' => generate_timestamp.to_s
+        @options.PUBLISHED_TIMESTAMP_HEADER => generate_timestamp.to_s
       }
     end
 
     # Helper method to generate current timestamp.
+    #
     # @return [Integer] timestamp in milliseconds
     def generate_timestamp
       (Time.now.to_f.round(3) * 1000).to_i

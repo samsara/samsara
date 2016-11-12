@@ -3,14 +3,11 @@ Bundler::GemHelper.install_tasks
 
 desc 'Run specification tests'
 require 'rspec/core/rake_task'
-RSpec::Core::RakeTask.new(:spec) do |t|
-  t.rspec_opts = '--color'
-end
-
-task test: :spec
+RSpec::Core::RakeTask.new(:spec)
 
 desc 'Test code standards'
 require 'rubocop/rake_task'
 RuboCop::RakeTask.new
 
+task test: :spec
 task default: [:rubocop, :test]

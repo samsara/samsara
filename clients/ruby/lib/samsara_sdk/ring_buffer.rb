@@ -1,4 +1,5 @@
+# Samsara SDK
 module SamsaraSDK
-  class RingBuffer
+  class RingBuffer < Array
   end
 end
