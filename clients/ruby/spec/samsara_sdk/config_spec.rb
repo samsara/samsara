@@ -1,5 +1,3 @@
-require_relative '../helper'
-
 describe SamsaraSDK::Config do
   describe '.defaults' do
     it 'returns default config values as a Hash' do

@@ -1,5 +1,3 @@
-require_relative '../helper'
-
 describe SamsaraSDK::Client do
   context 'initialized' do
     it 'should be given a url for Ingestion API'
@@ -7,6 +5,11 @@ describe SamsaraSDK::Client do
     it 'can be given no hash of configuration overrides'
     it 'should initialize a queue for events'
     it 'should initialize publisher to push events to Ingestion API'
+  end
+
+  context 'instantiated' do
+    it 'responds to publish_events'
+    it 'responds to record_event'
   end
 
   describe '#publish_events' do

@@ -9,17 +9,12 @@ require 'config'
 module SamsaraSDK
   # Physical connector that Publishes messages to Samsara Ingestion API.
   class Publisher
-    # initialize.
-    # @param options [Hash] Samsara SDK options.
-    def initialize(options)
-      @options = options
-    end
-
     # Sends message to Ingestion API.
-    # @param data [???]
-    # @return [???]
+    #
+    # @param data [Array<Hash>] List of events.
+    # @return [Boolean] Success or falure of HTTP POST call.
     def send(data)
-      uri = URI.parse(@host)
+      uri = URI.parse(Config.get[:url])
       https = Net::HTTP.new(uri.host, uri.port)
       https.use_ssl = true
 
@@ -37,13 +32,26 @@ module SamsaraSDK
     # @return [String] Prepared data.
     def prepare(data)
       data = JSON.generate data
-      if @options[:compression] == :gzip
-        wio = StringIO.new('w')
-        w_gz = Zlib::GzipWriter.new(wio)
-        w_gz.write(data)
-        w_gz.close
-        data = wio.string
-      end
+      data = self.send(Config.get[:compression], data)
+    end
+
+    # Gzip wrapper for data.
+    #
+    # @param data [String] Data to wrap.
+    # @return [String] Gzipped data.
+    def gzip(data)
+      wio = StringIO.new('w')
+      w_gz = Zlib::GzipWriter.new(wio)
+      w_gz.write(data)
+      w_gz.close
+      data = wio.string
+    end
+
+    # None wrapper for data.
+    #
+    # @param data [String] Data to wrap.
+    # @return [String] Original data.
+    def none(data)
       data
     end
 
@@ -53,16 +61,9 @@ module SamsaraSDK
       {
         'Accept' => 'application/json',
         'Content-Type' => 'application/json',
-        'Content-Encoding' => @options['compression'] || 'identity',
-        @options.PUBLISHED_TIMESTAMP_HEADER => generate_timestamp.to_s
+        'Content-Encoding' => Config.get[:compression] || 'identity',
+        Config.PUBLISHED_TIMESTAMP_HEADER => Config.timestamp.to_s
       }
-    end
-
-    # Helper method to generate current timestamp.
-    #
-    # @return [Integer] timestamp in milliseconds
-    def generate_timestamp
-      (Time.now.to_f.round(3) * 1000).to_i
     end
   end
 end

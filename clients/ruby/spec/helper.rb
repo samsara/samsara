@@ -1,2 +1,7 @@
-require 'samsara_sdk/client'
-require 'samsara_sdk/config'
+RSpec.configure do |config|
+  config.expect_with :rspec do |c|
+    c.syntax = :expect
+  end
+end
+
+require 'samsara_sdk'
