@@ -1,4 +1,6 @@
-(defproject samsara/samsara-builtin-modules (-> "../samsara.version" slurp .trim)
+(defn ver [] (-> "../samsara.version" slurp .trim))
+
+(defproject samsara/samsara-builtin-modules (ver)
   :description "Samsara built-in modules"
 
   :url "http://samsara-analytics.io/"
@@ -9,7 +11,7 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [samsara/moebius #=(clojure.string/trim #=(slurp "../samsara.version"))]
+                 [samsara/moebius #=(ver)]
                  [digest "1.4.4"]
                  [com.brunobonacci/ip-geoloc "0.2.0-SNAPSHOT"]]
 

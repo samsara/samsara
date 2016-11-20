@@ -1,4 +1,6 @@
-(defproject samsara/samsara-core (-> "../samsara.version" slurp .trim)
+(defn ver [] (-> "../samsara.version" slurp .trim))
+
+(defproject samsara/samsara-core (ver)
   :description "Event stream processing pipeline"
 
   :url "https://samsara.github.com/"
@@ -15,10 +17,8 @@
                  [org.slf4j/slf4j-log4j12 "1.7.12"]
                  [org.apache.samza/samza-api        "0.9.1"]
                  [org.apache.samza/samza-kafka_2.10 "0.9.1"]
-                 [samsara/moebius
-                  #=(clojure.string/trim #=(slurp "../samsara.version"))]
-                 [samsara/samsara-utils
-                  #=(clojure.string/trim #=(slurp "../samsara.version"))]
+                 [samsara/moebius #=(ver)]
+                 [samsara/samsara-utils #=(ver)]
                  [samsara/trackit "0.3.0"]
                  [com.taoensso/timbre "4.5.1"]
                  [org.clojure/tools.cli "0.3.1"]

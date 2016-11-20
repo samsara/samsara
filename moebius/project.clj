@@ -1,4 +1,6 @@
-(defproject samsara/moebius (-> "../samsara.version" slurp .trim)
+(defn ver [] (-> "../samsara.version" slurp .trim))
+
+(defproject samsara/moebius (ver)
   :description "A system to process and enrich and correlate events in realtime"
 
   :url "http://samsara-analytics.io/"

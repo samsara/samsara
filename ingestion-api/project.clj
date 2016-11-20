@@ -1,4 +1,6 @@
-(defproject samsara/ingestion-api (-> "../samsara.version" slurp .trim)
+(defn ver [] (-> "../samsara.version" slurp .trim))
+
+(defproject samsara/ingestion-api (ver)
   :description "Ingestion APIs for Samsara's analytics"
 
   :url "http://samsara-analytics.io/"
@@ -10,8 +12,7 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [samsara/samsara-utils
-                  #=(clojure.string/trim #=(slurp "../samsara.version"))]
+                 [samsara/samsara-utils #=(ver)]
                  [aleph "0.4.1"]
                  [gloss "0.2.5"]
                  [ring/ring-core "1.4.0"]

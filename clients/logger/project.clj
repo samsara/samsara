@@ -1,4 +1,6 @@
-(defproject samsara/samsara-logger (-> "../../samsara.version" slurp .trim)
+(defn ver [] (-> "../../samsara.version" slurp .trim))
+
+(defproject samsara/samsara-logger (ver)
   :description "A logging interface for sending logs as events to samsara"
 
   :url "http://samsara-analytics.io/"
@@ -11,7 +13,7 @@
                  [org.slf4j/slf4j-api "1.7.12"]
                  [ch.qos.logback/logback-classic "1.1.3"]
                  [org.apache.logging.log4j/log4j-core "2.3"]
-                 [samsara/samsara-client #=(clojure.string/trim #=(slurp "../../samsara.version"))]]
+                 [samsara/samsara-client #=(ver)]]
   :aot [samsara.logger.EventLogger samsara.logger.EventLoggerBuilder]
 
   :source-paths ["src/main/clojure"]

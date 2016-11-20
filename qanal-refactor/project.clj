@@ -1,4 +1,6 @@
-(defproject samsara/qanal (-> "../samsara.version" slurp .trim)
+(defn ver [] (-> "../samsara.version" slurp .trim))
+
+(defproject samsara/qanal (ver)
   :description "An Application that bulk indexes docs from Kafka to Elasticsearch"
 
   :url "http://samsara-analytics.io/"
