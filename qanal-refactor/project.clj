@@ -15,7 +15,7 @@
                  [org.clojure/tools.cli "0.3.3"]
                  [com.taoensso/timbre "4.7.0"]
                  [prismatic/schema "0.4.4"]
-                 [com.brunobonacci/safely "0.2.1"]
+                 [com.brunobonacci/safely "0.2.3"]
                  [curator "0.0.6"]
                  [com.dayooliyide/kafkian "0.1.0"]]
 

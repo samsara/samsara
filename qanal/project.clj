@@ -22,7 +22,7 @@
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [clj-time "0.11.0"]
 
-                 [com.brunobonacci/safely "0.2.2"]]
+                 [com.brunobonacci/safely "0.2.3"]]
 
   :main qanal.core
 
