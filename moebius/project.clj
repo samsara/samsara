@@ -16,7 +16,7 @@
                  ;;[samsara/trackit "0.2.0"]
                  [org.clojure/core.match "0.3.0-alpha4"]   ;; pattern-matching
                  [potemkin "0.4.3"]                        ;; import-var
-                 [com.brunobonacci/where "0.2.0"]          ;; where
+                 [com.brunobonacci/where "0.5.0"]          ;; where
                  [rhizome "0.2.5"]                         ;; graphviz
                  ]
 
