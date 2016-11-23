@@ -7,17 +7,17 @@ module SamsaraSDK
     # Samsara specific HTTP Header
     PUBLISHED_TIMESTAMP_HEADER = 'X-Samsara-publishedTimestamp'.freeze
 
-    # Samsara API endpoint
+    # Samsara Ingestion API endpoint
     API_PATH = '/v1/events'.freeze
 
     # Default configuration values.
     @defaults = {
       # Samsara ingestion api endpoint "http://samsara.io/"
-      url: nil,
+      url: '',
 
       # Identifier of the source of these events
       # OPTIONAL used only for record-event
-      source_id: nil,
+      source_id: '',
 
       # Start the publishing thread?
       start_publishing_thread: TRUE,
@@ -60,9 +60,9 @@ module SamsaraSDK
       # Merges given config with defaults and validates the result.
       #
       # @param input_config [Hash] Input configuration options.
-      # @raise [ArgumentError] if any config option is incorrect.
+      # @raise [SamsaraSDK::ConfigValidationError] if any config option is incorrect.
       def setup!(input_config)
-        @values = defaults.merge input_config
+        @values = @defaults.merge input_config
         validate @values
       end
 
@@ -75,7 +75,7 @@ module SamsaraSDK
 
       # Generates current timestamp.
       #
-      # @return [Integer] timestamp in milliseconds
+      # @return [Integer] timestamp in milliseconds.
       def timestamp
         (Time.now.to_f.round(3) * 1000).to_i
       end
@@ -88,13 +88,13 @@ module SamsaraSDK
       # @raise [SamsaraSDK::ConfigValidationError] if any config option is incorrect.
       def validate(config)
         config.each do |k, v|
-          raise ConfigValidationError, "#{option} should be #{defaults[k].class}" unless v.is_a? defaults[k].class
+          raise ConfigValidationError, "#{k} should be of #{@defaults[k].class}" unless v.is_a? @defaults[k].class
         end
 
-        raise ConfigValidationError, 'URL for Ingestion API should be specified.' if config[:url].nil?
+        raise ConfigValidationError, 'URL for Ingestion API should be specified.' if config[:url] == ''
         raise ConfigValidationError, 'Incorrect compression option.' unless [:gzip, :none].include? config[:compression]
         raise ConfigValidationError, 'Invalid interval time for Samsara client.' if config[:publish_interval_ms] <= 0
-        raise ConfigValidationError, 'max_buffer_size can not be less then min_buffer_size.' if
+        raise ConfigValidationError, 'max_buffer_size can not be less than min_buffer_size.' if
             config[:max_buffer_size] < config[:min_buffer_size]
       end
     end

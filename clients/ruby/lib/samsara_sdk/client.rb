@@ -11,7 +11,7 @@ module SamsaraSDK
     # initialize
     #
     # @param config [Hash] Configuration overrides.
-    # @raise [ArgumentError] if any config option is incorrect.
+    # @raise [SamsaraSDK::ConfigValidationError] if any config option is incorrect.
     def initialize(config)
       Config.setup! config
       @publisher = Publisher.new
@@ -22,26 +22,24 @@ module SamsaraSDK
     #
     # @param events [Array<Hash>] List of events.
     # @return [Boolean] The result of puplish operation.
-    # @raises 
+    # @see http://samsara-analytics.io/docs/design/events-spec Event specification
+    # @raise [SamsaraSDK::EventValidationError] if any option of the given event is invalid.
     def publish_events(events)
       events = events.map do |event|
         Event.validate event
         Event.enrich event
       end
-      @publisher.send events
+      @publisher.post events
     end
 
     # Pushes event to internal events' queue.
     #
-    #
-    #
-    # todo - arg order
-    def record_event(event_name, source_id = nil, timestamp = nil)
-      event = {
-        timestamp: timestamp,
-        sourceId: source_id,
-        eventName: event_name
-      }
+    # @param data [Hash] Event data.
+    # @option data [String] :eventName Name of the event.
+    # @option data [String] :sourceId Source ID of the event.
+    # @option data [Integer] :timestamp Timestamp in milliseconds.
+    # @see http://samsara-analytics.io/docs/design/events-spec Event specification
+    def record_event(event)
       event = Event.enrich event
       Event.validate event
       # @queue << event
