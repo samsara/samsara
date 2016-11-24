@@ -14,7 +14,6 @@ _Skills required: languages, multi-threading, lock-free (CAS), http_
 We are looking to add client support for the following languages:
 
   * Java
-  * Python
   * PHP
   * Go
   * Ruby
@@ -69,7 +68,7 @@ Qanal more robust in face of failures, and elastically scalable (aka:
 you just need to add more nodes).
 
 Some of the new design description and implementation are already
-on their way and you can see more [here](https://github.com/samsara/samsara/blob/qanal-refactor/qanal/doc/state-machine.md)
+on their way and you can see more [here](https://github.com/samsara/samsara/blob/master/qanal-refactor/doc/state-machine.md).
 
 Much of the work here will be in common with the redesign of the CORE.
 The key decisions for the redesign are:
@@ -133,6 +132,6 @@ _Skills required: HTML, CSS, Jekyll_
 
 ### Logo
 
-Are you a web designer? Samsara is looking for a logo as well.
+Are you a web designer? Samsara is looking for a (better) logo as well.
 
 _Skills required: Web-design_
