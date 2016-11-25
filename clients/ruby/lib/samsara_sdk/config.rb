@@ -17,7 +17,7 @@ module SamsaraSDK
 
       # Identifier of the source of these events
       # OPTIONAL used only for record-event
-      source_id: '',
+      sourceId: '',
 
       # Start the publishing thread?
       start_publishing_thread: TRUE,
@@ -88,7 +88,7 @@ module SamsaraSDK
       # @raise [SamsaraSDK::ConfigValidationError] if any config option is incorrect.
       def validate(config)
         config.each do |k, v|
-          raise ConfigValidationError, "#{k} should be of #{@defaults[k].class}" unless v.is_a? @defaults[k].class
+          raise ConfigValidationError, "#{k} should be of #{@defaults[k].class}" unless valid_type?(k, v)
         end
 
         raise ConfigValidationError, 'URL for Ingestion API should be specified.' if config[:url] == ''
@@ -96,6 +96,18 @@ module SamsaraSDK
         raise ConfigValidationError, 'Invalid interval time for Samsara client.' if config[:publish_interval_ms] <= 0
         raise ConfigValidationError, 'max_buffer_size can not be less than min_buffer_size.' if
             config[:max_buffer_size] < config[:min_buffer_size]
+      end
+
+      # Check value type corresponds to allowed type for particular config key.
+      #
+      # @param key [Symbol] Configuration key.
+      # @param value [Object] Configuration value.
+      # @return [Boolean]
+      def valid_type?(key, value)
+        if [TrueClass, FalseClass].include? @defaults[key].class
+          return [TrueClass, FalseClass].include? value.class
+        end
+        value.is_a? @defaults[key].class
       end
     end
   end

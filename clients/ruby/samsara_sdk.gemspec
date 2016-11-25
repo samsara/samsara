@@ -11,11 +11,12 @@ Gem::Specification.new do |spec|
   spec.require_paths = %w(lib)
   spec.required_ruby_version = '>= 1.9.3'
   spec.description = spec.summary
-  spec.files = %w(LICENSE.md README.md samsara_sdk.gemspec) + Dir['lib/**/*.rb']
+  spec.files = %w(LICENSE.txt README.md samsara_sdk.gemspec) + Dir['lib/**/*.rb']
   spec.version = File.read('../../samsara.version').strip.sub(/[A-za-z-]*$/, '')
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'rubocop'
   spec.add_development_dependency 'simplecov'
+  spec.add_development_dependency 'webmock'
 end

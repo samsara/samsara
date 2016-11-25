@@ -21,27 +21,24 @@ module SamsaraSDK
     # Publishes given events list to Ingestion API immediately.
     #
     # @param events [Array<Hash>] List of events.
-    # @return [Boolean] The result of puplish operation.
-    # @see http://samsara-analytics.io/docs/design/events-spec Event specification
+    # @return [Boolean] The result of publish operation.
     # @raise [SamsaraSDK::EventValidationError] if any option of the given event is invalid.
+    # @see http://samsara-analytics.io/docs/design/events-spec Event specification
     def publish_events(events)
-      events = events.map do |event|
-        Event.validate event
-        Event.enrich event
-      end
+      events = events.map { |event| Event.validate(Event.enrich(event)) }
       @publisher.post events
     end
 
     # Pushes event to internal events' queue.
     #
-    # @param data [Hash] Event data.
+    # @param event [Hash] Event data.
     # @option data [String] :eventName Name of the event.
     # @option data [String] :sourceId Source ID of the event.
     # @option data [Integer] :timestamp Timestamp in milliseconds.
     # @see http://samsara-analytics.io/docs/design/events-spec Event specification
     def record_event(event)
-      event = Event.enrich event
-      Event.validate event
+      # Event.enrich event
+      # Event.validate event
       # @queue << event
     end
   end

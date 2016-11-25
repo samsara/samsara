@@ -3,6 +3,3 @@ Metrics/LineLength:
 
 Metrics/AbcSize:
   Enabled: false
-
-Style/ParallelAssignment:
-  Enabled: false

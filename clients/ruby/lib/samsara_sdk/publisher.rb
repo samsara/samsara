@@ -1,7 +1,6 @@
 require 'json'
 require 'zlib'
 require 'stringio'
-require 'uri'
 require 'net/http'
 require 'samsara_sdk/config'
 
@@ -12,11 +11,17 @@ module SamsaraSDK
     # Sends message to Ingestion API.
     #
     # @param data [Array<Hash>] List of events.
-    # @return [Boolean] Success or falure of HTTP POST call.
+    # @return [Boolean] Success or failure of HTTP POST call.
     def post(data)
-      request = Net::HTTP::Post.new(prepare(data))
-      request = request.merge generate_headers
-      http.request(request)
+      url = URI.parse(Config.get[:url].chomp('/') + Config::API_PATH)
+      http = Net::HTTP.new(url.host, url.port)
+      http.use_ssl = url.scheme == 'https'
+      http.read_timeout = Config.get[:send_timeout_ms] / 1000
+      request = Net::HTTP::Post.new(url, headers)
+      request.body = prepare(data)
+      http.request(request).instance_of? Net::HTTPAccepted
+    rescue RuntimeError
+      FALSE
     end
 
     private
@@ -50,24 +55,14 @@ module SamsaraSDK
       data
     end
 
-    # Get HTTP object to communicate to Ingestion API.
-    #
-    # @return [Net::HTTP] HTTP object.
-    def http
-      url = Config.get[:url].chomp('/') + Config::API_PATH
-      url = URI.parse(url)
-      http = Net::HTTP.new(url.host, url.port)
-      http.use_ssl = true
-      http
-    end
-
     # Helper method to generate HTTP request headers for Ingestion API.
+    #
     # @return [Hash] headers
-    def generate_headers
+    def headers
       {
         'Accept' => 'application/json',
         'Content-Type' => 'application/json',
-        'Content-Encoding' => Config.get[:compression] || 'identity',
+        'Content-Encoding' => Config.get[:compression] == :gzip ? 'gzip' : 'identity',
         Config::PUBLISHED_TIMESTAMP_HEADER => Config.timestamp.to_s
       }
     end
