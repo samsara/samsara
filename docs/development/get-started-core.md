@@ -469,5 +469,5 @@ cat <<EOF | curl -i -H "Content-Type: application/json" \
 EOF
 ```
 
-Finally you should be able to see the events via [http://217.0.0.1:8000](http://217.0.0.1:8000).
+Finally you should be able to see the events via [http://127.0.0.1:8000](http://127.0.0.1:8000).
 The first time you'll need to set it up as described in [Quick start guide](http://samsara-analytics.io/docs/quick-start/).

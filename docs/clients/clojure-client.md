@@ -12,7 +12,7 @@ To use the Samasara SDK you need to add the following dependency to
 your `project.clj` file.
 
 ```clojure
-[samsara/samsara-client "0.2.0"]
+[samsara/samsara-client "0.5.5.0"]
 ```
 
 Load the namespace in the REPL
@@ -31,7 +31,8 @@ To set your configuration with:
 
 ```clojure
 (samsara/init! {:url "http://my.samsara.server:9000/"
-                :sourceId "the identifier of the given source"})
+                :sourceId "the identifier of the given source"
+                :min-buffer-size 1}) ;; too small for production use.
 ```
 
 Now you can start to publish events to samsara.
@@ -62,9 +63,11 @@ Alternatively, you can publish bulk events immediately to the
 Ingestion API using the publish-events function.
 
 ```clojure
-(samsara/publish-events [{:eventName "user.logged"
-                          :timestamp 1431261991023
-                          :sourceId "e6f01efd-04a9-4c18-a210-2806718b6d43"})]
+;; stateless publishing to Ingestion-API
+(samsara/publish-events "http://localhost:9000/"
+  [{:eventName "user.logged"
+    :timestamp 1431261991023
+    :sourceId "e6f01efd-04a9-4c18-a210-2806718b6d43"}])
 ```
 The event will be sent to samsara immediately.
 
