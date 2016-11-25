@@ -10,7 +10,7 @@ describe SamsaraSDK::Publisher do
         [{ 'Content-Encoding' => 'gzip' }, :gzip],
         [{ 'X-Samsara-Publishedtimestamp' => 'some-real-timestamp' }, :none]
       ].each do |header, compression|
-        it 'pushes with Accept -> application/json' do
+        it "pushes with #{header}" do
           allow(SamsaraSDK::Config).to receive(:timestamp).and_return('some-real-timestamp')
           SamsaraSDK::Config.setup!(url: url, compression: compression)
           stub_request(:post, full_url)

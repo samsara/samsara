@@ -18,7 +18,7 @@ module SamsaraSDK
       http.use_ssl = url.scheme == 'https'
       http.read_timeout = Config.get[:send_timeout_ms] / 1000
       request = Net::HTTP::Post.new(url, headers)
-      request.body = prepare(data)
+      request.body = prepare data
       http.request(request).instance_of? Net::HTTPAccepted
     rescue RuntimeError
       FALSE

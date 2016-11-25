@@ -24,29 +24,29 @@ describe 'SamsaraSDK::Config' do
     end
 
     context 'when given invalid configuration' do
-      [
-        [{ start_publishing_thread: 0 }, 'start_publishing_thread should be'],
-        [{ publish_interval_ms: 1.2 }, 'publish_interval_ms should be'],
-        [{ publish_interval_ms: '30_000' }, 'publish_interval_ms should be'],
-        [{ max_buffer_size: 1.2 }, 'max_buffer_size should be'],
-        [{ max_buffer_size: '30_000' }, 'max_buffer_size should be'],
-        [{ min_buffer_size: 1.6 }, 'min_buffer_size should be'],
-        [{ min_buffer_size: '30' }, 'min_buffer_size should be'],
-        [{ send_timeout_ms: 0.8 }, 'send_timeout_ms should be'],
-        [{ send_timeout_ms: '789' }, 'send_timeout_ms should be'],
-        [{ compression: 'gzip' }, 'compression should be'],
-        [{ compression: TRUE }, 'compression should be'],
-        [{ url: 123 }, 'url should be'],
-        [{ url: nil }, 'url should be'],
-        [{ url: [1, 2, 3] }, 'url should be'],
-        [{ url: { a: 'http://foo.bar' } }, 'url should be'],
-        [{ url: '' }, 'URL.*should be specified.'],
-        [{ publish_interval_ms: 0 }, 'Invalid interval'],
-        [{ publish_interval_ms: -2 }, 'Invalid interval'],
-        [{ compression: :zip }, 'Incorrect compression'],
-        [{ max_buffer_size: 4, min_buffer_size: 8 }, 'be less than']
-      ].each do |input, message|
-        it 'raises SamsaraSDK::ConfigValidationError' do
+      it 'raises SamsaraSDK::ConfigValidationError' do
+        [
+          [{ start_publishing_thread: 0 }, 'start_publishing_thread should be'],
+          [{ publish_interval_ms: 1.2 }, 'publish_interval_ms should be'],
+          [{ publish_interval_ms: '30_000' }, 'publish_interval_ms should be'],
+          [{ max_buffer_size: 1.2 }, 'max_buffer_size should be'],
+          [{ max_buffer_size: '30_000' }, 'max_buffer_size should be'],
+          [{ min_buffer_size: 1.6 }, 'min_buffer_size should be'],
+          [{ min_buffer_size: '30' }, 'min_buffer_size should be'],
+          [{ send_timeout_ms: 0.8 }, 'send_timeout_ms should be'],
+          [{ send_timeout_ms: '789' }, 'send_timeout_ms should be'],
+          [{ compression: 'gzip' }, 'compression should be'],
+          [{ compression: TRUE }, 'compression should be'],
+          [{ url: 123 }, 'url should be'],
+          [{ url: nil }, 'url should be'],
+          [{ url: [1, 2, 3] }, 'url should be'],
+          [{ url: { a: 'http://foo.bar' } }, 'url should be'],
+          [{ url: '' }, 'URL.*should be specified.'],
+          [{ publish_interval_ms: 0 }, 'Invalid interval'],
+          [{ publish_interval_ms: -2 }, 'Invalid interval'],
+          [{ compression: :zip }, 'Incorrect compression'],
+          [{ max_buffer_size: 4, min_buffer_size: 8 }, 'be less than']
+        ].each do |input, message|
           data = { url: 'foo' }.merge input
           expect { subject.setup!(data) }.to raise_error(SamsaraSDK::ConfigValidationError, /#{message}/)
         end
@@ -54,18 +54,18 @@ describe 'SamsaraSDK::Config' do
     end
 
     context 'when given valid configuration' do
-      [
-        { start_publishing_thread: FALSE },
-        { sourceId: 'some-source-id' },
-        { publish_interval_ms: 20 },
-        { send_timeout_ms: 10 },
-        { compression: :gzip },
-        { compression: :none },
-        { url: 'http://foo.bar' },
-        { publish_interval_ms: 14 },
-        { max_buffer_size: 8, min_buffer_size: 4 }
-      ].each do |input|
-        it 'raises no errors' do
+      it 'raises no errors' do
+        [
+          { start_publishing_thread: FALSE },
+          { sourceId: 'some-source-id' },
+          { publish_interval_ms: 20 },
+          { send_timeout_ms: 10 },
+          { compression: :gzip },
+          { compression: :none },
+          { url: 'http://foo.bar' },
+          { publish_interval_ms: 14 },
+          { max_buffer_size: 8, min_buffer_size: 4 }
+        ].each do |input|
           data = { url: 'foo' }.merge input
           expect { subject.setup!(data) }.not_to raise_error
         end
