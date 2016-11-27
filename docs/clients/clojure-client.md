@@ -32,7 +32,8 @@ To set your configuration with:
 ```clojure
 (samsara/init! {:url "http://my.samsara.server:9000/"
                 :sourceId "the identifier of the given source"
-                :min-buffer-size 1}) ;; too small for production use.
+                :publish-interval 3000  ;; too small for production use.
+                :min-buffer-size 1})    ;; too small for production use.
 ```
 
 Now you can start to publish events to samsara.
