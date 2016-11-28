@@ -23,20 +23,20 @@ module SamsaraSDK
       start_publishing_thread: TRUE,
 
       # How often should the events being sent to Samsara
-      # in milliseconds
+      # in milliseconds.
       # default = 30s
       publish_interval_ms: 30_000,
 
-      # Max size of the buffer, when buffer is full
-      # older events are dropped
+      # Max size of the buffer.
+      # When buffer is full older events are dropped.
       max_buffer_size: 10_000,
 
-      # Minimum number of events to that must be in the buffer
-      # before attempting to publish them
+      # Minimum number of events that must be in the buffer
+      # before attempting to publish them.
       min_buffer_size: 100,
 
       # Network timeout for send operations
-      # in milliseconds
+      # in milliseconds.
       # default 30s
       send_timeout_ms: 30_000,
 

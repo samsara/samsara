@@ -5,6 +5,11 @@ desc 'Run specification tests'
 require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new(:spec)
 
+desc 'Document specification tests'
+RSpec::Core::RakeTask.new(:doc) do |t|
+  t.rspec_opts = '--format doc --order default'
+end
+
 desc 'Test code standards'
 require 'rubocop/rake_task'
 RuboCop::RakeTask.new

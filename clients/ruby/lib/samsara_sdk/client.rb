@@ -16,6 +16,7 @@ module SamsaraSDK
       Config.setup! config
       @publisher = Publisher.new
       @queue = RingBuffer.new(Config.get[:max_buffer_size])
+      start_publishing if Config.get[:start_publishing_thread]
     end
 
     # Publishes given events list to Ingestion API immediately.
@@ -37,9 +38,19 @@ module SamsaraSDK
     # @option data [Integer] :timestamp Timestamp in milliseconds.
     # @see http://samsara-analytics.io/docs/design/events-spec Event specification
     def record_event(event)
-      # Event.enrich event
-      # Event.validate event
-      # @queue << event
+      event = Event.validate(Event.enrich(event))
+      @queue << event
+    end
+
+    private
+
+    def start_publishing
+      Thread.new do
+        while true do
+          p 'teeeest'
+          sleep Config.get(:publish_interval_ms) / 1000
+        end
+      end
     end
   end
 end
