@@ -26,7 +26,7 @@ To initialize the Samsara client with default configuration, just do:
 ```swift
 import samsara-ios-sdk
 
-var config:SSConfig = ["url": "http://samsara.io",
+var config:SSConfig = ["url": "http://samsara-ingestion.local/",
 "publishInterval": 60,
 "maxBufferSize": 10000]
 
@@ -126,7 +126,7 @@ Samsara client buffers events and peridically flushes them to Samsara API. If ne
 
 
 ```swift
-var config:SSConfig = ["url": "http://samsara.io",
+var config:SSConfig = ["url": "http://samsara-ingestion.local/",
 "publishInterval": 60,
 "maxBufferSize": 10000]
 

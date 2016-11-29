@@ -10,7 +10,7 @@ PUBLISHED_TIMESTAMP_HEADER = "X-Samsara-publishedTimestamp"
 
 API_PATH = '/v1/events'
 DEFAULT_CONFIG = {
-    # a samsara ingestion api endpoint  "http://samsara.io/"
+    # a samsara ingestion api endpoint  "http://samsara-ingestion.local/"
     # url  - REQUIRED
 
     # the identifier of the source of these events

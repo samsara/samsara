@@ -31,7 +31,7 @@ class SamsaraClient(object):
     A client for ingesting events into Samsara
 
     Configuration:
-        # a samsara ingestion api endpoint  "http://samsara.io/"
+        # a samsara ingestion api endpoint  "http://samsara-ingestion.local/"
         # url  - REQUIRED
 
         # the identifier of the source of these events

@@ -12,9 +12,9 @@
 To initialize the Samsara client with default configuration, just do:
 
 ```swift
-import samsara_ios_sdk 
+import samsara_ios_sdk
 
-var config:SSConfig = ["url": "http://samsara.io",
+var config:SSConfig = ["url": "http://samsara-ingestion.local/",
 "publishInterval": 60,
 "maxBufferSize": 10000]
 
@@ -103,18 +103,18 @@ Samsara client automatically gathers and publishes information about the iOS dev
 
 
 ### UDID - Unique Device Identifier
-Samsara client will auto generate an Unique Identifier for each device. This property will be added to every event in the "UDID" field. The UDID generated is preserved even when the app is deleted and re-installed. 
+Samsara client will auto generate an Unique Identifier for each device. This property will be added to every event in the "UDID" field. The UDID generated is preserved even when the app is deleted and re-installed.
 
 Samsara will associate all events originiating from the device with this UDID.
 
 If sourceId is not supplied in the event, Samsara client autopopulates it with UDID.
 
 ### Configuration
-Samsara client buffers events and peridically flushes them to Samsara API. If network is not available or if Samsara API is not reachable, the events are retained in the buffer. The event buffer is a ring buffer whose max size can be configured. When the buffers hit their max size, the oldest items in the buffer are removed. The interval to publish events can also be configured. 
+Samsara client buffers events and peridically flushes them to Samsara API. If network is not available or if Samsara API is not reachable, the events are retained in the buffer. The event buffer is a ring buffer whose max size can be configured. When the buffers hit their max size, the oldest items in the buffer are removed. The interval to publish events can also be configured.
 
 
 ```swift
-var config:SSConfig = ["url": "http://samsara.io",
+var config:SSConfig = ["url": "http://samsara-ingestion.local/",
 "publishInterval": 60,
 "maxBufferSize": 10000]
 
