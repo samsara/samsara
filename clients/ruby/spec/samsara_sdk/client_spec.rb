@@ -30,6 +30,16 @@ describe 'SamsaraSDK::Client' do
       expect(SamsaraSDK::Publisher).to receive(:new)
       SamsaraSDK::Client.new(url: 'http://foo.bar')
     end
+
+    it 'should start publishing thread if configured to do that' do
+      expect_any_instance_of(SamsaraSDK::Client).to receive(:start_publishing).once
+      subject = SamsaraSDK::Client.new(url: 'http://foo.bar', start_publishing_thread: TRUE)
+    end
+
+    it 'should not start publishing thread if not configured to do that' do
+      expect_any_instance_of(SamsaraSDK::Client).not_to receive(:start_publishing)
+      subject = SamsaraSDK::Client.new(url: 'http://foo.bar', start_publishing_thread: FALSE)
+    end
   end
 
   context 'when instantiated' do
@@ -77,9 +87,11 @@ describe 'SamsaraSDK::Client' do
     end
 
     it 'enriches and validates each event from a given list' do
-      expect(SamsaraSDK::Event).to receive(:enrich).exactly(events.size).times
-      expect(SamsaraSDK::Event).to receive(:validate).exactly(events.size).times
-      subject.publish_events(events)
+      expect(SamsaraSDK::Event).to receive(:enrich).with(1).and_return(1).once
+      expect(SamsaraSDK::Event).to receive(:validate).with(1).and_return(1).once
+      expect(SamsaraSDK::Event).to receive(:enrich).with(2).and_return(2).once
+      expect(SamsaraSDK::Event).to receive(:validate).with(2).and_return(2).once
+      subject.publish_events([1, 2])
     end
 
     context 'when any of the given events is invalid' do
@@ -101,6 +113,32 @@ describe 'SamsaraSDK::Client' do
   end
 
   describe '#record_event' do
-    it 'adds event to a queue'
+    subject { SamsaraSDK::Client.new(url: 'http://foo.bar') }
+    let(:events) do
+      [
+        { sourceId: 'foo', eventName: 'baz', timestamp: 1_479_988_864_057 },
+        { sourceId: 'foo2', eventName: 'baz2', timestamp: 1_479_988_964_057 },
+        { sourceId: 'foo-bar-baz', eventName: 'test-test-test', timestamp: 1_479_988_964_857 }
+      ]
+    end
+    let(:event) { { sourceId: 'foo', eventName: 'single', timestamp: 1_479_888_824_057 } }
+
+
+    it 'takes only single event' do
+      expect { subject.record_event events }.to raise_error(Exception)
+    end
+
+    it 'adds event to a queue' do
+      queue = double('Queue')
+      expect(SamsaraSDK::RingBuffer).to receive(:new).and_return(queue)
+      expect(queue).to receive(:<<).with(event).once
+      subject.record_event event
+    end
+
+    it 'enriches and validates given event' do
+      expect(SamsaraSDK::Event).to receive(:enrich).with(event).and_return(event).once
+      expect(SamsaraSDK::Event).to receive(:validate).with(event).and_return(event).once
+      subject.record_event(event)
+    end
   end
 end

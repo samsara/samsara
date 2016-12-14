@@ -12,7 +12,7 @@ module SamsaraSDK
 
     # Default configuration values.
     @defaults = {
-      # Samsara ingestion api endpoint "http://samsara.io/"
+      # Samsara ingestion api endpoint "http://samsara-ingestion.local/"
       url: '',
 
       # Identifier of the source of these events

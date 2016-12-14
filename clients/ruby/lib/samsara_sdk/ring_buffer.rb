@@ -42,28 +42,31 @@ module SamsaraSDK
         value
       end
     end
-    alias << :push
+    alias <<
 
     # Pulls element out of buffer.
     #
     # @return [Object, nil] Element or nil if buffer is empty.
-    def pull
+    def >>
       @mutex.synchronize do
-        remove
+        return nil if empty?
+        value = @buffer[@start]
+        @buffer[@start] = nil
+        @start = (@start + 1) % @size
+        @count -= 1
+        value
       end
     end
-    alias >> :pull
 
-    # # Extract all existing elements out of buffer.
-    # #
-    # # @return [Array<Object>] All buffers' elements.
-    # def flush
-    #   values = []
-    #   @mutex.synchronize do
-    #     values << remove until empty?
-    #   end
-    #   values
-    # end
+    # Extract all existing elements out of buffer.
+    # ??????
+    # @return [Array<Object>] All buffers' elements.
+    def flush
+      data = snapshot
+      success = block_given? ? yield(data) : TRUE
+      remove data if success
+      data
+    end
 
     # Erases all stored data;
     # re-instantiates buffer.
@@ -73,18 +76,33 @@ module SamsaraSDK
       @count = 0
     end
 
+    def snapshot
+      @buffer[pos, @buffer.size-1] + @buffer[0, pos]
+      # @buffer[pos..-1] + @buffer[0...pos]
+    end
+
     private
+
+    # Removes element out of buffer.
+    # @return [Object, nil] Element or nil if buffer is empty.
+    def delete(chunk)
+      @mutex.synchronize do
+        @buffer = @buffer - chunk
+        @count = @buffer.compact.size
+        if 
+      end
+    end
 
     # Removes element out of buffer.
     #
     # @return [Object, nil] Element or nil if buffer is empty.
-    def remove
-      return nil if empty?
-      value = @buffer[@start]
-      @buffer[@start] = nil
-      @start = (@start + 1) % @size
-      @count -= 1
-      value
-    end
+    # def remove
+    #   return nil if empty?
+    #   value = @buffer[@start]
+    #   @buffer[@start] = nil
+    #   @start = (@start + 1) % @size
+    #   @count -= 1
+    #   value
+    # end
   end
 end

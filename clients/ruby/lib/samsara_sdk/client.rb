@@ -46,9 +46,9 @@ module SamsaraSDK
 
     def start_publishing
       Thread.new do
-        while true do
-          p 'teeeest'
-          sleep Config.get(:publish_interval_ms) / 1000
+        loop do
+          @queue.flush { |data| @publisher.post data } if @queue.size >= Config.get[:min_buffer_size]
+          sleep Config.get[:publish_interval_ms] / 1000
         end
       end
     end

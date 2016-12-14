@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
   spec.authors = ['Egor Kolotaev']
   spec.summary = 'Ruby client library for Samsara Analytics platform.'
   spec.email = %w(samsara.systems+info@gmail.com)
-  spec.homepage = 'https://github.com/samsara/samsara'
+  spec.homepage = 'https://github.com/samsara/samsara/tree/master/clients/ruby'
   spec.license = 'Apache License 2.0'
   spec.name = 'samsara_sdk'
   spec.require_paths = %w(lib)
