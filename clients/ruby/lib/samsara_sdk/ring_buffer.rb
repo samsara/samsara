@@ -1,7 +1,9 @@
 # Samsara SDK
 module SamsaraSDK
-  # Thread-safe ring-buffer.
+  # Thread-safe ring-buffer data queue tailored for Samsara Client.
   class RingBuffer
+    attr_reader :count
+
     # initialize.
     #
     # @param size [Integer] Storage size.
@@ -42,67 +44,44 @@ module SamsaraSDK
         value
       end
     end
-    alias <<
-
-    # Pulls element out of buffer.
-    #
-    # @return [Object, nil] Element or nil if buffer is empty.
-    def >>
-      @mutex.synchronize do
-        return nil if empty?
-        value = @buffer[@start]
-        @buffer[@start] = nil
-        @start = (@start + 1) % @size
-        @count -= 1
-        value
-      end
-    end
+    alias << :push
 
     # Extract all existing elements out of buffer.
-    # ??????
+    #
+    # @yield [data] Block that processed data and returns success of the processing.
+    # @yieldparam [Array<Object>] data Buffer snapshot.
+    # @yieldreturn [Boolean] Result of data processing. True if success, false otherwise.
+    #
     # @return [Array<Object>] All buffers' elements.
     def flush
       data = snapshot
       success = block_given? ? yield(data) : TRUE
-      remove data if success
+      delete data if success
       data
-    end
-
-    # Erases all stored data;
-    # re-instantiates buffer.
-    def clear
-      @buffer = Array.new(@size)
-      @start = 0
-      @count = 0
-    end
-
-    def snapshot
-      @buffer[pos, @buffer.size-1] + @buffer[0, pos]
-      # @buffer[pos..-1] + @buffer[0...pos]
     end
 
     private
 
-    # Removes element out of buffer.
-    # @return [Object, nil] Element or nil if buffer is empty.
-    def delete(chunk)
+    # Get all actual elements from buffer at a given moment.
+    # Returns elements in FIFO order.
+    #
+    # @return [Array<Object>] data.
+    def snapshot
       @mutex.synchronize do
-        @buffer = @buffer - chunk
-        @count = @buffer.compact.size
-        if 
+        i = (@start + @count) % @size
+        (@buffer[i..-1] + @buffer[0...i]).compact
       end
     end
 
-    # Removes element out of buffer.
+    # Removes chunk of elements out of buffer.
     #
-    # @return [Object, nil] Element or nil if buffer is empty.
-    # def remove
-    #   return nil if empty?
-    #   value = @buffer[@start]
-    #   @buffer[@start] = nil
-    #   @start = (@start + 1) % @size
-    #   @count -= 1
-    #   value
-    # end
+    # @param chunk [Array<Object>] Elements that should be deleted.
+    def delete(chunk)
+      @mutex.synchronize do
+        @buffer -= chunk
+        @count = @buffer.compact.size
+        @start = 0 if @count.zero?
+      end
+    end
   end
 end

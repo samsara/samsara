@@ -32,13 +32,15 @@ describe 'SamsaraSDK::Client' do
     end
 
     it 'should start publishing thread if configured to do that' do
-      expect_any_instance_of(SamsaraSDK::Client).to receive(:start_publishing).once
-      subject = SamsaraSDK::Client.new(url: 'http://foo.bar', start_publishing_thread: TRUE)
+      expect(Thread).to receive(:new).and_yield
+      expect_any_instance_of(SamsaraSDK::Client).to receive(:publishing_activity).once
+      SamsaraSDK::Client.new(url: 'http://foo.bar', start_publishing_thread: TRUE)
     end
 
     it 'should not start publishing thread if not configured to do that' do
-      expect_any_instance_of(SamsaraSDK::Client).not_to receive(:start_publishing)
-      subject = SamsaraSDK::Client.new(url: 'http://foo.bar', start_publishing_thread: FALSE)
+      expect(Thread).not_to receive(:new)
+      expect_any_instance_of(SamsaraSDK::Client).not_to receive(:publishing_activity)
+      SamsaraSDK::Client.new(url: 'http://foo.bar', start_publishing_thread: FALSE)
     end
   end
 
@@ -123,7 +125,6 @@ describe 'SamsaraSDK::Client' do
     end
     let(:event) { { sourceId: 'foo', eventName: 'single', timestamp: 1_479_888_824_057 } }
 
-
     it 'takes only single event' do
       expect { subject.record_event events }.to raise_error(Exception)
     end
@@ -139,6 +140,52 @@ describe 'SamsaraSDK::Client' do
       expect(SamsaraSDK::Event).to receive(:enrich).with(event).and_return(event).once
       expect(SamsaraSDK::Event).to receive(:validate).with(event).and_return(event).once
       subject.record_event(event)
+    end
+  end
+
+  describe '#publishing_activity' do
+    it 'should flush queue and post flushed data if min_buffer_size threshold is reached' do
+      config = {
+        url: 'http://foo.bar',
+        max_buffer_size: 3,
+        min_buffer_size: 1,
+        publish_interval_ms: 1,
+        start_publishing_thread: FALSE
+      }
+      subject = SamsaraSDK::Client.new(config)
+      expect(subject).to receive(:loop).and_yield
+      subject.record_event(sourceId: 'foo', eventName: 'baz')
+      expect(subject.instance_variable_get(:@queue)).to receive(:flush).and_yield('some_data').once
+      expect(subject.instance_variable_get(:@publisher)).to receive(:post).with('some_data').once
+      subject.send(:publishing_activity)
+    end
+
+    it 'should not flush queue and not post any data if min_buffer_size threshold is low' do
+      config = {
+        url: 'http://foo.bar',
+        max_buffer_size: 3,
+        min_buffer_size: 2,
+        publish_interval_ms: 1,
+        start_publishing_thread: FALSE
+      }
+      subject = SamsaraSDK::Client.new(config)
+      expect(subject).to receive(:loop).and_yield
+      subject.record_event(sourceId: 'foo', eventName: 'baz')
+      expect(subject.instance_variable_get(:@queue)).not_to receive(:flush)
+      expect(subject.instance_variable_get(:@publisher)).not_to receive(:post)
+      subject.send(:publishing_activity)
+    end
+
+    it 'should periodically suspend itself based on publish_interval_ms config value' do
+      config = {
+        url: 'http://foo.bar',
+        publish_interval_ms: 5000,
+        start_publishing_thread: FALSE
+      }
+      subject = SamsaraSDK::Client.new(config)
+      expect(subject).to receive(:loop).and_yield
+      expect(subject).to receive(:sleep).with(5).once
+      subject.send(:publishing_activity)
     end
   end
 end

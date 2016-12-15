@@ -16,7 +16,7 @@ module SamsaraSDK
       Config.setup! config
       @publisher = Publisher.new
       @queue = RingBuffer.new(Config.get[:max_buffer_size])
-      start_publishing if Config.get[:start_publishing_thread]
+      Thread.new { publishing_activity } if Config.get[:start_publishing_thread]
     end
 
     # Publishes given events list to Ingestion API immediately.
@@ -44,12 +44,13 @@ module SamsaraSDK
 
     private
 
-    def start_publishing
-      Thread.new do
-        loop do
-          @queue.flush { |data| @publisher.post data } if @queue.size >= Config.get[:min_buffer_size]
-          sleep Config.get[:publish_interval_ms] / 1000
-        end
+    # Publishing activity.
+    # Represents an infinite loop that periodically posts queued events to Ingestion API.
+    # Used in a background thread.
+    def publishing_activity
+      loop do
+        @queue.flush { |data| @publisher.post data } if @queue.count >= Config.get[:min_buffer_size]
+        sleep Config.get[:publish_interval_ms] / 1000
       end
     end
   end
