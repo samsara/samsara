@@ -12,7 +12,7 @@ Follow the [Quick-Start guide](/docs/quick-start.md) to get Samsara & friends se
 
 To hack client locally:
 
-```
+```bash
 $ gem install bundler # (if not installed)
 $ gem install rake # (if not installed)
 $ git clone https://github.com/samsara/samsara.git
@@ -24,7 +24,7 @@ $ rake coverage # to generate code coverage report
 
 To install client locally:
 
-```
+```bash
 $ cd samsara/clients/ruby
 $ rake build
 ```

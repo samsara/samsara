@@ -22,6 +22,15 @@ describe 'SamsaraSDK::Event' do
       expect(result[:timestamp]).to eql(123)
     end
 
+    it 'preserves existing additional attribute values' do
+      result = subject.enrich(eventName: 'foo', sourceId: 'baz', timestamp: 123, color: 'red', level: 80)
+      expect(result[:eventName]).to eql('foo')
+      expect(result[:sourceId]).to eql('baz')
+      expect(result[:timestamp]).to eql(123)
+      expect(result[:color]).to eql('red')
+      expect(result[:level]).to eql(80)
+    end
+
     it 'populates event with correct timestamp' do
       result = subject.enrich(eventName: 'foo')
       expect(result[:timestamp].to_s.size).to eq(13)
@@ -40,6 +49,18 @@ describe 'SamsaraSDK::Event' do
         sourceId: 'foo',
         eventName: 'bar',
         timestamp: 1_479_988_864_057
+      }
+      result = subject.validate event
+      expect(result).to equal(event)
+    end
+
+    it 'returns given event with preserved additional values' do
+      event = {
+        sourceId: 'foo',
+        eventName: 'bar',
+        timestamp: 1_479_988_864_057,
+        color: 'red',
+        level: 10
       }
       result = subject.validate event
       expect(result).to equal(event)

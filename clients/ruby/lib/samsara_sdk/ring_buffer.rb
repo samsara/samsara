@@ -71,7 +71,7 @@ module SamsaraSDK
       end
     end
 
-    # Removes chunk of elements out of buffer that present in a snapshot.
+    # Removes chunk of elements that present in a snapshot out of buffer.
     #
     # @param snapshot [Array<Object>] Snapshot of a buffer at some state.
     def delete(snapshot)
