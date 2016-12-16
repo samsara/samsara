@@ -144,7 +144,7 @@ describe 'SamsaraSDK::Client' do
   end
 
   describe '#publishing_activity' do
-    it 'should flush queue and post flushed data if min_buffer_size threshold is reached' do
+    it 'flushes queue and posts flushed data if min_buffer_size threshold is reached' do
       config = {
         url: 'http://foo.bar',
         max_buffer_size: 3,
@@ -160,7 +160,7 @@ describe 'SamsaraSDK::Client' do
       subject.send(:publishing_activity)
     end
 
-    it 'should not flush queue and not post any data if min_buffer_size threshold is low' do
+    it 'does not flush queue and not post any data if min_buffer_size threshold is low' do
       config = {
         url: 'http://foo.bar',
         max_buffer_size: 3,
@@ -176,7 +176,7 @@ describe 'SamsaraSDK::Client' do
       subject.send(:publishing_activity)
     end
 
-    it 'should periodically suspend itself based on publish_interval_ms config value' do
+    it 'periodically suspends itself based on publish_interval_ms config value' do
       config = {
         url: 'http://foo.bar',
         publish_interval_ms: 5000,

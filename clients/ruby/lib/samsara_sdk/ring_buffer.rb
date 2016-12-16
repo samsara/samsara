@@ -2,6 +2,7 @@
 module SamsaraSDK
   # Thread-safe ring-buffer data queue tailored for Samsara Client.
   class RingBuffer
+    # @return [Integer] number of pushed elements.
     attr_reader :count
 
     # initialize.
@@ -9,7 +10,7 @@ module SamsaraSDK
     # @param size [Integer] Storage size.
     def initialize(size)
       @size = size
-      @start = 0
+      @pointer = size - 1
       @count = 0
       @buffer = Array.new(size)
       @mutex = Mutex.new
@@ -34,13 +35,9 @@ module SamsaraSDK
     # @return [Object] Element that has been put into buffer.
     def push(value)
       @mutex.synchronize do
-        at = (@start + @count) % @size
-        @buffer[at] = value
-        if full?
-          @start = (@start + 1) % @size
-        else
-          @count += 1
-        end
+        @pointer = @pointer == @size - 1 ? 0 : @pointer += 1
+        @buffer[@pointer] = value
+        @count += 1 unless full?
         value
       end
     end
@@ -49,38 +46,39 @@ module SamsaraSDK
     # Extract all existing elements out of buffer.
     #
     # @yield [data] Block that processed data and returns success of the processing.
-    # @yieldparam [Array<Object>] data Buffer snapshot.
+    # @yieldparam [Array<Object>] data Immutable buffer snapshot. You can't modify it.
     # @yieldreturn [Boolean] Result of data processing. True if success, false otherwise.
     #
-    # @return [Array<Object>] All buffers' elements.
+    # @return [Array<Object>] All buffer's elements.
     def flush
-      data = snapshot
+      data, snapshot = take_snapshot
       success = block_given? ? yield(data) : TRUE
-      delete data if success
+      delete snapshot if success
       data
     end
 
     private
 
-    # Get all actual elements from buffer at a given moment.
-    # Returns elements in FIFO order.
+    # Get all actual elements from buffer at a given moment in FIFO order.
+    # Make a snapshot of the current buffer.
     #
-    # @return [Array<Object>] data.
-    def snapshot
+    # @return [Array<Object>] actual elements in FIFO order,
+    # @return [Array<Object>] snapshot of current buffer.
+    def take_snapshot
       @mutex.synchronize do
-        i = (@start + @count) % @size
-        (@buffer[i..-1] + @buffer[0...i]).compact
+        i = @pointer == @size - 1 ? 0 : @pointer + 1
+        return (@buffer[i..-1] + @buffer[0...i]).compact, @buffer.dup
       end
     end
 
-    # Removes chunk of elements out of buffer.
+    # Removes chunk of elements out of buffer that present in a snapshot.
     #
-    # @param chunk [Array<Object>] Elements that should be deleted.
-    def delete(chunk)
+    # @param snapshot [Array<Object>] Snapshot of a buffer at some state.
+    def delete(snapshot)
       @mutex.synchronize do
-        @buffer -= chunk
+        @buffer.each_index { |i| @buffer[i] = nil if @buffer[i] == snapshot[i] }
         @count = @buffer.compact.size
-        @start = 0 if @count.zero?
+        @pointer = @size - 1 if empty?
       end
     end
   end
