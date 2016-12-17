@@ -41,14 +41,14 @@ periodically. To record an event in the Samsara buffer:
 > client.record_event(eventName: 'user.logged', sourceId: 'device1', timestamp: 1_479_988_864_057)
 ```
 
-Or you can use `SamsaraSDK::Config.timestamp` method to generate correct timestamp in milliseconds
+Or you can use `SamsaraSDK::Config.timestamp` method to generate a correct timestamp in milliseconds.
 
 ```ruby
 > client.record_event(eventName: 'user.logged', sourceId: 'device1', timestamp: SamsaraSDK::Config.timestamp)
 ```
 
 If the `sourceId` is not provided then the one set in the configuration will be used.
-If the `timestamp` is not provided then client automatically generate current system time in milliseconds.
+If the `timestamp` is not provided then client automatically will generate current system time in milliseconds.
 This means that you can record event just by:
 
 ```ruby
@@ -129,7 +129,7 @@ capacity.
 
 The interval for events publishing and the maximum buffer size can
 be configured as well. Note that configuration can not
-be changed once the client has been initialised. Any changes will get reflected when
+be changed once the client has been initialized. Any changes will get reflected when
 the client is restarted.
 
 ```ruby
