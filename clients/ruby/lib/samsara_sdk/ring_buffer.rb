@@ -45,8 +45,8 @@ module SamsaraSDK
 
     # Extract all existing elements out of buffer.
     #
-    # @yield [data] Block that processed data and returns success of the processing.
-    # @yieldparam [Array<Object>] data Immutable buffer snapshot. You can't modify it.
+    # @yield [data] Block that processes data and returns success of the processing.
+    # @yieldparam [Array<Object>] data Buffer data.
     # @yieldreturn [Boolean] Result of data processing. True if success, false otherwise.
     #
     # @return [Array<Object>] All buffer's elements.
