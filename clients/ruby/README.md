@@ -2,6 +2,8 @@
 
 Ruby client SDK for Samsara.
 
+Works with Ruby >= 1.9.3
+
 ## Usage
 
 To see how to use this client please [read the documentation](/docs/clients/ruby-client.md)
@@ -27,6 +29,7 @@ To install client locally:
 ```bash
 $ cd samsara/clients/ruby
 $ rake build
+$ rake install
 ```
 
 ### TODO

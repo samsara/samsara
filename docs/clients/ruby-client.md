@@ -8,13 +8,13 @@ tab_bar: clients
 
 ## Usage
 
-To use the Samsara SDK, install gem 'samsara_sdk'
+To use the Samsara SDK, install 'samsara_sdk' gem
 
 ```bash
 $ gem install samsara_sdk
 ```
 
-To bring it into the REPL:
+In the IRB:
 
 ```ruby
 > require 'samsara_sdk'
@@ -26,7 +26,9 @@ And then to create client instance:
 > client = SamsaraSDK::Client.new(url: 'http://my.samsara.server:9000/', sourceId: 'source identifier')
 ```
 It creates a Samsara Client instance. Now you can publish events to Samsara!
+
 Note, that URL is a required configuration option and must be provided.
+
 If any of the configuration options is invalid `SamsaraSDK::ConfigValidationError` will be raised.
 
 ### Record and Publish an Event
@@ -37,6 +39,12 @@ periodically. To record an event in the Samsara buffer:
 
 ```ruby
 > client.record_event(eventName: 'user.logged', sourceId: 'device1', timestamp: 1_479_988_864_057)
+```
+
+Or you can use `SamsaraSDK::Config.timestamp` method to generate correct timestamp in milliseconds
+
+```ruby
+> client.record_event(eventName: 'user.logged', sourceId: 'device1', timestamp: SamsaraSDK::Config.timestamp)
 ```
 
 If the `sourceId` is not provided then the one set in the configuration will be used.
@@ -55,7 +63,7 @@ Additionally you can provide your own key-value pairs:
 `record_event` stores events in a thread-safe buffer so you can use it in several threads, if needed.
 
 Alternatively, you can publish bulk of events immediately to the
-Ingestion API using the publish-events method.
+Ingestion API using the `publish-events` method.
 
 ```ruby
 > client.publish_events([{eventName: 'user.logged',
@@ -64,11 +72,11 @@ Ingestion API using the publish-events method.
 ```
 
 The events will be sent to Samsara immediately.
-Note that `publish_events` method signature is Array<Hash> so if you want to send only one event
+Note that `publish_events` method signature is `Array<Hash>` so if you want to send only one event
 it should be wrapped in array as well.
 
 Also please note that `record_event` and `publish_events` can raise `SamsaraSDK::EventValidationError`
-if any of the given events doesn't conform to Event specification.
+if any of the given events doesn't conform Event specification.
 
 ### SourceID
 
@@ -114,9 +122,9 @@ Here some examples of **BAD** bad choices for `sourceId`:
 ### Advanced configuration
 
 Samsara SDK buffers events and periodically flushes events to the
-Samsara API. `circular buffer` implementation is used for this purpose. The events are
+Samsara API. `Circular buffer` implementation is used for this purpose. The events are
 removed from the buffer only if the publish was successful. Newer
-events overwrite the oldest events when the buffer reaches its
+events overwrite the oldest ones after buffer reaches its
 capacity.
 
 The interval for events publishing and the maximum buffer size can
