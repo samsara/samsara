@@ -3,3 +3,6 @@ Metrics/LineLength:
 
 Metrics/AbcSize:
   Enabled: false
+
+Metrics/MethodLength:
+  Max: 14

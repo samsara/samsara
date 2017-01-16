@@ -129,26 +129,30 @@ describe 'SamsaraSDK::RingBuffer' do
 
     it 'returns snapshot of actual elements in FIFO order' do
       [
-        [[nil], 0, []],
-        [[nil, nil, nil, nil], 0, []],
-        [[nil, nil, nil, 1], 3, [1]],
-        [[1], 0, [1]],
-        [[1, 2], 1, [1, 2]],
-        [[1, 2], 0, [2, 1]],
-        [[1, 2, 3], 2, [1, 2, 3]],
-        [[4, 2, 3], 0, [2, 3, 4]],
-        [[4, 5, 3], 1, [3, 4, 5]],
-        [[1, 2, 3, nil, nil], 2, [1, 2, 3]],
-        [[1, 2, 3, nil, nil], 0, [2, 3, 1]],
-        [[nil, 1, 2, 3], 2, [3, 1, 2]],
-        [[nil, nil, 1, 2, 3, nil], 2, [2, 3, 1]],
-        [[nil, nil, 1, 2, 3, nil], 4, [1, 2, 3]],
-        [[80, nil, nil, 4, 5], 0, [4, 5, 80]],
-        [[80, 99, nil, 4, 5], 1, [4, 5, 80, 99]]
-      ].each do |data, position, result|
-        subject = SamsaraSDK::RingBuffer.new(data.size)
-        subject.instance_variable_set(:@buffer, data)
-        subject.instance_variable_set(:@pointer, position)
+        [0, [], []],
+        [0, [1], []],
+        [1, [], []],
+        [1, [1], [1]],
+        [1, [1, 2], [2]],
+        [1, [1, 2, 3], [3]],
+        [2, [], []],
+        [2, [1], [1]],
+        [2, [1, 2], [1, 2]],
+        [2, [1, 2, 3], [2, 3]],
+        [2, [1, 2, 3, 4], [3, 4]],
+        [2, [1, 2, 3, 4, 5], [4, 5]],
+        [3, [], []],
+        [3, [1], [1]],
+        [3, [1, 2], [1, 2]],
+        [3, [1, 2, 3], [1, 2, 3]],
+        [3, [1, 2, 3, 4], [2, 3, 4]],
+        [3, [1, 2, 3, 4, 5], [3, 4, 5]],
+        [3, [1, 2, 3, 4, 5, 6], [4, 5, 6]],
+        [3, [1, 2, 3, 4, 5, 6, 7], [5, 6, 7]],
+        [3, [1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8]]
+      ].each do |capacity, data, result|
+        subject = SamsaraSDK::RingBuffer.new(capacity)
+        data.each { |el| subject << el }
         expect(subject.flush).to eq(result)
       end
     end
@@ -290,6 +294,24 @@ describe 'SamsaraSDK::RingBuffer' do
           FALSE
         end
         expect(subject.flush).to eq %w(a b c f)
+      end
+
+      it 'retains consistency if two elements were pushed after flush to not full buffer' do
+        subject = SamsaraSDK::RingBuffer.new(4)
+        subject << 'a'
+        subject << 'b'
+        subject << 'c'
+        expect(subject.full?).to be FALSE
+        subject.flush do |data|
+          expect(data).to eq %w(a b c)
+          thread = Thread.new do
+            subject << 'f'
+            subject << 'e'
+          end
+          thread.join
+          FALSE
+        end
+        expect(subject.flush).to eq %w(b c f e)
       end
 
       it 'retains consistency if elements were pushed after flush to not full buffer and it is still not full' do
@@ -440,6 +462,24 @@ describe 'SamsaraSDK::RingBuffer' do
           TRUE
         end
         expect(subject.flush).to eq %w(f)
+      end
+
+      it 'retains consistency if two elements were pushed after flush to not full buffer' do
+        subject = SamsaraSDK::RingBuffer.new(4)
+        subject << 'a'
+        subject << 'b'
+        subject << 'c'
+        expect(subject.full?).to be FALSE
+        subject.flush do |data|
+          expect(data).to eq %w(a b c)
+          thread = Thread.new do
+            subject << 'f'
+            subject << 'e'
+          end
+          thread.join
+          TRUE
+        end
+        expect(subject.flush).to eq %w(f e)
       end
 
       it 'retains consistency if elements were pushed after flush to not full buffer and it is still not full' do
