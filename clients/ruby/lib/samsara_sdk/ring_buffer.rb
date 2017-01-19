@@ -88,6 +88,11 @@ module SamsaraSDK
     end
 
     # Make a snapshot of the current buffer at a given moment in FIFO order.
+    # Notes:
+    # It could be implemented just by iterating through @buffer and taking
+    # elements between @low and @high;
+    # but it's not as efficient as Ruby native array manipulations.
+    # So we stick to manipulating indices and handling different cases to get FIFO.
     #
     # @return [Array<Object>] actual elements in FIFO order,
     # @return [Integer] High-water-mark that snapshot was taken at.
@@ -111,14 +116,13 @@ module SamsaraSDK
     end
 
     # Removes chunk of elements that present in a snapshot out of buffer.
-    # Detects if the last consumed element has been overridden by new pushes:
-    # if there was overrun set low to prior to the current high;
-    # otherwise set to the last consumed, denoted by the given mark.
+    # Detects if the last consumed element has been overridden by new pushes.
     #
     # @param mark [Integer] high attribute that represents high-water-mark of a snapshot.
     def delete(mark)
       @mutex.synchronize do
-        @low = @high - mark > @size ? @high - @size : mark
+        @low = [@low, mark].max
+        @high = [@high, mark].max
       end
     end
   end
