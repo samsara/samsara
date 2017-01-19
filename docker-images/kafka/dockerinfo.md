@@ -27,6 +27,9 @@ The IP address of the Zookeeper instance
 * `KAFKA_BROKER_PORT`: (default `9092`)
 The port in which the broker should listen
 
+* `KAFKA_HEAP_OPTS`: (default `-Xmx256M`)
+The memory setting to for Kafka server.
+
 * `ADV_IP`: (default to conatiner ip)
 The IP address to advertise to the clients
 

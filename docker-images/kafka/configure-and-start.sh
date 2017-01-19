@@ -22,6 +22,7 @@ if [ "$KAFKA_BROKER_RACK" != "" ] ; then
 fi
 
 # Configure server
-synapse /opt/kafka/config/server.properties.tmpl
+synapse /opt/kafka/config/server.properties.tmpl \
+        /etc/supervisor/conf.d/kafka-supervisor.conf.tmpl
 
 exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf

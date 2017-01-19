@@ -25,7 +25,7 @@ VOLUME ["/data", "/logs"]
 EXPOSE 15000
 
 ADD ./server.properties.tmpl  /opt/kafka/config/server.properties.tmpl
-ADD ./kafka-supervisor.conf /etc/supervisor/conf.d/kafka-supervisor.conf
+ADD ./kafka-supervisor.conf.tmpl /etc/supervisor/conf.d/kafka-supervisor.conf.tmpl
 ADD ./configure-and-start.sh /configure-and-start.sh
 
 CMD /configure-and-start.sh
