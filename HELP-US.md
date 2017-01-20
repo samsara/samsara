@@ -16,7 +16,6 @@ We are looking to add client support for the following languages:
   * Java
   * PHP
   * Go
-  * Ruby
   * Javascript/Web
   * NodeJs
   * C#

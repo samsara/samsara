@@ -5,11 +5,12 @@ __(most recent on top)__
 
 ### Contributors
 
-  * Thanks to the external contributors of this version: [@ChallenHB](https://github.com/ChallenHB), [@ndrluis](https://github.com/ndrluis), [@purez](https://github.com/puhrez)
+  * Thanks to the external contributors of this version: [@ChallenHB](https://github.com/ChallenHB), [@ndrluis](https://github.com/ndrluis), [@purez](https://github.com/puhrez), [@kolotaev](https://github.com/kolotaev)
 
 ### New features
 
   * NEW: added Python client
+  * NEW: added Ruby client
 
 ### Breaking changes
 
