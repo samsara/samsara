@@ -26,5 +26,6 @@ If you want to find more about the clients you can read the [clients common desi
 |------------|-------------|--------------|---------------|-------------|-------------|----------|
 | Clojure    | Y           | Y            | Y             | GZIP        | N           | N        |
 | Python3    | Y           | Y            | Y             | GZIP        | N           | N        |
+| Ruby       | Y           | Y            | Y             | GZIP        | N           | N        |
 | iOS        | Y           | Y            | Y             | N           | Y           | Y        |
 | Logger     | Y           | Y            | Y             | GZIP        | N           | N        |
