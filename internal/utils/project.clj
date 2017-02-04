@@ -1,4 +1,4 @@
-(defn ver [] (-> "../samsara.version" slurp .trim))
+(defn ver [] (-> "../../samsara.version" slurp .trim))
 
 (defproject samsara/samsara-utils (ver)
   :description "Common utilities from Samsara's project"
