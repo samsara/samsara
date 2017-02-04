@@ -28,7 +28,7 @@ export TC_NUM_TESTS=${TC_NUM_TESTS:-50}
 
 ## build utils
 banner utils
-cd $BASE/utils
+cd $BASE/internal/utils
 lein do clean, $TEST, jar, install
 
 

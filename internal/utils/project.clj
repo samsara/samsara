@@ -5,7 +5,7 @@
 
   :url "http://samsara-analytics.io/"
 
-  :scm {:name "github" :url "https://github.com/samsara/samsara/tree/master/utils"}
+  :scm {:name "github" :url "https://github.com/samsara/samsara/tree/master/internal/utils"}
 
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
