@@ -79,6 +79,10 @@ banner qanal-refactor
 cd $BASE/qanal-refactor
 lein do clean, compile :all, $TEST
 
+## build scribe
+banner scribe
+cd $BASE/internal/scribe
+lein do clean, $TEST, jar, install
 
 # restoring initial dir
 cd $CUR
