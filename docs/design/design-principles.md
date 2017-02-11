@@ -102,7 +102,7 @@ provides "Real Time" Analytics_, but how much "real time" is depends
 on various factors.
 
 Samsara is not aiming to provide milliseconds or microseconds
-latency. It is more what normally it is called _near real-time_ and it
+latency. It is more what normally is called _near real-time_ and it
 ranges from **sub-seconds to a few seconds** of end-to-end latency.
 The good thing is that the latency is *tuneable*.
 
@@ -137,8 +137,8 @@ The design of analytics system broadly divides in two large
 categories: _the ones who aggregate data during the ingestion_ and
 _the ones who aggregate data at query time_. Both approaches have
 advantages and drawbacks. We will try to see how these systems do work
-and what are the key differences to better understand why picked a
-particular solution in Samsara.
+and what are the key differences to better understand why a
+particular solution was picked in Samsara.
 
 ### <a name="agg_ingestion"/> Aggregation on ingestion.
 
@@ -163,7 +163,7 @@ receive a event we can look at the event's timestamp and increment the
 counter for corresponding bucket.
 
 As the time flows, we will receive a number of events and increment
-the buckets. Buckets typically are store in memory for performances
+the buckets. Buckets typically are stored in memory for performances
 reasons.  After a certain period of time we will have to flush these
 in-memory buckets back to a storage layer to ensure durability and
 free up some memory for new buckets.
@@ -187,17 +187,17 @@ several papers which explain benefits of the different strategies.
 Whatever decision we take these are hard problems to solve in a reliable
 and efficient manner.
 
-Once data is flushed to the permanent storage is now ready to be queried.
-Some system allow to query also the in-memory buckets at the ingestion
+Once data is flushed to the permanent storage is becomes ready to be queried.
+Some systems allow to query also the in-memory buckets at the ingestion
 layer to shorten the latencies.
 The query engine will have to select a number of buckets based on
-the query parameters and sum all counters. At this point is ready
+the query parameters and sum all counters. At this point it is ready
 to return the result back to the user.
 
 If you think that this was complicated just to get the average number
 of events, just sit tight, there is more to come.
 
-Now that I've got the overall number of events, as a user, I realize
+Now when I've got the overall number of events, as a user, I realize
 that I need to understand how this value breaks down in relation to
 the type (shape) of events I've received.
 
@@ -282,12 +282,12 @@ system where the organisation is radially different.
 _**[~] Upon ingestion of e new event, we enrich the event and store into information retrieval inverted index.**_
 
 First major difference is that the indexing system stores the event
-itself.  Then it analyses all its dimensions and create a bucket for
-every property.  In this bucket it adds a pointer back to the original
+itself.  Then it analyses all its dimensions and creates a bucket for
+each property.  In this bucket it adds a pointer back to the original
 event.
 
-As the picture show the bucket for the color "red" is pointing to all
-red events in our stream, and as more red events arrive are added to
+As the picture shows the bucket for the color "red" is pointing to all
+red events in our stream, and as more red events arrive they are added to
 this bucket. Same thing happens for the "yellow" events and for the
 different shapes. Virtually, also the time can be considered in a
 similar way, although the time is most system is considered a
@@ -295,7 +295,7 @@ similar way, although the time is most system is considered a
 But for the purpose of this description we can consider pretty much
 in the same way.
 
-These newly create buckets are just
+These newly created buckets are just
 [sets](https://en.wikipedia.org/wiki/Set_(mathematics)) and every set
 just contains the ids of the events which have that property.  Now if
 we are looking for all events in a specific timeframe, all we need to
@@ -303,7 +303,7 @@ do is to take all these sets (buckets) with a timestamp within the
 range and perform a
 [set union](https://en.wikipedia.org/wiki/Set_(mathematics)#Unions).
 
-While if we want to know all "red" events for the same timeframe, we
+Now if we want to know all "red" events for the same timeframe, we
 do a union of the sets within the time range and an
 [intersection](https://en.wikipedia.org/wiki/Set_(mathematics)#Intersections)
 of the resulting set with the "reds" set.  There are plenty of
@@ -320,7 +320,7 @@ directly available for query and accounted in the correct aggregations.
 ### <a name="agg_best"/> Which approach is best?
 
 Both approaches have advantages and drawbacks. Which one you should
-choose really depends on the use you are going to do of the data.
+choose really depends on the use you are going to make of the data.
 
 The aggregation on ingestion offers good performances even for very
 large datasets as you don't store the raw data-points but only
@@ -343,9 +343,9 @@ If query flexibility is what you are looking for, like the ability to
 slice and dice your dataset using any of the available dimensions then
 the aggregation on query is the only solution.
 
-Nowadays, most of the real-world system have a mixed approach,
+Nowadays, most of the real-world systems have a mixed approach,
 but the difference is still evident when looking on how the storage
-layer is organised.
+layer is organized.
 
 ---
 
@@ -356,7 +356,7 @@ several billion events we can achieve very good performances and
 maintain the interactive query experience (most of the queries last
 less than 10 seconds).
 
-Let's see how did we managed to implement the "aggregation on query"
+Let's see how did we manage to implement the "aggregation on query"
 approach with large scale datasets.
 
 ![High level design](/docs/images/design-principles/high-level-design.jpeg)<br/>
@@ -366,7 +366,7 @@ On the left side of the diagram we have the clients which might be
 a mobile client, your services or websites, or internet websites
 pushing the data to a RESTful endpoint.
 
-The Ingestion-API will acquire the data and immediately store into
+The Ingestion-API will acquire the data and immediately store it into
 Kafka topics. The **Kafka** cluster will replicate the events into
 other machines in the cluster for fault-tolerance and durability.
 
@@ -374,7 +374,7 @@ Additionally a process will be continuously listening to the Kafka
 topic and as the events arrive it will push the data into a deep
 storage.  This can be something cloud based such as **Amazon S3** or
 **Azure Storage**, a NAS/SAN in your datacenter or a **HDFS** cluster.
-The idea is to store the raw stream so that no matter what happen to
+The idea is to store the raw stream so that no matter what happens to
 the cluster and the processing infrastructure you will always be able
 to retrieve the original data and reprocess it.
 
@@ -392,7 +392,7 @@ For those who don't know the Clojure programming language, we are
 considering to write language specific bindings with the same
 semantics.
 
-Implementing stateless stream processing is easy. But most of real
+Implementing stateless stream processing is easy. But most of the real
 world applications need some sort of _stateful stream processing_.
 Unfortunately many stream processing frameworks have little or nothing
 to support the correctness and efficiency of state management for
@@ -402,14 +402,14 @@ to provide a very efficient stateful processing. The _in-memory_ state
 is then backed by a Kafka topic or _spilled_ into a external key/value
 store such as **DynamoDB**, **Cassandra** etc.
 
-The processing pipeline takes one or more stream as input and produces
-a richer stream as output. The output stream is stored in Kafka as
+The processing pipeline takes one or more streams as an input and produces
+a richer stream as an output. The output stream is stored in Kafka as
 well.  Another component (`Qanal`) consumes the output streams and
 indexes the data into ElasticSearch. In the same way we store the raw
 data we can decide to store the processed data as well in the deep
 storage.
 
-Once the data is into **ElasticSearch** it is now ready to be queried.
+Once the data is inside **ElasticSearch** it is now ready to be queried.
 The powerful query engine of **ElasticSearch** is based on [Lucene](https://lucene.apache.org/)
 which manages the inverted indexes. **ElasticSearch** implemented a
 large number of queries and aggregations and it makes simple even very
@@ -421,7 +421,7 @@ The following picture shows the list of aggregations queries which
 ![ElasticSearch available aggregations](/docs/images/design-principles/els-aggregations.gif)<br/>
 _**[~] ElasticSearch available aggregations (v1.7.x).**_
 
-Once the data is into **ElasticSearch** you get all the benefits of a
+Once the data is inside **ElasticSearch** you get all the benefits of a
 robust and mature product and the speed of the underlying Lucene
 indexing system via a REST API. Additionally, out of the box, you can
 visualize your data using **Kibana**, creating _ad-hoc_
@@ -431,7 +431,7 @@ historical data as both are in the same repository.
 ![Kibana visualizations](/docs/images/design-principles/kibana-visualizations.jpeg)<br/>
 _**[~] Kibana visualizations (from the web).**_
 
-Kibana might not be a best visualization tool out there but is a quite
+Kibana might not be the best visualization tool out there but is a quite
 good solution for providing compelling dashboards with very little
 effort.
 
@@ -449,8 +449,8 @@ counterpart.
 
 **Kafka**, **Amazon Kinesis** and **Azure EventHubs** try to solve the
 same problem.  Similarly **Cassandra**, **Riak**, **DynamoDB**,
-**Azure Table Storage** are again very similar from an high level
-view. So while designing Samsara we have take care of not using
+**Azure Table Storage** are again very similar from a high level
+view. So while designing Samsara we've took care of not using
 functionalities which were not available in other platforms or which
 couldn't be implemented in some other way.
 
@@ -473,7 +473,7 @@ every layer some **fail-safe**. In this case I'm not talking about the
 fault-tolerance against machine failures, but specifically fail-safe
 against **human failures**.  If you have ever worked in any larger
 project you know that failures introduced by humans mistakes are by
-large the most frequent type of failure.  The idea of adding some sort
+large the most frequent type of failures.  The idea of adding some sort
 of resilience against human mistakes is not new.  The old and good
 database backup is probably one of the earliest attempt to deal with
 this issue. For many years, while designing new systems, I tried to
@@ -497,10 +497,10 @@ trying to do.
 
 Samsara encourages to publish small essential facts. By definition
 they are always "true".  Samsara stores them in durable storage so
-that _no matter what happen later, you always have the possibility to
+that _no matter what happens later, you always have the possibility to
 go back and reprocess all the data_.
 
-Samsara cares also to make easy to rebuild a consistent
+Samsara cares also to make it easy to rebuild a consistent
 view of the world, so it gives you support for publishing
 external dataset as streams of event as well. Finally we avoid
 duplicates in the indexes which could be caused by re-processing the
@@ -522,7 +522,7 @@ these primitives to build a robust system for our processing
 infrastructure.
 
 [Apache Kafka](http://kafka.apache.org/) is a fast, fault-tolerant,
-append-only distributed log service. At is core there is the log
+append-only distributed log service. At its core there is the log
 structure. The log contains messages, every message has an offset, a
 payload and optionally a partition-key. The offset is a monotonically
 increasing number and can be utilized to identify a particular message
@@ -536,10 +536,10 @@ _**[~] The log structure of Kafka.**_
 
 The log is not a single continuous file, but is divided into segments
 and every segment is a file on disk.  The consumer (reader) chooses
-which messages to read, and because once written a log is never
-changes (just append new records), the consumer doesn't need to send
+which messages to read, and because once written log never
+changes (just appends new records), the consumer doesn't need to send
 acknowledgments, for the messages which it consumed back, to the server
-but it need only to store what was the offset of last consumed
+but it needs only to store what was the offset of the last consumed
 message.
 
 Kafka has the concept of _topics_. Topics are used to divide messages
@@ -553,11 +553,11 @@ machines for fault-tolerance.
 ![Kafka partitions](/docs/images/design-principles/kafka-partitions.jpeg)<br/>
 _**[~] A topic is composed of partitions (logs) and replicated across the cluster.**_
 
-When a producer sends a message to a topic specifies the _topic name_,
+When a producer sends a message to a topic it specifies the _topic name_,
 the message _payload_ and optionally a _partition-key_.  The broker,
 to decide which partition must store the given message, hashes the
 message-key and based on the hash fixes a partition.  This is a very
-important aspect as _all messages which contains the same partition
+important aspect as _all messages which contain the same partition
 key are guaranteed to be in the same partition_. Such data locality is
 very important to implement aggressive caching and perform stream
 processing without requiring coordination. In Samsara we use the
@@ -573,7 +573,7 @@ high-availability and durability. Every partition has one and only one
 partition leader across the cluster at any point in time, and all
 messages are sent to the partition leader.
 
-Kafka offers policy based evictions of three kind: based on time,
+Kafka offers policy based evictions of three kinds: based on time,
 on size and a special eviction called _compaction_
 
 ![Kafka compaction](/docs/images/design-principles/kafka-compaction.gif)<br/>
@@ -595,7 +595,7 @@ every partition key. Like in the picture, partition keys in messages
 are represented by the different colors, only last message for every
 partition-key is copied into a new segment and the old one is then
 removed. For example if you have three updates from "John" and two
-from "Susanne" then the compacted log will contains only two messages:
+from "Susanne" then the compacted log will contain only two messages:
 last message from "John" and last message from "Susanne".
 
 This type of compaction is very useful when messages represent state
@@ -613,12 +613,12 @@ Now that we have seen how the fundamentals parts of Kafka do work we
 can see how Samsara CORE leverages them to produce a high throughput
 scalable processing system.
 
-Firstly the CORE idea is that your stream processing just a function
+Firstly the CORE idea is that your stream processing is just a function
 which takes in input a topic and produces the output into another
 topic.  In this context we will refer to topics as **streams**, and
 since streams are potentially infinite, then the processing function
-has to be able to process an unbounded stream, streams chunked as
-the data arrives and every chunk will contains one or more events.
+has to be able to process an unbounded stream, streams get chunked as
+the data arrives and every chunk will contain one or more events.
 
 ![Samsara CORE processing](/docs/images/design-principles/core-processing.gif)<br/>
 _**[~] Samsara CORE processing.**_
@@ -645,23 +645,23 @@ When working with systems which do aggregation on query, you typically
 want to store all events you receive, so isn't very common to have
 loads of filters. However in your processing you might correlate two
 or more simpler events to generate new richer high level events which
-are both: more complete and contains all information which you have on
+are both: more complete and contain all information which you have on
 the simpler ones.  In such cases you often might want to drop the
-simpler one as they are less informative and harder to query than the
-high level one.  You can build a filtering function from a
+simpler ones as they are less informative and harder to query than the
+high level ones.  You can build a filtering function from a
 conventional predicate functions.
 
 
 ### <a name="core_enrichment"/> Enrichment.
 
-The enrichment functions are the most common. It is here that you can
+The enrichment functions are the most common. It is here where you can
 add all the additional information that you know about a particular event.
 The enrichment function is a function which takes one event and it returns
 a richer event or `nil`.
 
     ƒ(e) -> e' | nil
 
-If an enrichment function return `nil` it means that it doesn't have
+If an enrichment function returns `nil` it means that it doesn't have
 any enrichment to do with this particular event. This semantic sugar
 allows very idiomatic code in Clojure, and avoid accidental dropping
 of events. In fact the only way you can eliminate an event is via a
@@ -680,20 +680,20 @@ easily make queries based on user's properties.
 ### <a name="core_correlation"/> Correlation.
 
 The correlation type of functions allow you to produce completely new
-events.  You typically going to use others events which you might have
+events.  You typically going to use other events which you might have
 already seen in your processing stream to generate new events. One
-common example could be that your system receives events which denotes
+common example could be that your system receives events which denote
 the _starting_ and the _stopping_ of an activity and you could use a
 correlation function to generate one new event which represent the
-activity itself and its duration (Samsara has a module which provide
+activity itself and its duration (Samsara has a module which provides
 this functionality).
 
-The correlation function is a function which given an event it can
+The correlation function is a function which given an event can
 return zero, one or more events.
 
     ƒ(e) -> [] | [e1] | [e1 e2 ... en]
 
-Also here if the correlation function returns `nil` is considered as a
+Also here if the correlation function returns `nil` it is considered as a
 no-operation (no new events are generated).  One interesting aspect of
 correlation functions is that the newly generated events are inserted
 in-place in the stream and processed with the entire processing
@@ -702,16 +702,16 @@ simplifies a lot the processing pipeline as you have the guarantee
 that **every event will go through the entire pipeline** even if the
 correlation function produced them mid-way in your processing.
 
-The following image shows how the events are processed and what happen
+The following image shows how the events are processed and what happens
 when a correlation function generates new events.
 
 ![Samsara CORE - correlation](/docs/images/design-principles/core-correlation.gif)<br/>
-_**[~] The correlation adds the new event `in-place` in the stream, like if they were sent by the client.**_
+_**[~] The correlation adds new events `in-place` in the stream, like if they were sent by the client.**_
 
 
 ### <a name="core_pipeline"/> Composition: Pipeline.
 
-We seen how you can organise your processing semantics into simple
+We've seen how you can organize your processing semantics into simple
 building blocks like the functions which perform the _filtering,
 enrichment and correlation_. However any non trivial processing will
 require to define many of these different functions.  Samsara allows
@@ -730,7 +730,7 @@ executed one after the other one _in the given order_.
 ![Samsara CORE - composition: pipeline ](/docs/images/design-principles/core-pipeline.gif)<br/>
 _**[~] Samsara allows you to compose your stream processing from very simple building blocks.**_
 
-Samsara offers also tools to visualize a pipeline and produce a flow
+Samsara also offers tools to visualize a pipeline and produce a flow
 diagram with the different functions.
 
 Enrichment, filtering, correlation and the ability to compose them
@@ -755,21 +755,21 @@ developers to get **stateful stream processing** right.  Without
 support, developers have little or no choice to use their own custom
 approach to **state management**.
 
-In this section we are going to see various approach used by different
+In this section we are going to see various approaches used by different
 frameworks and then we are going to explore Samsara's approach.
 
 The first approach is to store your processing state using an external
 DB cluster, typically a k/v-store such as: _Cassandra, Dynamo, Riak_
-to name few.
+to name a few.
 
 This is the easiest approach but also the weakest one as well. Even if
 your database is well tuned, as the processing rate grows, it is
 likely to become a bottleneck in your processing. After a certain
 stage it will become harder and harder to scale your stream processing
 system due to the database. Database are much harder to scale, even
-system like Cassandra which scale very well, soon or later will become
+system like Cassandra which scale very well, sooner or later will become
 the dominant part in your execution time. To push the database beyond
-certain points require more nodes. While your stream processing will
+certain points requires more nodes. While your stream processing will
 be quite fast with a modest number of machines, your DB, likely will
 require huge clusters.
 
@@ -788,23 +788,23 @@ The second approach is to use the data-locality offered by Kafka, and
 the guarantee that all events coming from a given source will always
 be landing in the same partition. Keeping this important fact in mind,
 it is possible to use local (to the node) caches such as: _Redis,
-Memcache and RocksDB_ to name few.
+Memcache and RocksDB_ to name a few.
 
 ![Local state management](/docs/images/design-principles/state-local.gif)<br/>
 _**[~] A local cache offers better latency and better scalability profile.**_
 
-Because every node is independent form the others it is much easier to
-scale. While the external database the read/write latencies are in the
+Because every node is independent from the others it is much easier to
+scale. While in the external database the read/write latencies are in the
 order of _1-10ms_, with the local cache the latency is typically
 around _100𝛍s-2ms_. However you still have to incur the serialization
 and de-serialization costs on every read/write.
 
 In Samsara we designed a _in-memory k/v-store_ using the fabulous
 [Clojure's persistent data structures](http://hypirion.com/musings/understanding-persistent-vector-pt-1)
-to store the state. To guarantee durability we back changes in into a
+to store the state. To guarantee durability we back changes into a
 Kafka topic which is used to store the state only. Samsara's k/v-store
-produces a _transaction log_ of all the changes made to the in memory
-data and when Samsara write the output of the processing into the
+produces a _transaction log_ of all the changes made to the in-memory
+data and when Samsara writes the output of the processing into the
 output topic, it writes the changes to the state into the kv-store
 topic.
 
@@ -822,7 +822,7 @@ better data locality for your process.  If your processing state is
 way bigger than the available memory on your nodes you have two
 options: the first one is to add more nodes and distribute the
 processing across more partitions. If this isn't viable for solution
-cost-wise you can have the k/vs-store to _spill_ into a external db
+cost-wise you can have the k/vs-store to _spill_ into an external db
 cluster. Such solution is still better than making db lookups for
 every event as the k/v-store will only go to the external db in case
 of a cache-miss and will only store when the entire batch has been
@@ -862,19 +862,19 @@ So over time only latest copy of the keys will be kept.
 This pattern is used by other processing systems notably Apache Samza and
 the very new Kafka-Streams.
 
-This is the way Samsara maintain state and offers a support for the
+This is the way Samsara maintains state and offers a support for the
 stateful stream development directly in its core. All functions which
 process events that we seen earlier such as _filtering, enrichment and
 correlation_ they all have a stateful variant as well.  In the
-stateless processing the only accept a event, if you need stateful
+stateless processing they only accept an event, if you need stateful
 processing, then they will accept the current state and the event.
 
 ![Samsara's stateful processing functions](/docs/images/design-principles/stateful-fn.jpeg)<br/>
 _**[~] Samsara's stateful processing functions.**_
 
-Stateful functions and the stateless one can be mixed in the same
+Stateful functions and the stateless ones can be mixed in the same
 pipeline.  The `pipeline` function takes care of passing the state to
-these function which requires one and only the event to the stateless
+these functions which requires one and only the event to the stateless
 ones.
 
 Earlier we said that the stream processing is a function of the input
@@ -909,13 +909,13 @@ you to do stream processing, the stream processing part is just a
 small part, albeit important, of delivering a system which provides
 real-time analytics. Samsara is a full stack. We provide clients for
 your devices or your services, we provide a way to ingest the data, we
-provide a easy and scalable solution for events processing, a very
+provide an easy and scalable solution for events processing, a very
 fast storage, visualization, dashboards, and a number of built-in
 modules to facilitate common scenarios.
 
 All other alternative solutions are either not providing the full
 stack, or they are proprietary services and very expensive solutions.
-With Samsara you have a open source solution that let you keep your
+With Samsara you have a open source solution that lets you keep your
 own data, and provides all the capabilities to build very
 sophisticated models.
 

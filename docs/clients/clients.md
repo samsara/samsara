@@ -7,17 +7,21 @@ tab_bar: clients
 ---
 
 ## Clients
-Samsara provides clients for various languages and platforms. This will help you start publishing events to Samsara in no time. The clients offer the following features.
+Samsara provides clients for various languages and platforms. This
+will help you start publishing events to Samsara in no time. The
+features clients offer are listed below.
 
-If you want to find more about the clients you can read the [clients common design principles](/docs/design/clients-design.md) document.
+If you want to find more about the clients you can read
+the [clients common design principles](/docs/design/clients-design.md)
+document.
 
 ## Features
-* Handles connectivity to the API.
-* Provides API to publish events in bulk immediately.
-* Provides API to buffer events locally and periodically flush to the API.
-* Validates the event before publishing.
-* Enriches events with default system/device parameters.
-* Mobile clients will enrich events with device and location information automatically.
+* Handle connectivity to the API.
+* Provide API to publish events in bulk immediately.
+* Provide API to buffer events locally and periodically flush to the API.
+* Validate the event before publishing.
+* Enrich events with default system/device parameters.
+* Mobile clients enrich events with device and location information automatically.
 
 
 ## Feature Matrix

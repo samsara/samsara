@@ -20,10 +20,10 @@ quickly.
 ### <a name="local"></a>Local docker engine (Linux, Mac OS X, Windows)
 
 A local environment is ideal for development and testing purposes.
-It setup a fully running cluster with all components but without
+It sets up a fully running cluster with all components but without
 fault tolerance.
 
-Please make sure you have latest [`docker`](https://docs.docker.com/)
+Please make sure you have the latest [`docker`](https://docs.docker.com/)
 and [`docker-compose`](https://docs.docker.com/compose/install/)
 installed.
 
@@ -33,7 +33,7 @@ _If you are on OSX we strongly recommend to use
 Once docker and docker-compose are installed, run the following to
 pull the required samsara docker images
 
-**IMPORTANT: Make sure that the docker engine has 4GB of memory
+**IMPORTANT: Make sure that the docker engine has at least 4GB of memory
 in order to proceed.**
 
 ```bash
@@ -62,7 +62,7 @@ when the service is ready you will see the following message:
 ```
 
 Once the service is up and running you can then access the following
-main services
+main services:
 
 | service       | port                                             |
 |---------------|--------------------------------------------------|
@@ -113,12 +113,12 @@ Next you can connect to kibana and see your events:
 
 In your browser open http://localhost:8000/
 
-Here you will be presented with the Kibana' setup page.
+Here you will be presented with the Kibana's setup page.
 Set the following options:
 
-  * check `Index contains time-based events`
-  * enter `events*` in the `Index name or pattern` field
-  * from the drop-down `Time-field name` select `ts`
+  * Check `Index contains time-based events`
+  * Enter `events*` in the `Index name or pattern` field
+  * From the drop-down `Time-field name` select `ts`
   * Press `Create`
 
 <img src="/docs/images/kibana-setup.png" alt="Kibana setup" width="400px"/>
@@ -139,7 +139,7 @@ docker-compose stop
 
 #### What's next?
 
-If you would like to know more, I would suggest to read a bit more
+If you would like to know more, we would suggest to read a bit more
 about the general [Design principles](/docs/design/design-principles.md)
 and start developing your own stream processing pipeline as described
 in [Getting started with development](/docs/development/get-started-core.md)
@@ -170,14 +170,14 @@ and [`docker-machine`](https://docs.docker.com/machine/install-machine/)
 installed.
 
 
-After you've installed docker and docker-machine on your os, you
-should create a virtual box vm for samsara
+After you've installed docker and docker-machine on your OS, you
+should create a virtual box vm for Samsara
 
 ``` bash
 docker-machine create samsara-vm --driver virtualbox --virtualbox-memory 4096
 ```
 
-**IMPORTANT: Make sure that the docker engine has 4GB of memory
+**IMPORTANT: Make sure that the docker engine has at least 4GB of memory
 in order to proceed.**
 
 Set up the docker client to use your `samsara-vm` vm by setting some docker environment variables.
@@ -191,7 +191,7 @@ docker-machine env samsara-vm
 eval "$(docker-machine env samsara-vm)"
 ```
 
-Once the environment variables have been set, make a note of the vm's ip by running the following command
+Once the environment variables have been set, make a note of the vm's IP by running the following command
 
 ``` bash
 docker-machine ip samsara-vm
@@ -201,8 +201,8 @@ docker-machine ip samsara-vm
 docker-machine ip told you to use. You probably want to add that
 environment variable to your shell config.
 
-From now on we will assume that the docker host ip address is **192.168.99.100**,
-if it is different in your environment please use your own ip instead.
+From now on we will assume that the docker host IP address is **192.168.99.100**,
+if it is different in your environment please use your own IP instead.
 
 Please make sure you have [`docker-compose`](https://docs.docker.com/compose/install/)
 installed.
@@ -235,7 +235,7 @@ when the service is ready you will see the following message:
 ```
 
 Once the service is up and running you can then access the following
-main services
+main services:
 
 | service       | port                                             |
 |---------------|--------------------------------------------------|
@@ -287,12 +287,12 @@ Next you can connect to kibana and see your events:
 
 In your browser open http://192.168.99.100:8000/
 
-Here you will be presented with the Kibana' setup page.
+Here you will be presented with the Kibana's setup page.
 Set the following options:
 
-  * check `Index contains time-based events`
-  * enter `events*` in the `Index name or pattern` field
-  * from the drop-down `Time-field name` select `ts`
+  * Check `Index contains time-based events`
+  * Enter `events*` in the `Index name or pattern` field
+  * From the drop-down `Time-field name` select `ts`
   * Press `Create`
 
 <img src="/docs/images/kibana-setup.png" alt="Kibana setup" width="400px"/>
@@ -313,7 +313,7 @@ docker-compose stop
 
 #### What's next?
 
-If you would like to know more, I would suggest to read a bit more
+If you would like to know more, we would suggest to read a bit more
 about the general [Design principles](/docs/design/design-principles.md)
 and start developing your own stream processing pipeline as described
 in [Getting started with development](/docs/development/get-started-core.md)
@@ -366,12 +366,12 @@ boot2docker up
 DOCKER_HOST=tcp://192.168.59.103:2375
 ```
 
-**NOTE:** Your VM might have a different IP address—use whatever
+**NOTE:** Your VM might have a different IP address — use whatever
 boot2docker up told you to use. You probably want to add that
 environment variable to your shell config.
 
-From now on we will assume that the docker host ip address is **192.168.59.103**,
-if in your environment is different please use your own ip instead.
+From now on we will assume that the docker host IP address is **192.168.59.103**,
+if in your environment is different please use your own IP instead.
 
 Please make sure you have [`docker-compose`](https://docs.docker.com/compose/install/)
 installed.
@@ -404,7 +404,7 @@ when the service is ready you will see the following message:
 ```
 
 Once the service is up and running you can then access the following
-main services
+main services:
 
 | service       | port                                             |
 |---------------|--------------------------------------------------|
@@ -459,9 +459,9 @@ In your browser open http://192.168.59.103:8000/
 Here you will be presented with the Kibana' setup page.
 Set the following options:
 
-  * check `Index contains time-based events`
-  * enter `events*` in the `Index name or pattern` field
-  * from the drop-down `Time-field name` select `ts`
+  * Check `Index contains time-based events`
+  * Enter `events*` in the `Index name or pattern` field
+  * From the drop-down `Time-field name` select `ts`
   * Press `Create`
 
 <img src="/docs/images/kibana-setup.png" alt="Kibana setup" width="400px"/>
@@ -482,7 +482,7 @@ docker-compose stop
 
 #### What's next?
 
-If you would like to know more, I would suggest to read a bit more
+If you would like to know more, we would suggest to read a bit more
 about the general [Design principles](/docs/design/design-principles.md)
 and start developing your own stream processing pipeline as described
 in [Getting started with development](/docs/development/get-started-core.md)
