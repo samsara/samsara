@@ -30,7 +30,7 @@ Configures the `node.box_type` option
 * `ELS_HEAP_SIZE`: (default: 1/2 of box available memory)
 This configures the `-Xmx` Java option.
 It is recommended to give some memory for the off-heap
-data and the page-cache.
+data and the page-cache. For example `512M` or `4G`.
 
 * `ELS_NUMBER_OF_REPLICAS` : (default: 2)
 For each primary shard, this configures the number
