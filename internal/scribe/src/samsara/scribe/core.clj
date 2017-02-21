@@ -1,7 +1,8 @@
 (ns samsara.scribe.core
-  (:require [samsara.scribe.serializer.json :as json])
-  (:require [samsara.scribe.serializer.edn :as edn])
-  (:require [samsara.scribe.serializer.nippy :as nippy]))
+  (:require [samsara.scribe.serializer.json :as json]
+            [samsara.scribe.serializer.edn :as edn]
+            [samsara.scribe.serializer.nippy :as nippy]
+            [samsara.scribe.serializer.fressian :as fressian]))
 
 
 (defmulti scribe :type)
@@ -18,3 +19,7 @@
 (defmethod scribe :nippy
   [config]
   (nippy/make-nippy-scribe config))
+
+(defmethod scribe :fressian
+  [config]
+  (fressian/make-fressian-scribe config))
