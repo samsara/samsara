@@ -4,7 +4,7 @@
              [samsara.scribe.protocol :as scribe]))
 
 
-(facts "json serializer"
+(facts "JSON serializer"
 
        (fact "roundtrip json"
 

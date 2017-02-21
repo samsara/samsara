@@ -12,7 +12,8 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [cheshire "5.7.0"]]
+                 [cheshire "5.7.0"]
+                 [com.taoensso/nippy "2.13.0"]]
 
   :profiles {:dev {:dependencies [[midje "1.9.0-alpha6"]]
                    :plugins [[lein-midje "3.2.1"]]}}

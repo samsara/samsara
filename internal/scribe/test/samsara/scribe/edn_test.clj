@@ -4,7 +4,7 @@
              [samsara.scribe.protocol :as scribe]))
 
 
-(facts "edn serializer"
+(facts "EDN serializer"
 
   (fact "roundtrip edn"
 
