@@ -4,7 +4,7 @@
             [taoensso.nippy :as nippy]))
 
 
-(defrecord NippyScribe [config]
+(defrecord NippyScribe []
 
   Scribe
 
@@ -17,4 +17,4 @@
 
 (defn make-nippy-scribe
   ([]
-    (NippyScribe. nil)))
+    (NippyScribe.)))
