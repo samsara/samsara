@@ -14,7 +14,8 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [cheshire "5.7.0"]
                  [com.taoensso/nippy "2.13.0"]
-                 [org.clojure/data.fressian "0.2.1"]]
+                 [org.clojure/data.fressian "0.2.1"]
+                 [com.cognitect/transit-clj "0.8.297"]]
 
   :profiles {:dev {:dependencies [[midje "1.9.0-alpha6"]]
                    :plugins [[lein-midje "3.2.1"]]}}
