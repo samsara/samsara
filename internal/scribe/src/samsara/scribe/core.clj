@@ -2,6 +2,7 @@
   (:require [samsara.scribe.serializer.json :as json]
             [samsara.scribe.serializer.edn :as edn]
             [samsara.scribe.serializer.nippy :as nippy]
+            [samsara.scribe.serializer.transit :as transit]
             [samsara.scribe.serializer.fressian :as fressian]))
 
 
@@ -17,9 +18,13 @@
   (edn/make-edn-scribe config))
 
 (defmethod scribe :nippy
-  [config]
-  (nippy/make-nippy-scribe config))
+  [_]
+  (nippy/make-nippy-scribe))
 
 (defmethod scribe :fressian
+  [_]
+  (fressian/make-fressian-scribe))
+
+(defmethod scribe :transit
   [config]
-  (fressian/make-fressian-scribe config))
+  (transit/make-transit-scribe config))
