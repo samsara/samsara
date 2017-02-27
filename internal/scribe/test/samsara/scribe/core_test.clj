@@ -1,21 +1,16 @@
 (ns samsara.scribe.core-test
   (:refer-clojure :exclude [read])
   (:require  [midje.sweet :refer :all]
+
              [samsara.scribe.serializer.edn :as edn]
              [samsara.scribe.serializer.fressian :as fressian]
              [samsara.scribe.serializer.nippy :as nippy]
              [samsara.scribe.serializer.json :as json]
              [samsara.scribe.serializer.transit :as transit]
-
-             [samsara.scribe.core :refer :all]
-             [samsara.scribe.protocol :as scribe-protocol]))
+             [samsara.scribe.core :refer :all]))
 
 
 (facts "Scribe Core"
-
-  (def serializer-types [:edn :transit :fressian :nippy :json])
-
-  (def serializers (map scribe (map #({:type %}) serializer-types)))
 
   (tabular
     (fact "Uses serializer of a proper type based on given config"
