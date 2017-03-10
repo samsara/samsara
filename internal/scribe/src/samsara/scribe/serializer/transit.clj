@@ -16,10 +16,11 @@
   (write [_ data]
     (let [out (ByteArrayOutputStream. (config :size))
           writer (transit/writer out (config :format))]
-      (do (transit/write writer data) out)))
+      (transit/write writer data)
+      (.toByteArray out)))
 
   (read [_ bytez]
-    (let [in (ByteArrayInputStream. (.toByteArray bytez))
+    (let [in (ByteArrayInputStream. bytez)
           reader (transit/reader in (config :format))]
       (transit/read reader))))
 

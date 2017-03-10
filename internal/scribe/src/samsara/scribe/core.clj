@@ -18,8 +18,8 @@
   (edn/make-edn-scribe (dissoc config :type)))
 
 (defmethod scribe :nippy
-  [_]
-  (nippy/make-nippy-scribe))
+  [config]
+  (nippy/make-nippy-scribe (dissoc config :type)))
 
 (defmethod scribe :fressian
   [_]
