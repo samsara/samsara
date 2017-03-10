@@ -4,17 +4,22 @@
             [taoensso.nippy :as nippy]))
 
 
-(defrecord NippyScribe []
+(def ^:const DEFAULT-CONFIG {})
+
+
+(defrecord NippyScribe [config]
 
   Scribe
 
   (write [_ data]
-    (nippy/freeze data))
+    (nippy/freeze data config))
 
   (read [_ bytez]
-    (nippy/thaw bytez)))
+    (nippy/thaw bytez config)))
 
 
 (defn make-nippy-scribe
   ([]
-    (NippyScribe.)))
+    (make-nippy-scribe nil))
+  ([config]
+    (NippyScribe. (merge DEFAULT-CONFIG config))))

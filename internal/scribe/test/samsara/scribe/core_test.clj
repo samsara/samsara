@@ -29,6 +29,7 @@
     ?input                ?config
     {:type :edn}          {}
     {:type :transit}      {:size 1024 :format :json}
+    {:type :nippy}        {}
     {:type :json}         {:date-format "yyyy-MM-dd'T'HH:mm:ss.SSSX"})
 
 
@@ -38,4 +39,5 @@
     ?input                                              ?config
     {:type :edn :reader :some-reader}                   {:reader :some-reader}
     {:type :transit :size 50 :format :bson}             {:size 50 :format :bson}
+    {:type :nippy :encryptor "aes128-salted"}           {:encryptor "aes128-salted"}
     {:type :json :date-format "yyyy-MM-dd" :foo :bar}   {:date-format "yyyy-MM-dd" :foo :bar}))
