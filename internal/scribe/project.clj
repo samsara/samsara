@@ -17,7 +17,8 @@
                  [org.clojure/data.fressian "0.2.1"]
                  [com.cognitect/transit-clj "0.8.297"]]
 
-  :profiles {:dev {:dependencies [[midje "1.9.0-alpha6"]]
+  :profiles {:dev {:dependencies [[midje "1.9.0-alpha6"]
+                                  [criterium "0.4.4"]]
                    :plugins [[lein-midje "3.2.1"]]}}
 
   )
