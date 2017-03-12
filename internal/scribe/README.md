@@ -3,14 +3,43 @@
 A solution to write and read Clojure data in various formats.
 
 ## Documentation
-For more information about Scribe, it's design and protocols, please
-read [the documentation](./doc/intro.md)
+Scribe is a Clojure library designed to store and load data without
+losing the semantic characteristic of certain types.
+
+The Scribe protocol has two functions:
+
+```clojure
+ (write serializer data)  -> bytes
+ (read  serializer bytes) -> data
+```
+
+Each function takes two arguments: particular serializer and data to
+serialize/deserialize.
+
+Serializers can be constructed via scribe multimethod:
+
+```clojure
+(scribe {:type :nippy :config :more})
+```
+
+Where `:type` is a serializer type, and `:config`, `:more` are
+configuration parameters for a particular serializer.
+
+## Serializers
+
+Out of the box Scribe provides the following serializers:
+
+* `:json` - [JSON](https://github.com/dakrone/cheshire)
+* `:edn`  - [EDN](https://github.com/edn-format/edn)
+* `:nippy` - [Nippy](https://github.com/ptaoussanis/nippy)
+* `:fressian` - [Fressian](https://github.com/clojure/data.fressian)
+* `:transit` - [Transit](https://github.com/cognitect/transit-clj)
 
 ## Usage
 
 ```clojure
 (ns com.test.my
-  (:require [samsara.scribe.core :refer :all]
+  (:require [samsara.scribe.core :refer [scribe]
             [samsara.scribe.protocol :as scribe]))
 
 (def configuration {:type :edn})
