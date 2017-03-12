@@ -14,14 +14,14 @@
   Scribe
 
   (write [_ data]
-    (let [out (ByteArrayOutputStream. (config :size))
-          writer (transit/writer out (config :format))]
+    (let [out (ByteArrayOutputStream. (:size config))
+          writer (transit/writer out (:format config))]
       (transit/write writer data)
       (.toByteArray out)))
 
   (read [_ bytez]
     (let [in (ByteArrayInputStream. bytez)
-          reader (transit/reader in (config :format))]
+          reader (transit/reader in (:format config))]
       (transit/read reader))))
 
 
