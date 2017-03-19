@@ -30,52 +30,136 @@
 
 
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
-;;                  ---==| W R I T E   T O   F I L E |==----                  ;;
+;;                        ---==| C O U N T E R |==----                        ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(comment
+
+  (def sm
+    {:state       :machina/start
+     :data        nil
+     :transitions
+     {:machina/start {:fn*        (fnil inc 0)
+                      :on-success :machina/start
+                      :on-failure :machina/stop}}}
+    )
+
+  ;;
+  ;; TODO: interesting approach but there is no way
+  ;; for the `fn*` to know when to stop
+  ;; or to `on-success` to decide which new
+  ;; state to go. For example if the counter
+  ;; gets to 10 I would like to exit
+  ;; Same for the `on-failure` it should be
+  ;; able to decide which state based on error
+  ;; TODO: `on-success` and `on-failure` should
+  ;; take the state in input `(on-success sm)`
+  ;; or `(on-failure sm ex)`.
+  ;;
+  (defn play [{:keys [state transitions data] :as sm}]
+    (if (= state :machina/stop)
+      sm
+      (if-let [{:keys [fn* on-success on-failure]} (get transitions state)]
+        (try
+          (let [data1 (apply fn* [data])]
+            (assoc sm :data data1 :state on-success))
+          (catch Exception x
+            (assoc sm
+                   :error {:from-state state
+                           :error x}
+                   :state on-failure)))
+        (assoc sm :error {:from-state state
+                          :error :machina/bad-state}))))
+
+
+  (comment
+    (iterate play sm)
+    ))
 
 
 (def sm
-  {:state       :machina/start
-   :data        nil
+  {:state :machina/start
+   :data   nil
    :transitions
    {:machina/start {:fn*        (fnil inc 0)
-                    :on-success :machina/start
-                    :on-failure :machina/stop}}}
-  )
+                    :on-success (fn [{:keys [data]}]
+                                  (if (= data 10)
+                                    :machina/stop
+                                    :machina/start))
+                    :on-failure (constantly :machina/stop)} }})
 
-;;
-;; TODO: interesting approach but there is no way
-;; for the `fn*` to know when to stop
-;; or to `on-success` to decide which new
-;; state to go. For example if the counter
-;; gets to 10 I would like to exit
-;; Same for the `on-failure` it should be
-;; able to decide which state based on error
-;; TODO: `on-success` and `on-failure` should
-;; take the state in input `(on-success sm)`
-;; or `(on-failure sm ex)`.
-;;
+
 (defn play [{:keys [state transitions data] :as sm}]
   (if (= state :machina/stop)
     sm
     (if-let [{:keys [fn* on-success on-failure]} (get transitions state)]
       (try
-        (let [data1 (apply fn* [data])]
-          (assoc sm :data data1 :state on-success))
+        (as-> sm $
+          (assoc $ :data (apply fn* [data]))
+          (assoc $ :state (on-success $)))
         (catch Exception x
-          (assoc sm
-                 :error {:from-state state
-                         :error x}
-                 :state on-failure)))
+          (as-> sm $
+            (assoc $ :error {:from-state state :error x})
+            (assoc $ :state (on-failure $)))))
       (assoc sm :error {:from-state state
                         :error :machina/bad-state}))))
 
 
 (comment
-  (iterate play sm)
+  (play sm)
+  (->> sm
+       (iterate play)
+       (take-while #(not= :machina/stop (:state %)))
+       #_(map :data)
+       last
+       )
+  )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;        ---==| W R I T E   T I M E S T A M P   T O   F I L E |==----        ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def sm
+  {:state :machina/start
+   :data   nil
+   :transitions
+   {:machina/start {:fn*        (constantly "/tmp/1/2/3/4/5/file.txt")
+                    :on-success (constantly :write-to-file)
+                    :on-failure (constantly :machina/stop)}
+
+
+    :sleep {:fn*        (fn [_] (Thread/sleep 1000))
+            :on-success (constantly :write-to-file)
+            :on-failure (constantly :sleep)}
+
+
+    :write-to-file {:fn*        (fn [f]
+                                  (spit f
+                                        (str (java.util.Date.))
+                                        :append true))
+
+                    :on-success (constantly :sleep)
+                    :on-failure (constantly :sleep)}}})
+
+
+(comment
+
+  (-> sm
+      play
+      play)
+
+  (->> sm
+       (iterate play)
+       (take-while #(not= :machine/stop (:state %)))
+       (last))
+
+
+
   )
