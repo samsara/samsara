@@ -103,7 +103,8 @@
         (catch Exception x
           (as-> sm $
             (assoc $ :error {:from-state state :error x})
-            (assoc $ :state (on-failure $)))))
+            (assoc $ :state (on-failure $))
+            (dissoc $ :error))))
       (assoc sm :error {:from-state state
                         :error :machina/bad-state}))))
 
@@ -126,6 +127,11 @@
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn do! [f]
+  (fn [v]
+    (f v)
+    v))
+
 (def sm
   {:state :machina/start
    :data   nil
@@ -135,25 +141,27 @@
                     :on-failure (constantly :machina/stop)}
 
 
-    :sleep {:fn*        (fn [_] (Thread/sleep 1000))
+    :sleep {:fn*        (do! (fn [_] (Thread/sleep 1000)))
             :on-success (constantly :write-to-file)
             :on-failure (constantly :sleep)}
 
 
-    :write-to-file {:fn*        (fn [f]
-                                  (spit f
-                                        (str (java.util.Date.))
-                                        :append true))
+    :write-to-file {:fn*        (do! (fn [f]
+                                       (println "write?")
+                                       (spit f
+                                             (str (java.util.Date.) \newline)
+                                             :append true)))
 
-                    :on-success (constantly :sleep)
-                    :on-failure (constantly :sleep)}}})
+                    :on-success (fn [sm] (println "OK")   (clojure.pprint/pprint sm) :sleep)
+                    :on-failure (fn [sm] (println "FAIL") (clojure.pprint/pprint sm) :sleep)}}})
 
 
 (comment
 
   (-> sm
       play
-      play)
+      play
+      )
 
   (->> sm
        (iterate play)
