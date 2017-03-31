@@ -80,58 +80,125 @@
     ))
 
 
-(def sm
-  {:state :machina/start
-   :data   nil
-   :transitions
-   {:machina/start {:fn*        (fnil inc 0)
-                    :on-success (fn [{:keys [data]}]
-                                  (if (= data 10)
-                                    :machina/stop
-                                    :machina/start))
-                    :on-failure (constantly :machina/stop)} }})
 
 
-(defn play [{:keys [state transitions data] :as sm}]
-  (if (= state :machina/stop)
-    sm
-    (if-let [{:keys [fn* on-success on-failure]} (get transitions state)]
-      (try
-        (as-> sm $
-          (assoc $ :data (apply fn* [data]))
-          (assoc $ :state (on-success $)))
-        (catch Exception x
-          (as-> sm $
-            (assoc $ :error {:from-state state :error x})
-            (assoc $ :state (on-failure $))
-            (dissoc $ :error))))
-      (assoc sm :error {:from-state state
-                        :error :machina/bad-state}))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                 ---==| S E C O N D   A T T E M P T |==----                 ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 
 (comment
-  (play sm)
-  (->> sm
-       (iterate play)
-       (take-while #(not= :machina/stop (:state %)))
-       #_(map :data)
-       last
-       )
+
+
+
+  ;; counter example
+  (def sm
+    {:state :machina/start
+     :data   nil
+     :transitions
+     {:machina/start {:fn*        (fnil inc 0)
+                      :on-success (fn [{:keys [data]}]
+                                    (if (= data 10)
+                                      :machina/stop
+                                      :machina/start))
+                      :on-failure (constantly :machina/stop)} }})
+
+  (defn do! [f]
+    (fn [v]
+      (f v)
+      v))
+
+
+  (defn transition [{:keys [state transitions data] :as sm}]
+    (if (= state :machina/stop)
+      sm
+      (if-let [{:keys [fn* on-success on-failure]} (get transitions state)]
+        (try
+          (as-> sm $
+            (assoc $ :data  (apply fn* [data]))
+            (assoc $ :state (on-success $)))
+          (catch Exception x
+            (as-> sm $
+              (assoc $ :state (on-failure $))
+              (dissoc $ :error))))
+        (assoc sm :error {:from-state state
+                          :error :machina/bad-state}))))
+
+
+
+
+  (comment
+    (play sm)
+    (->> sm
+         (iterate play)
+         (take-while #(not= :machina/stop (:state %)))
+         #_(map :data)
+         last
+         )
+    )
+
+
+
+
+  ;; write to file example
+  (def sm
+    {:state :machina/start
+     :data   nil
+     :transitions
+     {:machina/start {:fn*        (constantly "/tmp/1/2/3/4/5/file.txt")
+                      :on-success (constantly :write-to-file)
+                      :on-failure (constantly :machina/stop)}
+
+
+      :sleep {:fn*        (do! (fn [_] (Thread/sleep 1000)))
+              :on-success (constantly :write-to-file)
+              :on-failure (constantly :sleep)}
+
+
+      :write-to-file {:fn*        (do! (fn [f]
+                                         (println "write?")
+                                         (spit f
+                                               (str (java.util.Date.) \newline)
+                                               :append true)))
+
+                      :on-success (fn [sm] (println "OK")   (clojure.pprint/pprint sm) :sleep)
+                      :on-failure (fn [sm] (println "FAIL") (clojure.pprint/pprint sm) :sleep)}}})
+
+
+  (comment
+
+    (-> sm
+        transition
+        transition
+        )
+
+    (->> sm
+         (iterate transition)
+         (take-while #(not= :machine/stop (:state %)))
+         (last))
+
+
+
+    )
+
+
   )
 
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
-;;        ---==| W R I T E   T I M E S T A M P   T O   F I L E |==----        ;;
+;;                  ---==| T H I R D   A T T E M P T |==----                  ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn do! [f]
-  (fn [v]
-    (f v)
-    v))
 
+
+;; write to file example
 (def sm
   {:state :machina/start
    :data   nil
@@ -156,15 +223,50 @@
                     :on-failure (fn [sm] (println "FAIL") (clojure.pprint/pprint sm) :sleep)}}})
 
 
+;;
+;; Most generic approach
+;; but not much re-use.
+;;
+(defmulti transition :state)
+
+(defmethod transition :machina/stop
+  [sm]
+  sm)
+
+
+(defmethod transition :machina/start
+  [sm]
+  (assoc sm
+         :data "/tmp/1/2/3/4/5/file.txt"
+         :state :write-to-file))
+
+
+(defmethod transition :write-to-file
+  [{f :data :as sm}]
+  (try
+    (spit f
+          (str (java.util.Date.) \newline)
+          :append true)
+    (assoc sm :state :sleep)
+    (catch Exception x
+      (assoc sm :state :sleep))))
+
+
+(defmethod transition :sleep
+  [sm]
+  (Thread/sleep 1000)
+  (assoc sm :state :write-to-file))
+
 (comment
 
   (-> sm
-      play
-      play
+      transition
+      transition
+      transition
       )
 
   (->> sm
-       (iterate play)
+       (iterate transition)
        (take-while #(not= :machine/stop (:state %)))
        (last))
 
