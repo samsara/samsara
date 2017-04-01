@@ -5,7 +5,7 @@
 //  A Simple Ring Buffer implementation using Serial Queue.
 //
 //  Created by Sathyavijayan Vittal on 13/04/2015.
-//  Copyright (c) 2015 Sathyavijayan Vittal. All rights reserved.
+//  Copyright © 2015-2017 Samsara's authors.
 //
 
 import Foundation

@@ -1,7 +1,7 @@
 # Samsara-logger
-Samsara-logger is logger which provides appenders for the following logging frameworks.  
-* [Log4J2 Logging API](http://logging.apache.org/log4j/2.x/)   
-* [Logback](http://logback.qos.ch/)   
+Samsara-logger is logger which provides appenders for the following logging frameworks.
+* [Log4J2 Logging API](http://logging.apache.org/log4j/2.x/)
+* [Logback](http://logback.qos.ch/)
 
 
 It will convert log messages received via the logging API into json messages which are then sent into Samsara via the [Samsara-Ingestion-API](https://github.com/samsara/samsara/ingestion-api)
@@ -25,23 +25,23 @@ An example of a logback.xml using the samsara-logger appender follows
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
- 
+
   <appender name="STDOUT" class="samsara.logger.appenders.logback.SamsaraAppender">
-    <apiUrl>http://localhost:9000</apiUrl>  
+    <apiUrl>http://localhost:9000</apiUrl>
 
     <layout class="ch.qos.logback.classic.PatternLayout">
       <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
     </layout>
   </appender>
-   
- 
+
+
   <root level="debug">
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>
 ```
 
-A Simple Example Application can be seen [here](./examples/logback/README.md)   
+A Simple Example Application can be seen [here](./examples/logback/README.md)
 
 
 ## Log4j2 Usage
@@ -71,14 +71,14 @@ In the example above there 2 important things to take note of -
  - The Configuration xml element has it's **packages** property pointing to the samsara package ``samsara.log4j2``
  - There's a **SamsaraAppender** xml element *AND* it has at least the **apiUrl** property set.
 
-A Simple Example Application can be seen [here](./examples/log4j2/README.md)   
+A Simple Example Application can be seen [here](./examples/log4j2/README.md)
 
 
 
 ### SamsaraAppender XML Settings
 
-In the above logback.xml and log4j2.xml files, the *apiUrl* property is needed for the SamsaraAppender xml tag.   
-The following table shows all the available configurable properties for the SamsaraAppender xml tag.  
+In the above logback.xml and log4j2.xml files, the *apiUrl* property is needed for the SamsaraAppender xml tag.
+The following table shows all the available configurable properties for the SamsaraAppender xml tag.
 
 |Appender Property | Default Value | Description |
 |-------------------------|---------------|-------------|
@@ -96,6 +96,6 @@ A Simple Example Application can be seen [here](./examples/logback/README.md)
 
 ## License
 
-Copyright © 2015-2016 Samsara's authors.
+Copyright © 2015-2017 Samsara's authors.
 
 Distributed under the Apache License v2.0 (http://www.apache.org/licenses/LICENSE-2.0)

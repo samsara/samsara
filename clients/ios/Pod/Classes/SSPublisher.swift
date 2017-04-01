@@ -3,7 +3,7 @@
 //  samsara-ios-sdk
 //
 //  Created by Sathyavijayan Vittal on 13/04/2015.
-//  Copyright (c) 2015 Sathyavijayan Vittal. All rights reserved.
+//  Copyright © 2015-2017 Samsara's authors.
 //
 
 import Foundation

@@ -92,6 +92,6 @@ docker run -d -p 9200:9200 -p 9300:9300 -p 15000:15000 \
 
 ## Copyright & License
 
-Copyright © 2016 Samsara's authors.
+Copyright © 2015-2017 Samsara's authors.
 
 Distributed under the Apache License v 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
