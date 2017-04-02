@@ -9,21 +9,28 @@
 
 
 
-(defn empty-machine
-  "defines a empty state machine which only goes from start->stop"
-  []
-  {:state :machina/start
-
-   :transitions {:machina/start [:machina/no-op :machina/stop]}})
+(defn write-to-file [f]
+  (spit f
+        (str (java.util.Date.) \newline)
+        :append true))
 
 
+(comment
+  (defn empty-machine
+    "defines a empty state machine which only goes from start->stop"
+    []
+    {:state :machina/start
 
-(defn configure-machine [sm fns]
-  (-> sm
-      ;; turn the list of states and transitions into a map
-      (update :transitions (fn [ts]
-                             (->> (map (fn [[s0 t s1]] [s0 [t s1]]) ts)
-                                  (into {}))))))
+     :transitions {:machina/start [:machina/no-op :machina/stop]}})
+
+
+
+  (defn configure-machine [sm fns]
+    (-> sm
+        ;; turn the list of states and transitions into a map
+        (update :transitions (fn [ts]
+                               (->> (map (fn [[s0 t s1]] [s0 [t s1]]) ts)
+                                    (into {})))))))
 
 
 ;;(configure-machine (empty-machine))
@@ -32,7 +39,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
-;;                        ---==| C O U N T E R |==----                        ;;
+;;                  ---==| F I R S T   A T T E M P T |==----                  ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -131,9 +138,9 @@
 
 
   (comment
-    (play sm)
+    (transition sm)
     (->> sm
-         (iterate play)
+         (iterate transition)
          (take-while #(not= :machina/stop (:state %)))
          #_(map :data)
          last
@@ -158,11 +165,7 @@
               :on-failure (constantly :sleep)}
 
 
-      :write-to-file {:fn*        (do! (fn [f]
-                                         (println "write?")
-                                         (spit f
-                                               (str (java.util.Date.) \newline)
-                                               :append true)))
+      :write-to-file {:fn*        (do! write-to-file)
 
                       :on-success (fn [sm] (println "OK")   (clojure.pprint/pprint sm) :sleep)
                       :on-failure (fn [sm] (println "FAIL") (clojure.pprint/pprint sm) :sleep)}}})
@@ -196,80 +199,93 @@
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-
-;; write to file example
-(def sm
-  {:state :machina/start
-   :data   nil
-   :transitions
-   {:machina/start {:fn*        (constantly "/tmp/1/2/3/4/5/file.txt")
-                    :on-success (constantly :write-to-file)
-                    :on-failure (constantly :machina/stop)}
-
-
-    :sleep {:fn*        (do! (fn [_] (Thread/sleep 1000)))
-            :on-success (constantly :write-to-file)
-            :on-failure (constantly :sleep)}
-
-
-    :write-to-file {:fn*        (do! (fn [f]
-                                       (println "write?")
-                                       (spit f
-                                             (str (java.util.Date.) \newline)
-                                             :append true)))
-
-                    :on-success (fn [sm] (println "OK")   (clojure.pprint/pprint sm) :sleep)
-                    :on-failure (fn [sm] (println "FAIL") (clojure.pprint/pprint sm) :sleep)}}})
-
-
-;;
-;; Most generic approach
-;; but not much re-use.
-;;
-(defmulti transition :state)
-
-(defmethod transition :machina/stop
-  [sm]
-  sm)
-
-
-(defmethod transition :machina/start
-  [sm]
-  (assoc sm
-         :data "/tmp/1/2/3/4/5/file.txt"
-         :state :write-to-file))
-
-
-(defmethod transition :write-to-file
-  [{f :data :as sm}]
-  (try
-    (spit f
-          (str (java.util.Date.) \newline)
-          :append true)
-    (assoc sm :state :sleep)
-    (catch Exception x
-      (assoc sm :state :sleep))))
-
-
-(defmethod transition :sleep
-  [sm]
-  (Thread/sleep 1000)
-  (assoc sm :state :write-to-file))
-
 (comment
 
-  (-> sm
-      transition
-      transition
-      transition
-      )
-
-  (->> sm
-       (iterate transition)
-       (take-while #(not= :machine/stop (:state %)))
-       (last))
+  ;; write to file example
+  (def sm
+    {:state :machina/start
+     :data   nil
+     :transitions
+     {:machina/start {:fn*        (constantly "/tmp/1/2/3/4/5/file.txt")
+                      :on-success (constantly :write-to-file)
+                      :on-failure (constantly :machina/stop)}
 
 
+      :sleep {:fn*        (do! (fn [_] (Thread/sleep 1000)))
+              :on-success (constantly :write-to-file)
+              :on-failure (constantly :sleep)}
 
-  )
+
+      :write-to-file {:fn*        (do! write-to-file)
+
+                      :on-success (fn [sm] (println "OK")   (clojure.pprint/pprint sm) :sleep)
+                      :on-failure (fn [sm] (println "FAIL") (clojure.pprint/pprint sm) :sleep)}}})
+
+
+  ;;
+  ;; Most generic approach
+  ;; but not much re-use.
+  ;; also hard to make cross-cutting concerns
+  ;; like a function which displays all
+  ;; the state transitions or even
+  ;; measure the time spent in each state.
+  ;;
+  (defmulti transition :state)
+
+  (defmethod transition :machina/stop
+    [sm]
+    sm)
+
+
+  (defmethod transition :machina/start
+    [sm]
+    (assoc sm
+           :data "/tmp/1/2/3/4/5/file.txt"
+           :state :write-to-file))
+
+
+  (defmethod transition :write-to-file
+    [{f :data :as sm}]
+    (try
+      (write-to-file f)
+      (assoc sm :state :sleep)
+      (catch Exception x
+        (assoc sm :state :sleep))))
+
+
+  (defmethod transition :sleep
+    [sm]
+    (Thread/sleep 1000)
+    (assoc sm :state :write-to-file))
+
+  (comment
+
+    (-> sm
+        transition
+        transition
+        transition
+        )
+
+    (->> sm
+         (iterate transition)
+         (take-while #(not= :machine/stop (:state %)))
+         (last))
+
+
+
+    ))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                 ---==| F O U R T H   A T T E M P T |==----                 ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;
+;; this time i'm going to use the same basic and generic idea of
+;; a f(stm) -> stm' but without the multi-method dispatch
+;; so that it is possible to add wrappers/filters style functions
+;; which handle cross/cutting concerns.
+;;
