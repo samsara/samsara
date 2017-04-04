@@ -202,25 +202,6 @@
 (comment
 
   ;; write to file example
-  (def sm
-    {:state :machina/start
-     :data   nil
-     :transitions
-     {:machina/start {:fn*        (constantly "/tmp/1/2/3/4/5/file.txt")
-                      :on-success (constantly :write-to-file)
-                      :on-failure (constantly :machina/stop)}
-
-
-      :sleep {:fn*        (do! (fn [_] (Thread/sleep 1000)))
-              :on-success (constantly :write-to-file)
-              :on-failure (constantly :sleep)}
-
-
-      :write-to-file {:fn*        (do! write-to-file)
-
-                      :on-success (fn [sm] (println "OK")   (clojure.pprint/pprint sm) :sleep)
-                      :on-failure (fn [sm] (println "FAIL") (clojure.pprint/pprint sm) :sleep)}}})
-
 
   ;;
   ;; Most generic approach
@@ -289,3 +270,79 @@
 ;; so that it is possible to add wrappers/filters style functions
 ;; which handle cross/cutting concerns.
 ;;
+
+(comment
+
+  (defn log-state-change [handler]
+    (fn [sm1]
+      (let [sm2 (handler sm1)]
+        (println "transition: " (:state sm1) "->" (:state sm2))
+        sm2)))
+
+  ;; write to file example
+  (def sm
+    {:state :machine/start
+     :data nil
+
+     :dispatch
+     {:machine/stop identity
+      :machine/start
+      (fn
+        [sm]
+        (assoc sm
+               :data "/tmp/1/2/3/4/5/file.txt"
+               :state :write-to-file))
+
+      :write-to-file
+      (fn
+        [{f :data :as sm}]
+        (try
+          (write-to-file f)
+          (assoc sm :state :sleep)
+          (catch Exception x
+            (assoc sm :state :sleep))))
+
+      :sleep
+      (fn
+        [sm]
+        (Thread/sleep 1000)
+        (assoc sm :state :write-to-file))}
+
+     :wrappers
+     [#'log-state-change]})
+
+
+  (defn bad-state [sm]
+    (throw (ex-info "Invalid state" sm)))
+
+  ;; this seems to maintain the simplicity of
+  ;; the earlier attempts with the general
+  ;; approach of the multi-method
+  ;; without scarifying the ability to
+  ;; manage cross-cutting concerns.
+  ;; note: are wrappers the best approach?
+  ;; maybe something like pedestal stacklets
+  ;; would be easier?
+
+  (defn transition
+    [{:keys [state data dispatch wrappers] :as sm}]
+    (let [f0 (get dispatch state bad-state)
+          f  (reduce (fn [wt w1] (wt w1)) identity
+                (concat wrappers [f0]))]
+      (f sm)))
+
+  (comment
+
+    (-> sm
+        transition
+        transition
+        ;;transition
+        )
+
+    (->> sm
+         (iterate transition)
+         (take-while #(not= :machine/stop (:state %)))
+         (last))
+
+
+    ))
