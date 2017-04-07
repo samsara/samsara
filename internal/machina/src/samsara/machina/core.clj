@@ -279,9 +279,37 @@
         (println "transition: " (:state sm1) "->" (:state sm2))
         sm2)))
 
+  (defn epoch-counter
+    [handler]
+    (fn [sm]
+      (handler (update sm :epoch (fnil inc 0)))))
+
+  (defn- wrapper
+    ([] identity)
+    ([f] f)
+    ([f g] (g f))
+    ([f g & fs]
+     (reduce wrapper (concat [f g] fs))))
+
+  (comment
+    (defn mh [n]
+      (fn [h]
+        (fn [sm]
+          (println n)
+          (h sm))))
+
+    (def f1 (mh 1))
+    (def f2 (mh 2))
+    (def f3 (mh 3))
+    (def f4 (mh 4))
+
+    ((wrapper identity f4 f3 f2 f1) {}))
+
+
   ;; write to file example
   (def sm
     {:state :machine/start
+     :epoch 0
      :data nil
 
      :dispatch
@@ -309,7 +337,7 @@
         (assoc sm :state :write-to-file))}
 
      :wrappers
-     [#'log-state-change]})
+     [#'epoch-counter #'epoch-counter #'log-state-change]})
 
 
   (defn bad-state [sm]
@@ -327,9 +355,9 @@
   (defn transition
     [{:keys [state data dispatch wrappers] :as sm}]
     (let [f0 (get dispatch state bad-state)
-          f  (reduce (fn [wt w1] (wt w1)) identity
-                (concat wrappers [f0]))]
+          f  (apply wrapper (cons f0 (reverse wrappers)))]
       (f sm)))
+
 
   (comment
 
