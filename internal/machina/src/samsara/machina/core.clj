@@ -374,3 +374,132 @@
 
 
     ))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;       ---==| E X P A N D I N G   F O U R T H   A T T E M P T |==----       ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;
+;; same as before just now expanding the capabilities
+;; of generic wrappers and common pattern/policies for
+;; error handling (WORK IN PROGRESS)
+;;
+
+(comment
+
+  (defn log-state-change [handler]
+    (fn [sm1]
+      (let [sm2 (handler sm1)]
+        (println "transition: " (:state sm1) "->" (:state sm2))
+        sm2)))
+
+  (defn epoch-counter
+    [handler]
+    (fn [sm]
+      (handler (update sm :epoch (fnil inc 0)))))
+
+  ;; not sure about this
+  (defn error-state
+    [handler]
+    (fn [sm]
+      (try
+        (handler sm)
+        (catch Throwable x
+          (assoc sm :last-error
+                 {:from-state  (:state sm)
+                  :error-epoch (:epoch sm)
+                  :error       x}
+                 :state :error)))))
+
+
+  (defn- wrapper
+    ([] identity)
+    ([f] f)
+    ([f g] (g f))
+    ([f g & fs]
+     (reduce wrapper (concat [f g] fs))))
+
+  (comment
+    (defn mh [n]
+      (fn [h]
+        (fn [sm]
+          (println n)
+          (h sm))))
+
+    (def f1 (mh 1))
+    (def f2 (mh 2))
+    (def f3 (mh 3))
+    (def f4 (mh 4))
+
+    ((wrapper identity f4 f3 f2 f1) {}))
+
+
+  ;; write to file example
+  (def sm
+    {:state :machine/start
+     :epoch 0
+     :data nil
+
+     :dispatch
+     {:machine/stop identity
+      :machine/start
+      (fn
+        [sm]
+        (assoc sm
+               :data "/tmp/1/2/3/4/5/file.txt"
+               :state :write-to-file))
+
+      :write-to-file
+      (fn
+        [{f :data :as sm}]
+        (write-to-file f)
+        (assoc sm :state :sleep))
+
+      :sleep
+      (fn
+        [sm]
+        (Thread/sleep 1000)
+        (assoc sm :state :write-to-file))}
+
+     :error-policies
+     {:machine/default {:type        :retry
+                        :max-retry   :forever
+                        :retry-delay [:random-exp-backoff :base 3000 :+/- 0.35 :max 25000]}
+
+      :write-to-file   {:type        :retry
+                        :max-retry   :forever
+                        :retry-delay [:random 3000 :+/- 0.35]}}
+
+     :wrappers
+     [#'epoch-counter #'log-state-change #'error-state]})
+
+
+  (defn bad-state [sm]
+    (throw (ex-info "Invalid state" sm)))
+
+  (defn transition
+    [{:keys [state data dispatch wrappers] :as sm}]
+    (let [f0 (get dispatch state bad-state)
+          f  (apply wrapper (cons f0 (reverse wrappers)))]
+      (f sm)))
+
+
+  (comment
+
+    (-> sm
+        transition
+        transition
+        ;;transition
+        )
+
+    (->> sm
+         (iterate transition)
+         (take-while #(not= :machine/stop (:state %)))
+         (last))
+
+
+    ))
