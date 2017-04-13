@@ -1,4 +1,17 @@
 (ns samsara.machina.core)
+;;
+;; This namespace contains an REPL exploration session on
+;; various possible implementation of a State Machine
+;; in Clojure. There are several characteristics that
+;; I'm keen to explore and achieve in the final system
+;; such as: simplicity, flexibility, robustness,
+;; speed, and more.
+;; I'll be writing several implementations of the
+;; state machine to solve a simple problem
+;; and try to evaluate which compromises I'm making
+;; in regards to the aforementioned characteristics.
+;;
+
 
 ;;
 ;; TODO: managed transition
@@ -14,26 +27,6 @@
         (str (java.util.Date.) \newline)
         :append true))
 
-
-(comment
-  (defn empty-machine
-    "defines a empty state machine which only goes from start->stop"
-    []
-    {:state :machina/start
-
-     :transitions {:machina/start [:machina/no-op :machina/stop]}})
-
-
-
-  (defn configure-machine [sm fns]
-    (-> sm
-        ;; turn the list of states and transitions into a map
-        (update :transitions (fn [ts]
-                               (->> (map (fn [[s0 t s1]] [s0 [t s1]]) ts)
-                                    (into {})))))))
-
-
-;;(configure-machine (empty-machine))
 
 
 
@@ -180,7 +173,7 @@
 
     (->> sm
          (iterate transition)
-         (take-while #(not= :machine/stop (:state %)))
+         (take-while #(not= :machina/stop (:state %)))
          (last))
 
 
@@ -249,7 +242,7 @@
 
     (->> sm
          (iterate transition)
-         (take-while #(not= :machine/stop (:state %)))
+         (take-while #(not= :machina/stop (:state %)))
          (last))
 
 
@@ -308,13 +301,13 @@
 
   ;; write to file example
   (def sm
-    {:state :machine/start
+    {:state :machina/start
      :epoch 0
      :data nil
 
      :dispatch
-     {:machine/stop identity
-      :machine/start
+     {:machina/stop identity
+      :machina/start
       (fn
         [sm]
         (assoc sm
@@ -369,7 +362,7 @@
 
     (->> sm
          (iterate transition)
-         (take-while #(not= :machine/stop (:state %)))
+         (take-while #(not= :machina/stop (:state %)))
          (last))
 
 
@@ -440,13 +433,13 @@
 
   ;; write to file example
   (def sm
-    {:state :machine/start
+    {:state :machina/start
      :epoch 0
      :data nil
 
      :dispatch
-     {:machine/stop identity
-      :machine/start
+     {:machina/stop identity
+      :machina/start
       (fn
         [sm]
         (assoc sm
@@ -466,7 +459,7 @@
         (assoc sm :state :write-to-file))}
 
      :error-policies
-     {:machine/default {:type        :retry
+     {:machina/default {:type        :retry
                         :max-retry   :forever
                         :retry-delay [:random-exp-backoff :base 3000 :+/- 0.35 :max 25000]}
 
@@ -498,7 +491,7 @@
 
     (->> sm
          (iterate transition)
-         (take-while #(not= :machine/stop (:state %)))
+         (take-while #(not= :machina/stop (:state %)))
          (last))
 
 
