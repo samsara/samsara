@@ -1,4 +1,5 @@
-(ns samsara.machina.core)
+(ns samsara.machina.core
+  (:require [safely.core :as safely]))
 ;;
 ;; This namespace contains an REPL exploration session on
 ;; various possible implementation of a State Machine
@@ -396,17 +397,77 @@
       (handler (update sm :epoch (fnil inc 0)))))
 
   ;; not sure about this
+
+  (comment
+    ((error-state
+      (fn [_] (throw (ex-info "boom" {}))))
+     {:state :foo}))
+
   (defn error-state
     [handler]
-    (fn [sm]
+    (fn [{:keys [state epoch] :as sm}]
       (try
-        (handler sm)
+        (-> (handler sm)
+            ;; clear error flag
+            (update :latest-errors dissoc state));; TODO: dissoc-in
         (catch Throwable x
-          (assoc sm :last-error
-                 {:from-state  (:state sm)
-                  :error-epoch (:epoch sm)
-                  :error       x}
-                 :state :error)))))
+          (-> sm
+              (assoc-in  [:latest-errors :from-state] state)
+              (update-in [:latest-errors state :repeated] (fnil inc 0))
+              (update-in [:latest-errors state]
+                         #(merge % {:error-epoch epoch
+                                    :error       x}))
+              (assoc :state :machina/error))))))
+
+
+  (defn error-dispatch
+    [{{:keys [from-state]} :latest-errors
+      error-policies :error-policies :as sm}]
+    (if-let [policy (or (get error-policies from-state) (get error-policies :machina/default))]
+      ;; TODO: multimethod dispatch by type?
+      (let [{:keys [retry-delay]} policy
+            nap (or (get-in sm [:latest-errors from-state :sleeper]) (apply safely/sleeper retry-delay))]
+        (-> sm
+            (assoc-in [:latest-errors from-state :sleeper] nap)
+            (assoc :sleeper {:nap nap :return-state from-state})
+            (assoc :state :machina/sleep))
+
+        )
+      (throw (ex-info "no default error policy" sm)))
+    )
+
+
+  (comment
+    (sleep-state
+     (error-dispatch
+      ((error-state
+        (fn [_] (throw (ex-info "boom" {}))))
+       {:state :foo
+        :error-policies
+        {:machina/default {:type        :retry
+                           :max-retry   :forever
+                           :retry-delay [:random-exp-backoff :base 3000 :+/- 0.35 :max 25000]}}
+
+        :wrappers
+        [#'epoch-counter #'log-state-change #'error-state]}))))
+
+  ;;
+  ;;{:state   :machina/sleep
+  ;; :sleeper {:nap (safely/sleeper :random 3000 :+/- 0.35) ;; or a number of millis 1000
+  ;;           :return-state :foo}}
+  ;;
+  (defn sleep-state [{{:keys [nap return-state]} :sleeper :as sm}]
+    (when-not (and (or (fn? nap) (number? nap)) return-state)
+      (throw (ex-info "invalid sleep state." sm)))
+
+    ;; nap a little bit
+    (if (number? nap)
+      (safely/sleep nap)
+      (nap))
+
+    (-> sm
+        (assoc  :state  return-state)
+        (dissoc :sleeper)))
 
 
   (defn- wrapper
@@ -450,22 +511,22 @@
       (fn
         [{f :data :as sm}]
         (write-to-file f)
-        (assoc sm :state :sleep))
+        (assoc sm
+               :state :machina/sleep
+               :sleeper {:nap 1000 :return-state :write-to-file}))
 
-      :sleep
-      (fn
-        [sm]
-        (Thread/sleep 1000)
-        (assoc sm :state :write-to-file))}
+      :machina/sleep sleep-state
+      :machina/error error-dispatch
+      }
 
      :error-policies
      {:machina/default {:type        :retry
                         :max-retry   :forever
-                        :retry-delay [:random-exp-backoff :base 3000 :+/- 0.35 :max 25000]}
+                        :retry-delay [:random-exp-backoff :base 300 :+/- 0.35 :max 25000]}
 
-      :write-to-file   {:type        :retry
-                        :max-retry   :forever
-                        :retry-delay [:random 3000 :+/- 0.35]}}
+      :_write-to-file   {:type        :retry
+                         :max-retry   :forever
+                         :retry-delay [:random 3000 :+/- 0.35]}}
 
      :wrappers
      [#'epoch-counter #'log-state-change #'error-state]})
@@ -486,12 +547,15 @@
     (-> sm
         transition
         transition
-        ;;transition
+        transition
+        transition
+        transition
         )
 
     (->> sm
          (iterate transition)
-         (take-while #(not= :machina/stop (:state %)))
+         (take 20)
+         #_(take-while #(not= :machina/stop (:state %)))
          (last))
 
 

@@ -11,7 +11,8 @@
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
 
-  :dependencies [[org.clojure/clojure "1.8.0"]]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [com.brunobonacci/safely "0.2.4"]]
 
   :profiles {:dev {:dependencies [[midje "1.9.0-alpha6"]
                                   [criterium "0.4.4"]]
