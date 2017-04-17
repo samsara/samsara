@@ -24,7 +24,14 @@
 ;;
 
 
-(defn log-state-change
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;            ---==| M I D D L E W A R E   W R A P P E R S |==----            ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn wrapper-log-state-change
   "This wrapper logs the state machine transitions to the configured
   logger. The default log level is :debug, but you can specify a
   different level."
@@ -37,7 +44,8 @@
        sm2))))
 
 
-(defn epoch-counter
+
+(defn wrapper-epoch-counter
   "This wrapper increments a counter on every transition.
   Useful to determine whether the state machine is progressing."
   [handler]
@@ -46,40 +54,86 @@
 
 
 
+(defn wrapper-error-handler
+  "This wrapper traps exceptions from the underlying handler
+   and setup the error information under the `:latest-errors`
+   key and make a transition to the `:machina/error` state"
+  [handler]
+  (fn [{:keys [state epoch] :as sm}]
+    (try
+      (-> (handler sm)
+          ;; clear error flag
+          (update :latest-errors dissoc state));; TODO: dissoc-in
+      (catch Throwable x
+        (-> sm
+            (assoc-in  [:latest-errors :from-state] state)
+            (update-in [:latest-errors state :repeated] (fnil inc 0))
+            (update-in [:latest-errors state]
+                       #(merge % {:error-epoch epoch
+                                  :error       x}))
+            (assoc :state :machina/error))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;      ---==| D E F A U L T   S T A T E   T R A N S I T I O N S |==----      ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;
+;;{:state   :machina/sleep
+;; :machina/sleepe {:nap (safely/sleeper :random 3000 :+/- 0.35) ;; or a number of millis 1000
+;;           :return-state :foo}}
+;; TODO: better description
+(defn sleep-state
+  "When the machine is a `:machina/sleep` state then this transition
+   will sleep for a while and the go the return state."
+  [{{:keys [nap return-state]} :machina/sleep :as sm}]
+  (when-not (and (or (fn? nap) (vector? nap) (number? nap)) return-state)
+    ;; TODO: halted or exception?
+    (throw (ex-info "invalid sleep state." sm)))
+
+  ;; nap a little bit
+  (cond
+    (fn?     nap) (nap)
+    (number? nap) (safely/sleep nap)
+    (vector? nap) (apply safely/sleep nap))
+
+  (-> sm
+      (assoc  :state  return-state)
+      (dissoc :sleeper)))
+
+
+
+
+;; TODO: more info
+(defn error-dispatch
+  "Make the transition from `:machina/error` to the managed target state
+  it uses the defined `:error-policies` and the data from `:last-errors`
+  "
+  [{{:keys [from-state]} :latest-errors
+    error-policies :error-policies :as sm}]
+  (if-let [policy (or (get error-policies from-state) (get error-policies :machina/default))]
+    ;; TODO: multimethod dispatch by type?
+    (let [{:keys [retry-delay]} policy
+          nap (or (get-in sm [:latest-errors from-state :sleeper]) (apply safely/sleeper retry-delay))]
+      (-> sm
+          (assoc-in [:latest-errors from-state :sleeper] nap)
+          (assoc :sleeper {:nap nap :return-state from-state})
+          (assoc :state :machina/sleep))
+
+      )
+    ;; TODO: exception or halted state?
+    (throw (ex-info "no default error policy" sm)))
+  )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (comment
 
-  (defn error-state
-    [handler]
-    (fn [{:keys [state epoch] :as sm}]
-      (try
-        (-> (handler sm)
-            ;; clear error flag
-            (update :latest-errors dissoc state));; TODO: dissoc-in
-        (catch Throwable x
-          (-> sm
-              (assoc-in  [:latest-errors :from-state] state)
-              (update-in [:latest-errors state :repeated] (fnil inc 0))
-              (update-in [:latest-errors state]
-                         #(merge % {:error-epoch epoch
-                                    :error       x}))
-              (assoc :state :machina/error))))))
-
-
-  (defn error-dispatch
-    [{{:keys [from-state]} :latest-errors
-      error-policies :error-policies :as sm}]
-    (if-let [policy (or (get error-policies from-state) (get error-policies :machina/default))]
-      ;; TODO: multimethod dispatch by type?
-      (let [{:keys [retry-delay]} policy
-            nap (or (get-in sm [:latest-errors from-state :sleeper]) (apply safely/sleeper retry-delay))]
-        (-> sm
-            (assoc-in [:latest-errors from-state :sleeper] nap)
-            (assoc :sleeper {:nap nap :return-state from-state})
-            (assoc :state :machina/sleep))
-
-        )
-      (throw (ex-info "no default error policy" sm)))
-    )
 
 
   (comment
@@ -95,24 +149,6 @@
 
         :wrappers
         [#'epoch-counter #'log-state-change #'error-state]}))))
-
-  ;;
-  ;;{:state   :machina/sleep
-  ;; :sleeper {:nap (safely/sleeper :random 3000 :+/- 0.35) ;; or a number of millis 1000
-  ;;           :return-state :foo}}
-  ;;
-  (defn sleep-state [{{:keys [nap return-state]} :sleeper :as sm}]
-    (when-not (and (or (fn? nap) (number? nap)) return-state)
-      (throw (ex-info "invalid sleep state." sm)))
-
-    ;; nap a little bit
-    (if (number? nap)
-      (safely/sleep nap)
-      (nap))
-
-    (-> sm
-        (assoc  :state  return-state)
-        (dissoc :sleeper)))
 
 
   (defn- wrapper
