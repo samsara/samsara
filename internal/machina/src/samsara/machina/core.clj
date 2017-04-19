@@ -81,14 +81,30 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;
-;;{:state   :machina/sleep
-;; :machina/sleepe {:nap (safely/sleeper :random 3000 :+/- 0.35) ;; or a number of millis 1000
-;;           :return-state :foo}}
-;; TODO: better description
-(defn sleep-state
+(defn sleep-transition
   "When the machine is a `:machina/sleep` state then this transition
-   will sleep for a while and the go the return state."
+   will sleep for a while and the go the return state.
+
+       ;; it transition form the sleep state
+       {:state :machina/sleep
+        :machina/sleep
+        {;; nap it can be the number of milliseconds to sleep
+         ;; :nap 3000
+         ;; alternatively nap can be a safely/retry-delay spec
+         ;; see: https://github.com/BrunoBonacci/safely
+         :nap [:random 3000 :+/- 0.35]
+         ;; finally it can be a function
+         ;; which sleeps for a while.
+         ;; :nap (fn [] (Thread/sleep 2500))
+         ;; typically used in conjunction with `safely/sleeper`
+         ;;
+         ;; finally the sleeper state needs to know which
+         ;; state does it needs to go after the little nap.
+         :return-state :foo}}
+
+  After the nap it will set the state to `:return-state`
+  and remove the `:machine/sleeper` key.
+  "
   [{{:keys [nap return-state]} :machina/sleep :as sm}]
   (when-not (and (or (fn? nap) (vector? nap) (number? nap)) return-state)
     ;; TODO: halted or exception?
@@ -97,12 +113,12 @@
   ;; nap a little bit
   (cond
     (fn?     nap) (nap)
-    (number? nap) (safely/sleep nap)
-    (vector? nap) (apply safely/sleep nap))
+    (vector? nap) (apply safely/sleeper nap)
+    (number? nap) (safely/sleep nap))
 
   (-> sm
       (assoc  :state  return-state)
-      (dissoc :sleeper)))
+      (dissoc :machina/sleep)))
 
 
 
