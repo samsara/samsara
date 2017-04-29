@@ -74,11 +74,23 @@
             (assoc :state :machina/error))))))
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
 ;;      ---==| D E F A U L T   S T A T E   T R A N S I T I O N S |==----      ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn halt-machina
+  "it takes a machine and a reason for which should be halted
+   and returns an new state machine in halted state"
+  [{:keys [state] :as sm} reason]
+  (assoc sm
+         :state :machina/halted
+         :machina/halted {:reason     reason
+                          :form-state state}))
+
 
 
 (defn sleep-transition
@@ -103,28 +115,28 @@
          :return-state :foo}}
 
   After the nap it will set the state to `:return-state`
-  and remove the `:machine/sleeper` key.
+  and remove the `:machina/sleeper` key.
   "
   [{{:keys [nap return-state]} :machina/sleep :as sm}]
-  (when-not (and (or (fn? nap) (vector? nap) (number? nap)) return-state)
-    ;; TODO: halted or exception?
-    (throw (ex-info "invalid sleep state." sm)))
+  (if-not (and (or (fn? nap) (vector? nap) (number? nap)) return-state)
+    (halt-machina sm "Invalid :machina/sleep state.")
 
-  ;; nap a little bit
-  (cond
-    (fn?     nap) (nap)
-    (vector? nap) (apply safely/sleeper nap)
-    (number? nap) (safely/sleep nap))
+    ;; nap a little bit
+    (do
+      (cond
+        (fn?     nap) (nap)
+        (vector? nap) (apply safely/sleeper nap)
+        (number? nap) (safely/sleep nap))
 
-  (-> sm
-      (assoc  :state  return-state)
-      (dissoc :machina/sleep)))
+      (-> sm
+          (assoc  :state  return-state)
+          (dissoc :machina/sleep)))))
 
 
 
 
 ;; TODO: more info
-(defn error-dispatch
+(defn error-transition
   "Make the transition from `:machina/error` to the managed target state
   it uses the defined `:error-policies` and the data from `:last-errors`
   "
