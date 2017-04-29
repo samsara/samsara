@@ -36,7 +36,7 @@
   logger. The default log level is :debug, but you can specify a
   different level."
   ([handler]
-   (log-state-change :debug handler))
+   (wrapper-log-state-change :debug handler))
   ([level handler]
    (fn [sm1]
      (let [sm2 (handler sm1)]
@@ -56,19 +56,19 @@
 
 (defn wrapper-error-handler
   "This wrapper traps exceptions from the underlying handler
-   and setup the error information under the `:latest-errors`
+   and setup the error information under the `:machina/latest-errors`
    key and make a transition to the `:machina/error` state"
   [handler]
   (fn [{:keys [state epoch] :as sm}]
     (try
       (-> (handler sm)
-          ;; clear error flag
-          (update :latest-errors dissoc state));; TODO: dissoc-in
+          ;; clear error flag in case of successful transition
+          (update :machina/latest-errors dissoc state));; TODO: dissoc-in
       (catch Throwable x
         (-> sm
-            (assoc-in  [:latest-errors :from-state] state)
-            (update-in [:latest-errors state :repeated] (fnil inc 0))
-            (update-in [:latest-errors state]
+            (assoc-in  [:machina/latest-errors :from-state] state)
+            (update-in [:machina/latest-errors state :repeated] (fnil inc 0))
+            (update-in [:machina/latest-errors state]
                        #(merge % {:error-epoch epoch
                                   :error       x}))
             (assoc :state :machina/error))))))
@@ -134,14 +134,13 @@
 
 
 
-
-;; TODO: more info
 (defn error-transition
   "Make the transition from `:machina/error` to the managed target state
-  it uses the defined `:error-policies` and the data from `:last-errors`
+  it uses the defined `:machina/error-policies` and the data
+  from `:machina/latest-errors`
   "
-  [{{:keys [from-state]} :latest-errors
-    error-policies :error-policies :as sm}]
+  [{{:keys [from-state]} :machina/latest-errors
+    error-policies :machina/error-policies :as sm}]
   (if-let [policy (or (get error-policies from-state) (get error-policies :machina/default))]
     ;; TODO: multimethod dispatch by type?
     (let [{:keys [retry-delay]} policy
