@@ -1,78 +1,6 @@
 (ns samsara.machina.core
-  (:require [clojure.tools.logging :as log]
+  (:require [samsara.machina.wrappers :refer :all]
             [safely.core :as safely]))
-
-;;
-;; This namespace contains an REPL exploration session on
-;; various possible implementation of a State Machine
-;; in Clojure. There are several characteristics that
-;; I'm keen to explore and achieve in the final system
-;; such as: simplicity, flexibility, robustness,
-;; speed, and more.
-;; I'll be writing several implementations of the
-;; state machine to solve a simple problem
-;; and try to evaluate which compromises I'm making
-;; in regards to the aforementioned characteristics.
-;;
-
-
-;;
-;; TODO: managed transition
-;; TODO: error management
-;; TODO: auto-retry with exponential backoff
-;; TODO: start and stop states
-;;
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                            ;;
-;;            ---==| M I D D L E W A R E   W R A P P E R S |==----            ;;
-;;                                                                            ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defn wrapper-log-state-change
-  "This wrapper logs the state machine transitions to the configured
-  logger. The default log level is :debug, but you can specify a
-  different level."
-  ([handler]
-   (wrapper-log-state-change :debug handler))
-  ([level handler]
-   (fn [sm1]
-     (let [sm2 (handler sm1)]
-       (log/logp (or level :debug) "transition:" (:state sm1) "->" (:state sm2))
-       sm2))))
-
-
-
-(defn wrapper-epoch-counter
-  "This wrapper increments a counter on every transition.
-  Useful to determine whether the state machine is progressing."
-  [handler]
-  (fn [sm]
-    (handler (update sm :epoch (fnil inc 0)))))
-
-
-
-(defn wrapper-error-handler
-  "This wrapper traps exceptions from the underlying handler
-   and setup the error information under the `:machina/latest-errors`
-   key and make a transition to the `:machina/error` state"
-  [handler]
-  (fn [{:keys [state epoch] :as sm}]
-    (try
-      (-> (handler sm)
-          ;; clear error flag in case of successful transition
-          (update :machina/latest-errors dissoc state));; TODO: dissoc-in
-      (catch Throwable x
-        (-> sm
-            (assoc-in  [:machina/latest-errors :from-state] state)
-            (update-in [:machina/latest-errors state :repeated] (fnil inc 0))
-            (update-in [:machina/latest-errors state]
-                       #(merge % {:error-epoch epoch
-                                  :error       x}))
-            (assoc :state :machina/error))))))
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -121,13 +49,13 @@
   (if-not (and (or (fn? nap) (vector? nap) (number? nap)) return-state)
     (halt-machina sm "Invalid :machina/sleep state.")
 
-    ;; nap a little bit
-    (do
+    (do ;; a little nap
       (cond
         (fn?     nap) (nap)
         (vector? nap) (apply safely/sleeper nap)
         (number? nap) (safely/sleep nap))
 
+      ;; set next state to the return-state
       (-> sm
           (assoc  :state  return-state)
           (dissoc :machina/sleep)))))
@@ -136,8 +64,61 @@
 
 (defn error-transition
   "Make the transition from `:machina/error` to the managed target state
-  it uses the defined `:machina/error-policies` and the data
-  from `:machina/latest-errors`
+  it uses the defined `:machina/error-policies` and the error's information
+  from `:machina/latest-errors` to decide how to act and which state to
+  go next. The machina `:machina/latest-errors` is updated by
+  the `wrapper-error-handler`.
+
+      {:state :machina/error
+       ;; latest-errors keeps a map of the latest failures
+       ;; by state.
+       :machina/latest-errors
+       {;; `:machina/from-state` contains which state causes the transition
+        ;; to the error state
+        :machina/from-state :foo,
+        ;; here there is a from state -> last error
+        :foo {;; for every error we keep a counter of how many consecutive
+              ;; of error transition we have in this state
+              :repeated 2,
+              ;; last state-machine epoch error (required `wrapper-epoch-counter`)
+              :error-epoch 24,
+              ;; and the actual error
+              :error Exception}}
+
+       ;; the error policies controls how the un-handled errors are managed
+       ;; this is a map from state -> error policy. The error policy
+       ;; can be one of the predefined policies (see: doc TODO:link),
+       ;; it can be a keyword representing a state where to go,
+       ;; or it can be a function which take the state machine
+       ;; and return an updated state machine.
+       :machina/error-policies
+       {;; the `:machina/default` defines the error policy to use
+        ;; when a state specific error policy is not found.
+        ;; If even the default error handler is not defined
+        ;; the machine will transition to a halted state.
+        :machina/default
+        {:type         :retry
+         :max-retry    :forever
+         :retry-delay [:random-exp-backoff :base 200 :+/- 0.35 :max 60000]}
+
+        ;; additionally you can specify for every other state in you SM
+        ;; what to do in case of error:
+        ;; for example the next policy retries every 5sec with a random
+        ;; variant of +/- 35%.
+        :foo   {:type        :retry
+                :max-retry   :forever
+                :retry-delay [:random 5000 :+/- 0.35]}
+
+        ;; in this case, in case of error in the state `:bar` we go
+        ;; directly to the state `:baz`
+        :bar   :baz
+
+        ;; finally you can run a function which will return a
+        ;; a new state machine in a new state.
+        :bax   (fn [sm] (assoc sm :state :machine/stop))}
+  }
+
+
   "
   [{{:keys [from-state]} :machina/latest-errors
     error-policies :machina/error-policies :as sm}]

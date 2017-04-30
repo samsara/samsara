@@ -1,5 +1,6 @@
 (ns samsara.machina.core-test
-  (:require [samsara.machina.core :refer :all]
+  (:require [samsara.machina.wrappers :refer :all]
+            [samsara.machina.core :refer :all]
             [midje.sweet :refer :all]))
 
 
@@ -109,7 +110,7 @@
          (:state sm) => :machina/error
 
          ;; set the provenance in the :machina/latest-errors
-         (-> sm :machina/latest-errors :from-state) => :foo
+         (-> sm :machina/latest-errors :machina/from-state) => :foo
 
          ;; add the error event in the :machina/latest-errors
          (-> sm :machina/latest-errors :foo :error ex-data) => {:cause :boom}))
@@ -126,7 +127,7 @@
          (:state sm) => :machina/error
 
          ;; set the provenance in the :machina/latest-errors
-         (-> sm :machina/latest-errors :from-state) => :foo
+         (-> sm :machina/latest-errors :machina/from-state) => :foo
 
          ;; the counter has been increased
          (-> sm :machina/latest-errors :foo :repeated) => 2))
@@ -155,7 +156,7 @@
          (:state sm1) => :machina/error
 
          ;; set the provenance in the :machina/latest-errors
-         (-> sm1 :machina/latest-errors :from-state) => :foo
+         (-> sm1 :machina/latest-errors :machina/from-state) => :foo
 
          ;; the counter has been increased
          (-> sm1 :machina/latest-errors :foo :repeated) => 1))
