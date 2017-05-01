@@ -1,4 +1,5 @@
 (ns samsara.machina.wrappers
+  (:refer-clojure :exclude [error-handler])
   (:require [clojure.tools.logging :as log]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -8,12 +9,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defn wrapper-log-state-change
+(defn log-state-change
   "This wrapper logs the state machine transitions to the configured
   logger. The default log level is :debug, but you can specify a
   different level."
   ([handler]
-   (wrapper-log-state-change :debug handler))
+   (log-state-change :debug handler))
   ([level handler]
    (fn [sm1]
      (let [sm2 (handler sm1)]
@@ -22,21 +23,21 @@
 
 
 
-(defn wrapper-epoch-counter
+(defn epoch-counter
   "This wrapper increments a counter on every transition.
   Useful to determine whether the state machine is progressing."
   [handler]
   (fn [sm]
-    (handler (update sm :machiina/epoch (fnil inc 0)))))
+    (handler (update sm :machina/epoch (fnil inc 0)))))
 
 
 
-(defn wrapper-error-handler
+(defn error-handler
   "This wrapper traps exceptions from the underlying handler
    and setup the error information under the `:machina/latest-errors`
    key and make a transition to the `:machina/error` state"
   [handler]
-  (fn [{:keys [state epoch] :as sm}]
+  (fn [{:keys [state machina/epoch] :as sm}]
     (try
       (-> (handler sm)
           ;; clear error flag in case of successful transition

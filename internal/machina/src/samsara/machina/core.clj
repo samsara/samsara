@@ -1,4 +1,5 @@
 (ns samsara.machina.core
+  (:refer-clojure :exclude [error-handler])
   (:require [samsara.machina.wrappers :refer :all]
             [safely.core :as safely]))
 
@@ -36,14 +37,14 @@
          ;; finally it can be a function
          ;; which sleeps for a while.
          ;; :nap (fn [] (Thread/sleep 2500))
-         ;; typically used in conjunction with `safely/sleeper`
+         ;; typically used in conjunction with `safely/sleep`
          ;;
          ;; finally the sleeper state needs to know which
          ;; state does it needs to go after the little nap.
          :return-state :foo}}
 
   After the nap it will set the state to `:return-state`
-  and remove the `:machina/sleeper` key.
+  and remove the `:machina/sleep` key.
   "
   [{{:keys [nap return-state]} :machina/sleep :as sm}]
   (if-not (and (or (fn? nap) (vector? nap) (number? nap)) return-state)
@@ -62,12 +63,45 @@
 
 
 
+(defmulti error-policy
+  "returns a function which operates on the state machine
+  and handles the error according to the given policy"
+  (fn [policy origin-state] (:type policy)))
+
+
+
+(defmethod error-policy :default
+  [{:keys [retry-delay max-retry] :as policy} retry-state]
+  (fn [sm]
+    (halt-machina sm (str "Invalid error policy for state: " retry-state))))
+
+
+;;
+;; TODO: handle max-retry != :forever
+;;
+(defmethod error-policy :retry
+  [{:keys [retry-delay max-retry] :as policy} retry-state]
+  (fn [sm]
+    (let [;; if a nap function already exists (from previous errors)
+          ;; the use it, otherwise create a new one
+          nap (or (get-in sm [:machina/latest-errors retry-state :sleeper])
+                 (apply safely/sleeper retry-delay))]
+      (-> sm
+          ;; save the nap function in the latest-errors
+          (assoc-in [:machina/latest-errors retry-state :sleeper] nap)
+          ;; prepare for the sleep state
+          (assoc :machina/sleep {:nap nap :return-state retry-state})
+          ;; set the next state
+          (assoc :state   :machina/sleep)))))
+
+
+
 (defn error-transition
   "Make the transition from `:machina/error` to the managed target state
   it uses the defined `:machina/error-policies` and the error's information
   from `:machina/latest-errors` to decide how to act and which state to
   go next. The machina `:machina/latest-errors` is updated by
-  the `wrapper-error-handler`.
+  the `error-handler` wrapper.
 
       {:state :machina/error
        ;; latest-errors keeps a map of the latest failures
@@ -80,8 +114,12 @@
         :foo {;; for every error we keep a counter of how many consecutive
               ;; of error transition we have in this state
               :repeated 2,
-              ;; last state-machine epoch error (required `wrapper-epoch-counter`)
+              ;; last state-machine epoch error (required `epoch-counter` wrapper)
               :error-epoch 24,
+              ;; optionally may contain a sleeper function which is used
+              ;; to prepare the next sleep state and sleep of the appropriate
+              ;; amount of time (ex: in exponential back off)
+              ;; :sleeper (fn [] ,,,)
               ;; and the actual error
               :error Exception}}
 
@@ -119,22 +157,21 @@
   }
 
 
+  For more info on available policies please go to the following page:
+  TODO: doc link.
   "
-  [{{:keys [from-state]} :machina/latest-errors
+  [{{:keys [machina/from-state]} :machina/latest-errors
     error-policies :machina/error-policies :as sm}]
-  (if-let [policy (or (get error-policies from-state) (get error-policies :machina/default))]
-    ;; TODO: multimethod dispatch by type?
-    (let [{:keys [retry-delay]} policy
-          nap (or (get-in sm [:latest-errors from-state :sleeper]) (apply safely/sleeper retry-delay))]
-      (-> sm
-          (assoc-in [:latest-errors from-state :sleeper] nap)
-          (assoc :sleeper {:nap nap :return-state from-state})
-          (assoc :state :machina/sleep))
+  (let [policy (or (get error-policies from-state)
+                  (get error-policies :machina/default))]
 
-      )
-    ;; TODO: exception or halted state?
-    (throw (ex-info "no default error policy" sm)))
-  )
+    (cond
+      (nil?     policy) (halt-machina sm (str "State " from-state "raised an un-handled error."))
+      (keyword? policy) (assoc sm :state policy)
+      (fn?      policy) (policy sm)
+      (map?     policy) ((error-policy policy from-state) sm)
+      :else
+      (halt-machina sm (str "Invalid error policy for state: " from-state)))))
 
 
 
