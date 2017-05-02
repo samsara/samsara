@@ -55,3 +55,30 @@
                        #(merge % {:error-epoch epoch
                                   :error       x}))
             (assoc :state :machina/error))))))
+
+
+
+(defn log-errors
+  "This wrapper logs the errors from the state machine transitions"
+  ([handler]
+   (log-errors :warn handler))
+  ([level handler]
+   (fn [{:keys [state] :as sm1}]
+     (try
+       (handler sm1)
+       (catch Throwable x
+         (log/logp (or level :warn)
+                   x "error in transition from state:" state)
+         (throw x))))))
+
+
+
+(defn trace-recent-states
+  "This wrapper captures the recent states into a sequence
+   (in reverse order) into `:machina/recent-states`"
+  ([handler]
+   (fn [{:keys [state machina/recent-states] :as sm1}]
+     (let [recent-states (or recent-states (list state))
+           sm2 (handler sm1)]
+       (assoc sm2 :machina/recent-states
+              (cons (:state sm2) recent-states))))))

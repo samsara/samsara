@@ -199,6 +199,14 @@
 
 
 
+(defn simple-machina
+  [sm]
+  (->> sm
+       (remove (comp #(= "machina" (namespace %)) first))
+       (into {})))
+
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
 ;;                        ---==| M A C H I N A |==----                        ;;
@@ -254,6 +262,7 @@
   ;; write to file example
   (def sm
     (-> (default-machina)
+        (update :machina/wrappers conj log-errors)
         (with-dispatch :machina/start
           (fn
             [sm]
