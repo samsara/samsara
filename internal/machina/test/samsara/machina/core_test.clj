@@ -247,3 +247,80 @@
          (:state sm) => :machina/sleep
          (-> sm :machina/sleep :return-state) => :foo))
  )
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;            ---==| M A C H I N A   T R A N S I S T I O N |==----            ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(facts
+ "on transition"
+
+
+ (fact "a transition from stop leads to stop without change"
+
+       (let [sm (-> (default-machina)
+                    (assoc :state :machina/stop))
+             sm1 (transition sm)]
+
+         sm => sm1))
+
+
+ (fact "from start to stop"
+
+       (let [sm (-> (default-machina)
+                    (with-dispatch :machina/start (move-to :machina/stop))
+                    transition)]
+
+         (-> sm :state) => :machina/stop))
+
+
+ (fact "from start to undefined state"
+
+       (let [sm (-> (default-machina)
+                    (with-dispatch :machina/start (move-to :undefined))
+                    transition
+                    transition)]
+
+         (-> sm :state) => :machina/halted
+         (-> sm :machina/halted) => {:form-state :undefined,
+                                     :reason "Undefined state::undefined"}))
+
+
+ (fact "transitioning a halted sm throws and exception"
+
+       (let [sm (-> (default-machina)
+                    (with-dispatch :machina/start (move-to :undefined))
+                    transition
+                    transition)]
+
+         (-> sm :state) => :machina/halted
+         (-> sm :machina/halted) => {:form-state :undefined,
+                                     :reason "Undefined state::undefined"}
+         (transition sm) => (throws Exception)))
+
+ )
+
+
+
+(defn- twrap
+  "helper function to test wrapper's behaviour"
+  [n h]
+  (fn [v]
+    (concat [n] (h v) [n])))
+
+
+
+
+(facts
+ "on reduce-wrappers"
+
+ (fact "wrappers are called in the given order"
+
+       () )
+
+ )

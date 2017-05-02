@@ -2,6 +2,11 @@
   (:refer-clojure :exclude [error-handler])
   (:require [clojure.tools.logging :as log]))
 
+;; TODO: dynamic tracing map
+;; TODO: last-x tracing
+;; TODO: performance tracing
+;; TODO: error logger
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
 ;;            ---==| M I D D L E W A R E   W R A P P E R S |==----            ;;

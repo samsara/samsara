@@ -174,98 +174,101 @@
       (halt-machina sm (str "Invalid error policy for state: " from-state)))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;               ---==| H E L P E R   F U N C T I O N S |==----               ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TODO: simple-machine stripped off internal stuff
+;; TODO: display-machine
+
+;; TODO: doc
+(defn with-dispatch
+  ""
+  {:style/indent 1}
+  [sm state f]
+  (assoc-in sm [:machina/dispatch state] f))
+
+
+(defn move-to
+  ;;TODO: doc
+  ([state]
+   (fn [sm] (assoc sm :state state)))
+  ([sm state]
+   (assoc sm :state state)))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;                        ---==| M A C H I N A |==----                        ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defn default-machina
+  []
+  {:state :machina/start
+   :machina/epoch 0
+   :data  nil
+
+   :machina/dispatch
+   {:machina/stop   ^:no-wrap (fn [sm] sm)
+    :machina/halted ^:no-wrap (fn [sm] (throw (ex-info "Machina is halted." sm)))
+    :machina/sleep  sleep-transition
+    :machina/error  error-transition}
+
+   :machina/error-policies
+   {:machina/default
+    {:type        :retry
+     :max-retry   :forever
+     :retry-delay [:random-exp-backoff :base 200 :+/- 0.35 :max 60000]}
+    }
+   :machina/wrappers
+   [#'epoch-counter #'log-state-change #'error-handler]})
+
+
+
+(defn- reduce-wrappers
+  ([] identity)
+  ([f] f)
+  ([f g] (g f))
+  ([f g & fs]
+   (reduce reduce-wrappers (concat [f g] fs))))
+
+
+
+(defn transition
+  [{:keys [state machina/dispatch machina/wrappers] :as sm}]
+  (let [f0 (get dispatch state #(halt-machina % (str "Undefined state:" state)))
+        f  (if (:no-wrap (meta f0))
+             f0
+             (apply reduce-wrappers (cons f0 (reverse wrappers))))]
+    (f sm)))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (comment
-
-
-
-  (comment
-    (sleep-state
-     (error-dispatch
-      ((error-state
-        (fn [_] (throw (ex-info "boom" {}))))
-       {:state :foo
-        :error-policies
-        {:machina/default {:type        :retry
-                           :max-retry   :forever
-                           :retry-delay [:random-exp-backoff :base 3000 :+/- 0.35 :max 25000]}}
-
-        :wrappers
-        [#'epoch-counter #'log-state-change #'error-state]}))))
-
-
-  (defn- wrapper
-    ([] identity)
-    ([f] f)
-    ([f g] (g f))
-    ([f g & fs]
-     (reduce wrapper (concat [f g] fs))))
-
-  (comment
-    (defn mh [n]
-      (fn [h]
-        (fn [sm]
-          (println n)
-          (h sm))))
-
-    (def f1 (mh 1))
-    (def f2 (mh 2))
-    (def f3 (mh 3))
-    (def f4 (mh 4))
-
-    ((wrapper identity f4 f3 f2 f1) {}))
-
 
   ;; write to file example
   (def sm
-    {:state :machina/start
-     :epoch 0
-     :data nil
+    (-> (default-machina)
+        (with-dispatch :machina/start
+          (fn
+            [sm]
+            (assoc sm
+                   :data "/tmp/1/2/3/4/5/file.txt"
+                   :state :write-to-file)))
 
-     :dispatch
-     {:machina/stop identity
-      :machina/start
-      (fn
-        [sm]
-        (assoc sm
-               :data "/tmp/1/2/3/4/5/file.txt"
-               :state :write-to-file))
+        (with-dispatch :write-to-file
+          (fn
+            [{f :data :as sm}]
+            (write-to-file f)
+            (assoc sm
+                   :state :machina/sleep
+                   :sleeper {:nap 1000 :return-state :write-to-file})))))
 
-      :write-to-file
-      (fn
-        [{f :data :as sm}]
-        (write-to-file f)
-        (assoc sm
-               :state :machina/sleep
-               :sleeper {:nap 1000 :return-state :write-to-file}))
-
-      :machina/sleep sleep-state
-      :machina/error error-dispatch
-      }
-
-     :error-policies
-     {:machina/default {:type        :retry
-                        :max-retry   :forever
-                        :retry-delay [:random-exp-backoff :base 300 :+/- 0.35 :max 25000]}
-
-      :_write-to-file   {:type        :retry
-                         :max-retry   :forever
-                         :retry-delay [:random 3000 :+/- 0.35]}}
-
-     :wrappers
-     [#'epoch-counter #'log-state-change #'error-state]})
-
-
-  (defn bad-state [sm]
-    (throw (ex-info "Invalid state" sm)))
-
-  (defn transition
-    [{:keys [state data dispatch wrappers] :as sm}]
-    (let [f0 (get dispatch state bad-state)
-          f  (apply wrapper (cons f0 (reverse wrappers)))]
-      (f sm)))
 
 
   (comment
@@ -278,10 +281,20 @@
         transition
         )
 
+    (defn changing []
+      (let [s (volatile! nil)]
+        (fn [v]
+          (let [continue (not= v @s)]
+            (vswap! s (constantly v))
+            continue))))
+
+    (def x (changing))
+
     (->> sm
          (iterate transition)
          (take 20)
          #_(take-while #(not= :machina/stop (:state %)))
+         (take-while changing)
          (last))
 
 
