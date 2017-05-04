@@ -179,8 +179,6 @@
 ;;               ---==| H E L P E R   F U N C T I O N S |==----               ;;
 ;;                                                                            ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; TODO: simple-machine stripped off internal stuff
-;; TODO: display-machine
 
 ;; TODO: doc
 (defn with-dispatch
@@ -199,12 +197,30 @@
 
 
 
-(defn simple-machina
-  [sm]
-  (->> sm
-       (remove (comp #(= "machina" (namespace %)) first))
-       (into {})))
+(defn move-if
+  ([pred? then-state else-state]
+   (fn [sm]
+     (if (pred? sm )
+       (move-to sm then-state)
+       (move-to sm else-state))))
+  ([sm pred? then-state else-state]
+   (if (pred? sm )
+     (move-to sm then-state)
+     (move-to sm else-state))))
 
+
+
+(defn simple-machina
+  "it return a simplified representation of the state machine
+   which doesn't contain all internal keys and displays the
+   remaining keys in alphabetic order with the `:state` as
+   first key."
+  [{:keys [state] :as sm}]
+  (->> (dissoc sm :state)
+       (remove (comp #(= "machina" (namespace %)) first))
+       (sort-by first)
+       (concat [[:state state]])
+       (into (array-map))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -286,8 +302,9 @@
         transition
         transition
         transition
-        transition
-        transition
+        #_transition
+        #_transition
+        simple-machina
         )
 
     (defn changing []
