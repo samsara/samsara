@@ -33,7 +33,7 @@
 ;; The key where all dispatching functions are configured
 ;; is called `:machina/dispatch`
 ;; If the above conventions are respected then you can use
-;; a set of common functions and transitions which greately
+;; a set of common functions and transitions which greatly
 ;; simplify your work.
 ;; The machina's way to transition from state to state
 ;; is by using a function called `transition`.
@@ -144,6 +144,50 @@
      (iterate transition)
      (take-while #(not= :machina/stop (:state %)))
      (map simple-machina))
+
+
+
+;;
+;; What if i wanted to display all the state transitions?
+;; Once approach would be to add a `println` statement
+;; on every transition. But there is a better way.
+;; In machina we support wrappers. This are functions
+;; that take an handler function in input and return
+;; a function which handle the state-machine by
+;; wrapping the input handler.
+;;
+
+(defn show-transitions [handler]
+  (fn [{:keys [state] :as sm}]
+    (let [sm1 (handler sm)]
+      (println "\ntransition: from:" state "-->" (:state sm1))
+      sm1)))
+
+(def sm
+  (-> {:state :machina/start
+       :machina/wrappers [#'show-transitions]}
+
+      ;; :start -> :count-down
+      (with-dispatch :machina/start
+        (fn [sm]
+          (-> sm
+              (assoc-in [:data :counter] 5)
+              (move-to :count-down))))
+
+      ;; :count-down -> :count-down/:stop
+      (with-dispatch :count-down
+        (fn [sm]
+          (-> sm
+              (update-in [:data :counter] dec)
+              (move-if #(> (-> % :data :counter) 0)
+                       :count-down :machina/stop))))))
+
+
+(->> sm
+     (iterate transition)
+     (take-while #(not= :machina/stop (:state %)))
+     (map simple-machina))
+
 
 
 
