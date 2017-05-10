@@ -3,6 +3,7 @@
   (:require [samsara.machina.wrappers :refer :all]
             [safely.core :as safely]))
 
+;; TODO: with-fns* + with-macros ?
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;

@@ -147,6 +147,20 @@
 
 
 
+;; lets' get the last state too.
+(defn until-stopped []
+  (let [s (volatile! nil)]
+    (fn [{:keys [state] :as v}]
+      (let [continue (not= :machina/stop @s)]
+        (vswap! s (constantly state))
+        continue))))
+
+
+(->> sm
+     (iterate transition)
+     (take-while (until-stopped))
+     (map simple-machina))
+
 ;;
 ;; What if i wanted to display all the state transitions?
 ;; Once approach would be to add a `println` statement
@@ -160,7 +174,7 @@
 (defn show-transitions [handler]
   (fn [{:keys [state] :as sm}]
     (let [sm1 (handler sm)]
-      (println "\ntransition: from:" state "-->" (:state sm1))
+      (println "transition: from:" state "-->" (:state sm1))
       sm1)))
 
 (def sm
@@ -185,10 +199,54 @@
 
 (->> sm
      (iterate transition)
-     (take-while #(not= :machina/stop (:state %)))
-     (map simple-machina))
+     (take-while (until-stopped))
+     last
+     simple-machina)
 
 
 
+;;
+;; Let see how to handle errors. In this example I want
+;; to write to a file once a second when possible.
+;; (aka: write folder is available)
+;;
+
+(defn write-to-file! [f]
+  (spit f
+        (str (java.util.Date.) \newline)
+        :append true))
+
+
+(def sm
+  (-> {:state :machina/start
+       :machina/wrappers [#'show-transitions]}
+
+      ;; :start -> :write-to-file
+      (with-dispatch :machina/start
+        (fn [sm]
+          (-> sm
+              (assoc-in [:data :file] "/tmp/3/2/1/file.txt")
+              (move-to :write-to-file))))
+
+      ;; :write-to-file -> :sleep
+      (with-dispatch :write-to-file
+        (fn
+          [sm]
+          (write-to-file! (-> sm :data :file))
+          (-> sm
+              (assoc-in [:data :sleep-time 1000])
+              (move-to :sleep))))
+
+      ;; :sleep -> :write-to-file
+      (with-dispatch :sleep
+        (fn
+          [sm]
+          (Thread/sleep (get-in sm [:data :sleep-time]))
+          (move-to sm :write-to-file)))))
+
+
+(-> sm
+    transition
+    transition)
 
 ;; end
