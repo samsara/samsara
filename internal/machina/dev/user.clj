@@ -1,5 +1,6 @@
 (ns user
-  (:require [samsara.machina.core :refer :all]))
+  (:require [samsara.machina.core :refer :all]
+            [clojure.tools.logging :as log]))
 
 ;;
 ;; # Basic concepts
@@ -234,7 +235,7 @@
           [sm]
           (write-to-file! (-> sm :data :file))
           (-> sm
-              (assoc-in [:data :sleep-time 1000])
+              (assoc-in [:data :sleep-time] 1000)
               (move-to :sleep))))
 
       ;; :sleep -> :write-to-file
@@ -245,8 +246,93 @@
           (move-to sm :write-to-file)))))
 
 
+;; exception thrown at the second transition
 (-> sm
     transition
-    transition)
+    transition
+    )
+
+;;
+;; Manage errors transition-by-transition
+;;
+(def sm
+  (-> {:state :machina/start
+       :machina/wrappers [#'show-transitions]}
+
+      ;; :start -> :write-to-file
+      (with-dispatch :machina/start
+        (fn [sm]
+          (-> sm
+              (assoc-in [:data :file] "/tmp/3/2/1/file.txt")
+              (move-to :write-to-file))))
+
+      ;; :write-to-file -> :sleep
+      (with-dispatch :write-to-file
+        (fn
+          [sm]
+          ;; HERE: adding error handling logic
+          (try
+            (write-to-file! (-> sm :data :file))
+            (catch Exception x
+              (log/warn "got an error:" (.getMessage x))))
+          (-> sm
+              (assoc-in [:data :sleep-time] 1000)
+              (move-to :sleep))))
+
+      ;; :sleep -> :write-to-file
+      (with-dispatch :sleep
+        (fn
+          [sm]
+          (Thread/sleep (get-in sm [:data :sleep-time]))
+          (move-to sm :write-to-file)))))
+
+(-> sm
+    transition
+    transition
+    transition
+    )
+
+
+;;
+;; Manage errors with wrapper
+;;
+
+(-> (default-machina) :machina/wrappers)
+
+(def sm
+  (-> (default-machina)
+
+      ;; :start -> :write-to-file
+      (with-dispatch :machina/start
+        (fn [sm]
+          (-> sm
+              (assoc-in [:data :file] "/tmp/3/2/1/file.txt")
+              (move-to :write-to-file))))
+
+      ;; :write-to-file -> :sleep
+      (with-dispatch :write-to-file
+        (fn
+          [sm]
+          ;; HERE: adding error handling logic
+          (write-to-file! (-> sm :data :file))
+          (-> sm
+              (assoc-in [:data :sleep-time] 1000)
+              (move-to :sleep))))
+
+      ;; :sleep -> :write-to-file
+      (with-dispatch :sleep
+        (fn
+          [sm]
+          (Thread/sleep (get-in sm [:data :sleep-time]))
+          (move-to sm :write-to-file)))))
+
+(->> sm
+     (iterate transition)
+     (take 20)
+     (map simple-machina)
+     )
+
+;; check default policies
+(default-machina)
 
 ;; end
