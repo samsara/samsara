@@ -73,8 +73,7 @@
   [events-seq & {:keys [publishedTimestamp]}]
   (if-let [errors (is-invalid? events-seq)]
     {:status :error :error-msgs (map #(if % (str %) :OK) errors)}
-    (do
       (as-> events-seq $$
         (inject-receivedAt (System/currentTimeMillis) $$)
         (inject-publishedAt publishedTimestamp $$)
-        {:status :success :processed-events $$}))))
+      {:status :success :processed-events $$})))

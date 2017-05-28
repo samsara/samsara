@@ -7,7 +7,7 @@
             [ingestion-api.core.processors :refer [process-events]]
             [ingestion-api.input.route-util
              :refer
-             [catch-all gzip-req-wrapper not-found wrap-reload wrap-app]]
+             [catch-all wrap-gzip-requests not-found wrap-reload wrap-app]]
             [ingestion-api.status :refer [is-online?]]
             [ring.middleware.json :as json]
             [ring.util.response :refer :all :exclude [not-found]]
@@ -118,7 +118,7 @@
   (-> (app-routes backend)
       (json/wrap-json-body {:keywords? true})
       (json/wrap-json-response)
-      (gzip-req-wrapper)
+      (wrap-gzip-requests)
       catch-all))
 
 

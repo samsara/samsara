@@ -140,8 +140,8 @@ DESCRIPTION
   [config-file]
   (let [config (read-config config-file)]
 
-    (init-log!      (-> config :log))
-    (init-tracking! (-> config :tracking))
+    (init-log!      (:log config))
+    (init-tracking! (:tracking config))
 
     config))
 
@@ -158,6 +158,7 @@ DESCRIPTION
       (let [_ (println (headline))
             {config-file :config} options
             config (init! config-file)]
-        (-> (ingestion-api-system config)
-            (component/start))
-        (println "\nSamsara's ingestion-api is ready.!!!\n")))))
+        (component/start
+         (ingestion-api-system config))
+        (println "\nSamsara's ingestion-api is ready.!!!\n")
+        @(promise)))))

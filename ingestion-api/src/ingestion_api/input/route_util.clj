@@ -3,9 +3,9 @@
             [clojure.pprint :refer [pprint]]
             [compojure.core :refer [rfn]]
             [ns-tracker.core :refer [ns-tracker]]
-            [taoensso.timbre :as log])
-  (:import [java.io ByteArrayInputStream ByteArrayOutputStream InputStream]
-           java.util.zip.GZIPInputStream))
+            [taoensso.timbre :as log]
+            [clojure.string :as str])
+  (:import java.util.zip.GZIPInputStream))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
@@ -22,31 +22,30 @@
     (dissoc m k)))
 
 
-(defn is-gzipped [req]
+(defn gzipped? [req]
   (= "gzip"
-     (clojure.string/lower-case
+     (str/lower-case
       (get-in req [:headers "content-encoding"] ""))))
 
 
 
-(defn gunzip-request [req]
-  (let [body (req :body)
-        bout (ByteArrayOutputStream.)
-        in  (GZIPInputStream. body)
-        req (dissoc-in req [:headers "content-encoding"])]
-    (io/copy in bout)
-    (if (instance? InputStream body)
-      (.close body))
-    (assoc req :body (ByteArrayInputStream. (.toByteArray bout)))))
+(defn- gunzip-request [{:keys [body] :as req}]
+  (if body
+    (-> req
+        (update :body (fn [is] (GZIPInputStream. (io/input-stream is))))
+        (dissoc-in [:headers "content-encoding"]))
+    req))
 
 
 
-(defn gzip-req-wrapper [handler]
+(defn wrap-gzip-requests
+  "if the request has content-enconding: gzip it automatically
+   decompress the body"
+  [handler]
   (fn [req]
-    (if (is-gzipped req)
+    (if (gzipped? req)
       (handler (gunzip-request req))
       (handler req))))
-
 
 
 (defn pretty-print-str
