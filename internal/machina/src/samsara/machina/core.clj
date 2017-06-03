@@ -224,6 +224,28 @@
        (into (array-map))))
 
 
+(defn until-stopped
+  "Returns a predicate function which can be used
+   to evaluate whether the machine is in a final
+   state such as `:machina/stop` or `:machina/halted`.
+   The returned function wraps around a volatile state.
+   The typical use is with `take-while`
+   ex:
+
+       (->> sm
+         (iterate transaction)
+         (take-while (until-stopped)))
+
+  "
+  []
+  (let [s (volatile! nil)]
+    (fn [{:keys [state] :as v}]
+      (let [continue? (not ;; a terminal state
+                       (or (= :machina/stop @s)
+                          (= :machina/halted @s))) ]
+        (vswap! s (constantly state))
+        continue?))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
 ;;                        ---==| M A C H I N A |==----                        ;;
@@ -233,22 +255,23 @@
 
 (defn default-machina
   []
-  {:state :machina/start
-   :machina/epoch 0
-   :data  nil
+  {:state            :machina/start
+   :machina/epoch    0
+   :data             nil
 
    :machina/dispatch
-   {:machina/stop   ^:no-wrap (fn [sm] sm)
-    :machina/halted ^:no-wrap (fn [sm] (throw (ex-info "Machina is halted." sm)))
-    :machina/sleep  sleep-transition
-    :machina/error  error-transition}
+   {:machina/stop    ^:no-wrap (fn [sm] sm)
+    :machina/halted  ^:no-wrap (fn [sm] (throw (ex-info "Machina is halted." sm)))
+    :machina/sleep   sleep-transition
+    :machina/error   error-transition}
 
    :machina/error-policies
    {:machina/default
-    {:type        :retry
-     :max-retry   :forever
-     :retry-delay [:random-exp-backoff :base 200 :+/- 0.35 :max 60000]}
+    {:type           :retry
+     :max-retry      :forever
+     :retry-delay    [:random-exp-backoff :base 200 :+/- 0.35 :max 60000]}
     }
+
    :machina/wrappers
    [#'epoch-counter #'log-state-change #'error-handler]})
 

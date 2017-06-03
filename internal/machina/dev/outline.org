@@ -1,0 +1,42 @@
+* machina
+** concepts
+*** basic concepts
+   - it is a map
+   - it contains a key called `:state` which
+     indicates the "current state".
+   - the initial state is `:machina/start`
+   - the final state is `:machina/stop`
+   - by default, if you attempt to transition from `:machina/stop`
+     you receive the same sm that you stated with.
+     It is called the `identity` transition.
+   - each state correspond to an action called `transition`
+   - each transition is just a function form state to state
+     f(sm) -> sm'
+   - if the machine doesn't know how to transition to the next
+   - state it goes to a `:machina/halted` state.
+   - by default, if you attempt to transition from `:machina/halted`
+     an exception will be thrown.
+
+*** basic diaptch model fn vs multi-methods
+
+   - transitions stored in `:machina/dispatch`
+   - one function to transition from a state to another
+     and it is called `transition`
+
+** examples
+*** simplest machine from start -> stop
+   - intro `with-dispatch`
+   - intro `move-to`
+*** simple counter: start -> count-down -> stop
+   - iterate
+   - take-while stop
+   - intro `simple-machina`
+   - intro `move-if`
+   - intro `until-stopped`
+   - intro wrappers with show-transitions
+*** write-to-file: :start -> :write-to-file <-> :sleep
+   - let it blow
+   - Manage errors transition-by-transition
+   - intro `default-machina`
+   - intro `default-wrapper`
+   - introduce error management

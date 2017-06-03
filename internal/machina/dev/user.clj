@@ -149,14 +149,6 @@
 
 
 ;; lets' get the last state too.
-(defn until-stopped []
-  (let [s (volatile! nil)]
-    (fn [{:keys [state] :as v}]
-      (let [continue (not= :machina/stop @s)]
-        (vswap! s (constantly state))
-        continue))))
-
-
 (->> sm
      (iterate transition)
      (take-while (until-stopped))
@@ -336,3 +328,11 @@
 (default-machina)
 
 ;; end
+
+
+;;
+;; Possible extensions:
+;;
+;; * graph? dynamic? static?
+;; * global atom handling functions
+;; * deftrans* style macros
