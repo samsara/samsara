@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Samsara SDK default configuration.
 type Config struct {
 	// Samsara ingestion api endpoint "http://samsara-ingestion.local/"
 	url string
@@ -45,6 +46,8 @@ type Config struct {
 	// send_client_stats bool
 }
 
+// Creates a new Config with all default values.
+// Later you may want to replace them with specific values.
 func NewConfig() Config {
 	config := Config{}
 	config.url = ""
@@ -59,6 +62,7 @@ func NewConfig() Config {
 	return config
 }
 
+// Validates given configuration values.
 func (c *Config) Validate() error {
 	switch {
 	case len(c.url) == 0:
@@ -74,6 +78,7 @@ func (c *Config) Validate() error {
 	}
 }
 
+// Generates current timestamp.
 func timestamp() int64 {
 	return time.Now().UnixNano() / 1000000
 }
