@@ -10,24 +10,24 @@ import (
 	"time"
 )
 
-// Samsara specific HTTP Header.
+// PUBLISHED_TIMESTAMP_HEADER is Samsara specific HTTP Header.
 const PUBLISHED_TIMESTAMP_HEADER = "X-Samsara-publishedTimestamp"
 
-// Samsara Ingestion API endpoint.
+// API_PATH is Samsara Ingestion API endpoint.
 const API_PATH = "/v1/events"
 
-// Interface of publishing data.
+// IPublisher interface for publishing data.
 // Used mainly for test purpopses.
 type IPublisher interface {
 	Post(data []Event) bool
 }
 
-// Physical connector that Publishes messages to Samsara Ingestion API.
+// Publisher is a physical connector that Publishes messages to Samsara Ingestion API.
 type Publisher struct {
 	config Config
 }
 
-// Sends message to Ingestion API.
+// Post sends message to Ingestion API.
 func (p *Publisher) Post(data []Event) bool {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -35,17 +35,17 @@ func (p *Publisher) Post(data []Event) bool {
 	}
 
 	var buffer *bytes.Buffer
-	if p.config.compression == "gzip" {
+	if p.config.Compression == "gzip" {
 		buffer = gzipWrap(jsonData)
 	} else {
 		buffer = noneWrap(jsonData)
 	}
 
-	req, _ := http.NewRequest("POST", strings.Trim(p.config.url, "/")+API_PATH, buffer)
+	req, _ := http.NewRequest("POST", strings.Trim(p.config.Url, "/")+API_PATH, buffer)
 	p.setHeaders(req)
 
 	client := &http.Client{
-		Timeout: time.Duration(p.config.send_timeout_ms) * time.Millisecond,
+		Timeout: time.Duration(p.config.SendTimeout) * time.Millisecond,
 	}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -54,15 +54,14 @@ func (p *Publisher) Post(data []Event) bool {
 
 	if resp.StatusCode == 202 {
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 // Helper method to generate HTTP request headers for Ingestion API.
 func (p *Publisher) setHeaders(req *http.Request) {
 	var compression string
-	if p.config.compression == "gzip" {
+	if p.config.Compression == "gzip" {
 		compression = "gzip"
 	} else {
 		compression = "identity"
@@ -70,7 +69,7 @@ func (p *Publisher) setHeaders(req *http.Request) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", compression)
-	req.Header.Set(PUBLISHED_TIMESTAMP_HEADER, strconv.FormatInt(timestamp(), 10))
+	req.Header.Set(PUBLISHED_TIMESTAMP_HEADER, strconv.FormatInt(Timestamp(), 10))
 }
 
 // Gzip wrapper for data.
