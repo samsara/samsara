@@ -5,8 +5,10 @@ import (
 	"strings"
 )
 
+// Event for Samsara Ingestion API.
 type Event map[string]interface{}
 
+// Enriches missing event properties with ones from config.
 func (e Event) enrich(config Config) {
 	if e["sourceId"] == nil {
 		e["sourceId"] = config.sourceId
@@ -16,6 +18,7 @@ func (e Event) enrich(config Config) {
 	}
 }
 
+// Validates event to conform Ingestion API requirements.
 func (e Event) validate() error {
 	mainMsg := "Field '%s' is required and must be of %s type"
 	notBlankMsg := "Field '%s' can't be blank"
