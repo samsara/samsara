@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 )
 
-// Thread-safe ring-buffer data queue tailored for Samsara Client.
+// RingBuffer is a thread-safe ring-buffer data queue tailored for Samsara Client.
 type RingBuffer struct {
 	size   int64
 	low    int64
@@ -14,7 +14,7 @@ type RingBuffer struct {
 	sync.Mutex
 }
 
-// Create new ring buffer with given capacity.
+// NewRingBuffer creates new ring buffer with given capacity.
 func NewRingBuffer(capacity int64) *RingBuffer {
 	return &RingBuffer{
 		size:   capacity,
@@ -24,27 +24,27 @@ func NewRingBuffer(capacity int64) *RingBuffer {
 	}
 }
 
-// Get overall capacity of a buffer.
+// Size gets overall capacity of a buffer.
 func (r *RingBuffer) Size() int64 {
 	return atomic.LoadInt64(&r.size)
 }
 
-// Get current number of items in buffer.
+// Count gets current number of items in buffer.
 func (r *RingBuffer) Count() int64 {
 	return atomic.LoadInt64(&r.high) - atomic.LoadInt64(&r.low)
 }
 
-// Is buffer empty?
+// IsEmpty answers whether buffer is empty.
 func (r *RingBuffer) IsEmpty() bool {
 	return r.Count() == 0
 }
 
-// Is buffer full?
+// IsFull answers whether buffer is full.
 func (r *RingBuffer) IsFull() bool {
 	return r.Count() == r.Size()
 }
 
-// Puts element into buffer.
+// Push puts element into buffer.
 func (r *RingBuffer) Push(event Event) {
 	r.Lock()
 	defer r.Unlock()
@@ -58,7 +58,7 @@ func (r *RingBuffer) Push(event Event) {
 	}
 }
 
-// Extract all existing elements out of buffer and return them in FIFO order.
+// Flush extracts all existing elements out of buffer and return them in FIFO order.
 // Accepts optional function that processes data and returns success of the processing.
 // Elements are deleted based on the result of consumer function and deleted always if no consumer provided.
 func (r *RingBuffer) Flush(consumerFn ...func([]Event) bool) []Event {
