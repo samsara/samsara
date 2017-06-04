@@ -32,4 +32,5 @@ document.
 | Python3    | Y           | Y            | Y             | GZIP        | N           | N        |
 | Ruby       | Y           | Y            | Y             | GZIP        | N           | N        |
 | iOS        | Y           | Y            | Y             | N           | Y           | Y        |
+| Go         | Y           | Y            | Y             | GZIP        | N           | N        |
 | Logger     | Y           | Y            | Y             | GZIP        | N           | N        |
