@@ -17,7 +17,7 @@
    - by default, if you attempt to transition from `:machina/halted`
      an exception will be thrown.
 
-*** basic diaptch model fn vs multi-methods
+*** basic diapatch model fn vs multi-methods
 
    - transitions stored in `:machina/dispatch`
    - one function to transition from a state to another
