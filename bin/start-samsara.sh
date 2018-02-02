@@ -14,7 +14,7 @@ BASE=$(cd $(dirname $0)/../docker-images && pwd)
 SAM=$BASE/..
 VER=${1:-latest}
 BVER=${2:-master}
-[ `uname` == "Darwin" ] && export SED=gsed || export SED=sed
+[ `uname` == "Darwin" ] && export SED=sed || export SED=gsed
 
 
 echo ''
