@@ -1,0 +1,14 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/clojure:lein-2.7.1
+
+    working_directory: ~/repo
+
+    environment:
+      LEIN_ROOT: "true"
+
+    steps:
+      - checkout
+      - run: ./bin/build-test-snapshot.sh && ./bin/publish-snapshot-containers.sh CI
