@@ -8,6 +8,7 @@ jobs:
 
     environment:
       LEIN_ROOT: "true"
+      DISPLAY: ":0.0"
 
     steps:
       - checkout
